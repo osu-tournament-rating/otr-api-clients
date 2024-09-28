@@ -1,0 +1,34 @@
+name: Continuous Deployment npm
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'src/clients/ts'
+
+jobs:
+  publish_npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    environment: npm_publish
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          path: 'src/clients/ts'
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          provenance: true

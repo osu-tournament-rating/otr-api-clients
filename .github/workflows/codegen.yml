@@ -7,8 +7,12 @@ on:
       - 'nswag.json'
       - '**.liquid'
 
+env:
+  TS_CLIENT_CHANGED: false
+
 jobs:
   generate_client:
+    name: Generate Client Code
     runs-on: ubuntu-latest
 
     permissions:
@@ -28,6 +32,30 @@ jobs:
 
     - name: Generate Clients
       run: nswag run
+
+    - name: Detect Code Changes
+      id: changes
+      uses: jitterbit/get-changed-files@v1
+
+    - name: Detect TS Client Code Change
+      run: | 
+        if [[ ${{ steps.changes.outputs.modified }} == *"index.ts"* ]]; then
+          echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
+        else
+          echo "TS_CLIENT_CHANGED=false" >> $GITHUB_ENV
+        fi
+
+    - name: Setup node
+      if: env.TS_CLIENT_CHANGED == true
+      uses: actions/setup-node@v3
+      with:
+        node-version: "20"
+
+    - name: Bump TS Client Package Version
+      if: env.TS_CLIENT_CHANGED == true
+      run: |
+        cd src/clients/ts
+        npm version patch
 
     - name: Commit Changes
       uses: stefanzweifel/git-auto-commit-action@v5
