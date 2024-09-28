@@ -46,7 +46,7 @@
       "importRequiredTypes": true,
       "useGetBaseUrlMethod": false,
       "templateDirectory": "src/templates/ts",
-      "output": "src/clients/ts/OtrApiClient.ts",
+      "output": "src/clients/ts/index.ts",
       "newLineBehavior": "Auto"
     }
   }
