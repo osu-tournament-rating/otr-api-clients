@@ -1,7 +1,11 @@
 name: Client Code Generation
 
 on: 
-  push
+  push:
+    paths:
+      - 'swagger.json'
+      - 'nswag.json'
+      - '**.liquid'
 
 jobs:
   generate_client:
