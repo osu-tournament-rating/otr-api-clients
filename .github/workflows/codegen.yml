@@ -1,0 +1,31 @@
+name: Client Code Generation
+
+on: 
+  push
+
+jobs:
+  generate_client:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Setup NSwag CLI
+      run: dotnet tool install --global Nswag.ConsoleCore
+
+    - name: Generate Clients
+      run: nswag run
+
+    - name: Commit Changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+          commit_message: Automated client code generation
