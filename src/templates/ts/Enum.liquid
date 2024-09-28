@@ -1,0 +1,19 @@
+{%- if HasDescription -%}
+{%- if ExtensionData.x-bitwiseFlag -%}
+/**
+* {{ Description }}
+*
+* Bitwise flag
+*/
+{%- else -%}
+/** {{ Description }} */
+{%- endif -%}
+{%- endif -%}
+{% if ExportTypes %}export {% endif %}enum {{ Name }} {
+{%- for enumeration in Enums -%}
+    {%- if ExtensionData.x-enumDescriptions[forloop.index0] != "" -%}
+    /** {{ ExtensionData.x-enumDescriptions[forloop.index0] }} */
+    {%- endif -%}
+    {{ enumeration.Name }} = {{ enumeration.Value }},
+{%- endfor -%}
+}

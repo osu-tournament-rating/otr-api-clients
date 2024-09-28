@@ -1,0 +1,53 @@
+{
+  "runtime": "Net80",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "swagger.json",
+      "output": null,
+      "newLineBehavior": "Auto"
+    }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "className": "{controller}Wrapper",
+      "typeScriptVersion": 4.3,
+      "template": "Fetch",
+      "promiseType": "Promise",
+      "httpClass": "HttpClient",
+      "dateTimeType": "Date",
+      "nullValue": "Undefined",
+      "generateClientClasses": true,
+      "generateOptionalParameters": true,
+      "exportTypes": true,
+      "exceptionClass": "OtrApiException",
+      "clientBaseClass": null,
+      "wrapResponses": true,
+      "generateResponseClasses": true,
+      "responseClass": "OtrApiResponse",
+      "configurationClass": null,
+      "useTransformOptionsMethod": false,
+      "useTransformResultMethod": false,
+      "generateDtoTypes": true,
+      "operationGenerationMode": "MultipleClientsFromOperationId",
+      "markOptionalProperties": true,
+      "typeStyle": "Class",
+      "enumStyle": "Enum",
+      "classTypes": [],
+      "extendedClasses": [],
+      "extensionCode": null,
+      "generateDefaultValues": true,
+      "excludedTypeNames": [],
+      "excludedParameterNames": [],
+      "handleReferences": false,
+      "generateTypeCheckFunctions": false,
+      "generateConstructorInterface": true,
+      "convertConstructorInterfaceData": false,
+      "importRequiredTypes": true,
+      "useGetBaseUrlMethod": false,
+      "templateDirectory": "src/templates/ts",
+      "output": "src/clients/ts/OtrApiClient.ts",
+      "newLineBehavior": "Auto"
+    }
+  }
+}
