@@ -12,6 +12,7 @@
           "Beatmaps"
         ],
         "summary": "List all beatmaps",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): system, admin",
         "operationId": "Beatmaps_list",
         "responses": {
           "200": {
@@ -43,7 +44,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "system",
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/beatmaps/{key}": {
@@ -52,7 +64,7 @@
           "Beatmaps"
         ],
         "summary": "Get a beatmap by versatile search",
-        "description": "Get a beatmap searching first by id, then by osu! beatmap id",
+        "description": "Get a beatmap searching first by id, then by osu! beatmap id\n\nRequires Authorization:\n\nClaim(s): system, admin",
         "operationId": "Beatmaps_get",
         "parameters": [
           {
@@ -108,7 +120,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "system",
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/clients/{id}/ratelimit": {
@@ -116,6 +139,7 @@
         "tags": [
           "Clients"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Clients_patchRatelimit",
         "parameters": [
           {
@@ -169,7 +193,17 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/filtering": {
@@ -178,6 +212,7 @@
           "Filtering"
         ],
         "summary": "Filter a list of users based on the criteria as described in\r\nAPI.DTOs.FilteringResultDTO",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Filtering_filter",
         "requestBody": {
           "description": "The filtering request",
@@ -245,7 +280,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/games/{id}": {
@@ -254,6 +300,7 @@
           "Games"
         ],
         "summary": "Amend game data",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Games_update",
         "parameters": [
           {
@@ -366,7 +413,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/gamescores/{id}": {
@@ -375,6 +432,7 @@
           "GameScores"
         ],
         "summary": "Amend score data",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "GameScores_update",
         "parameters": [
           {
@@ -487,7 +545,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/leaderboards": {
@@ -495,12 +563,12 @@
         "tags": [
           "Leaderboards"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Leaderboards_get",
         "parameters": [
           {
             "name": "Ruleset",
             "in": "query",
-            "description": "\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
@@ -527,7 +595,6 @@
           {
             "name": "ChartType",
             "in": "query",
-            "description": "\n\n0 = Global\n\n1 = Country",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/LeaderboardChartType"
@@ -563,7 +630,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/matches": {
@@ -572,13 +649,13 @@
           "Matches"
         ],
         "summary": "Gets all matches",
-        "description": "Results are ordered by id and support pagination. All match data is included.",
+        "description": "Results are ordered by id and support pagination. All match data is included.\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Matches_list",
         "parameters": [
           {
             "name": "Ruleset",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Ruleset\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
+            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Ruleset",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
@@ -616,7 +693,7 @@
           {
             "name": "VerificationStatus",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Verification.VerificationStatus\n\n0 = None (Verification status has not yet been assigned)\n\n1 = PreRejected (The Data Worker has identified an issue during processing)\n\n2 = PreVerified (The Data Worker has not identified any issues during processing)\n\n3 = Rejected (Determined to be unfit for ratings by manual review)\n\n4 = Verified (Determined to be fit for ratings by manual review)",
+            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Verification.VerificationStatus",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/VerificationStatus"
@@ -625,7 +702,7 @@
           {
             "name": "RejectionReason",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason\n\n0 = None (The Database.Entities.Match is not rejected)\n\n1 = NoData (The osu! API returned invalid data or no data for the Database.Entities.Match)\n\n2 = NoGames (The osu! API returned no Database.Entities.Games for the Database.Entities.Match)\n\n4 = InvalidName (The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions)\n\n8 = FailedTeamVsConversion (The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs\r\nconversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful)\n\n16 = NoValidGames (The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified)\n\n32 = UnexpectedGameCount (The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\"))\n\n64 = NoEndTime (The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined)\n\n128 = RejectedTournament (The Database.Entities.Tournament the Database.Entities.Match was played in was rejected)",
+            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/MatchRejectionReason"
@@ -634,7 +711,7 @@
           {
             "name": "ProcessingStatus",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus\n\n0 = NeedsData (The Database.Entities.Match needs data requested from the osu! API)\n\n1 = NeedsAutomationChecks (The Database.Entities.Match needs automation checks)\n\n2 = NeedsVerification (The Database.Entities.Match is awaiting verification from a\r\nDatabase.Entities.User with verifier permission)\n\n3 = NeedsStatCalculation (The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats))\n\n4 = NeedsRatingProcessorData (The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments))\n\n5 = Done (The Database.Entities.Match has completed all processing steps)",
+            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/MatchProcessingStatus"
@@ -663,7 +740,7 @@
           {
             "name": "Sort",
             "in": "query",
-            "description": "Controls the manner in which results are sorted\n\n0 = Id (Sort by primary key)\n\n1 = OsuId (Sort by osu! id)\n\n2 = StartTime (Sort by start start time)\n\n3 = EndTime (Sort by end time)",
+            "description": "Controls the manner in which results are sorted",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/MatchesQuerySortType"
@@ -726,7 +803,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/matches/{id}": {
@@ -735,6 +823,7 @@
           "Matches"
         ],
         "summary": "Get a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Matches_get",
         "parameters": [
           {
@@ -790,13 +879,25 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
           "Matches"
         ],
         "summary": "Amend match data",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Matches_update",
         "parameters": [
           {
@@ -909,7 +1010,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/matches/player/{osuId}": {
@@ -917,6 +1028,7 @@
         "tags": [
           "Matches"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin, system",
         "operationId": "Matches_getMatches",
         "parameters": [
           {
@@ -932,34 +1044,28 @@
           {
             "name": "ruleset",
             "in": "query",
-            "description": "\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
-            },
-            "x-enumNames": [
-              "Osu",
-              "Taiko",
-              "Catch",
-              "ManiaOther",
-              "Mania4k",
-              "Mania7k"
-            ],
-            "x-enumDescriptions": [
-              "osu! (standard)",
-              "osu! Taiko",
-              "osu! Catch (aka Fruits)",
-              "osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)",
-              "osu! Mania 4k variant",
-              "osu! Mania 7k variant"
-            ]
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin",
+              "system"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/me": {
@@ -968,6 +1074,7 @@
           "Me"
         ],
         "summary": "Get the currently logged in user",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_get",
         "responses": {
           "401": {
@@ -992,8 +1099,38 @@
           },
           "302": {
             "description": "Redirects to `GET` `/users/{id}`"
+          },
+          "200": {
+            "description": "Returns the currently logged in user",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/me/stats": {
@@ -1002,33 +1139,17 @@
           "Me"
         ],
         "summary": "Get player stats for the currently logged in user",
-        "description": "If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date",
+        "description": "If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_getStats",
         "parameters": [
           {
             "name": "ruleset",
             "in": "query",
-            "description": "Ruleset to filter for\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
+            "description": "Ruleset to filter for",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
-            },
-            "x-enumNames": [
-              "Osu",
-              "Taiko",
-              "Catch",
-              "ManiaOther",
-              "Mania4k",
-              "Mania7k"
-            ],
-            "x-enumDescriptions": [
-              "osu! (standard)",
-              "osu! Taiko",
-              "osu! Catch (aka Fruits)",
-              "osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)",
-              "osu! Mania 4k variant",
-              "osu! Mania 7k variant"
-            ]
+            }
           },
           {
             "name": "dateMin",
@@ -1074,8 +1195,38 @@
           },
           "302": {
             "description": "Redirects to `GET` `/stats/{key}`"
+          },
+          "200": {
+            "description": "Returns the currently logged in user's player stats",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerStatsDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerStatsDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerStatsDTO"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/me/settings/ruleset": {
@@ -1084,6 +1235,7 @@
           "Me"
         ],
         "summary": "Update the ruleset for the currently logged in user",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_updateRuleset",
         "requestBody": {
           "content": {
@@ -1130,10 +1282,43 @@
               }
             }
           },
-          "307": {
+          "308": {
             "description": "Redirects to `POST` `/users/{id}/settings/ruleset`"
+          },
+          "400": {
+            "description": "If the operation was not successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "If the operation was successful"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/me/settings/ruleset:sync": {
@@ -1142,6 +1327,7 @@
           "Me"
         ],
         "summary": "Sync the ruleset of the currently logged in user to their osu! ruleset",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_syncRuleset",
         "responses": {
           "401": {
@@ -1164,10 +1350,43 @@
               }
             }
           },
-          "307": {
+          "308": {
             "description": "Redirects to `POST` `/users/{id}/settings/ruleset:sync`"
+          },
+          "400": {
+            "description": "If the operation was not successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "If the operation was successful"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/oauth/authorize": {
@@ -1433,12 +1652,23 @@
         "tags": [
           "Players"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): system",
         "operationId": "Players_getAll",
         "responses": {
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "system"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/players/{key}/info": {
@@ -1446,6 +1676,7 @@
         "tags": [
           "Players"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Players_get",
         "parameters": [
           {
@@ -1479,7 +1710,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/search": {
@@ -1488,7 +1730,7 @@
           "Search"
         ],
         "summary": "Search for tournaments, matches, and users",
-        "description": "Allows for partial or full searching on the names of tournaments, matches, and usernames",
+        "description": "Allows for partial or full searching on the names of tournaments, matches, and usernames\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Search_search",
         "parameters": [
           {
@@ -1522,7 +1764,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/stats/{key}": {
@@ -1531,7 +1783,7 @@
           "Stats"
         ],
         "summary": "Get a player's stats",
-        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date",
+        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Stats_get",
         "parameters": [
           {
@@ -1547,27 +1799,11 @@
           {
             "name": "ruleset",
             "in": "query",
-            "description": "Ruleset to filter for\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
+            "description": "Ruleset to filter for",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
-            },
-            "x-enumNames": [
-              "Osu",
-              "Taiko",
-              "Catch",
-              "ManiaOther",
-              "Mania4k",
-              "Mania7k"
-            ],
-            "x-enumDescriptions": [
-              "osu! (standard)",
-              "osu! Taiko",
-              "osu! Catch (aka Fruits)",
-              "osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)",
-              "osu! Mania 4k variant",
-              "osu! Mania 7k variant"
-            ]
+            }
           },
           {
             "name": "dateMin",
@@ -1631,7 +1867,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/stats/histogram": {
@@ -1639,32 +1886,16 @@
         "tags": [
           "Stats"
         ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Stats_getRatingHistogram",
         "parameters": [
           {
             "name": "ruleset",
             "in": "query",
-            "description": "\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/Ruleset"
-            },
-            "x-enumNames": [
-              "Osu",
-              "Taiko",
-              "Catch",
-              "ManiaOther",
-              "Mania4k",
-              "Mania7k"
-            ],
-            "x-enumDescriptions": [
-              "osu! (standard)",
-              "osu! Taiko",
-              "osu! Catch (aka Fruits)",
-              "osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)",
-              "osu! Mania 4k variant",
-              "osu! Mania 7k variant"
-            ]
+            }
           }
         ],
         "responses": {
@@ -1700,7 +1931,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/tournaments": {
@@ -1709,7 +1951,7 @@
           "Tournaments"
         ],
         "summary": "List all tournaments",
-        "description": "Will not include match data",
+        "description": "Will not include match data\n\nRequires Authorization:\n\nClaim(s): system",
         "operationId": "Tournaments_list",
         "responses": {
           "200": {
@@ -1741,13 +1983,24 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "system"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
           "Tournaments"
         ],
         "summary": "Submit a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Tournaments_create",
         "requestBody": {
           "description": "Tournament submission data",
@@ -1835,7 +2088,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/tournaments/{id}": {
@@ -1844,6 +2107,7 @@
           "Tournaments"
         ],
         "summary": "Get a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Tournaments_get",
         "parameters": [
           {
@@ -1909,13 +2173,25 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
           "Tournaments"
         ],
         "summary": "Amend tournament data",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Tournaments_update",
         "parameters": [
           {
@@ -2028,7 +2304,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/tournaments/{id}/matches": {
@@ -2037,6 +2323,7 @@
           "Tournaments"
         ],
         "summary": "List all matches from a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Tournaments_listMatches",
         "parameters": [
           {
@@ -2101,7 +2388,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}": {
@@ -2110,6 +2408,7 @@
           "Users"
         ],
         "summary": "Get a user",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_get",
         "parameters": [
           {
@@ -2165,7 +2464,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/scopes": {
@@ -2174,6 +2478,7 @@
           "Users"
         ],
         "summary": "Update a user's scopes",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Users_updateScopes",
         "parameters": [
           {
@@ -2286,7 +2591,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/submissions": {
@@ -2295,6 +2610,7 @@
           "Users"
         ],
         "summary": "Get a user's match submissions",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_getSubmissions",
         "parameters": [
           {
@@ -2359,7 +2675,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/submissions:reject": {
@@ -2368,6 +2689,7 @@
           "Users"
         ],
         "summary": "Rejects a user's match submissions",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Users_rejectSubmissions",
         "parameters": [
           {
@@ -2409,7 +2731,17 @@
           "400": {
             "description": "If the operation was not successful"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/clients": {
@@ -2418,7 +2750,7 @@
           "Users"
         ],
         "summary": "Get a user's OAuth clients",
-        "description": "All users have access to clients that they own. Admin users have access to clients from any user.",
+        "description": "All users have access to clients that they own. Admin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_getClients",
         "parameters": [
           {
@@ -2483,7 +2815,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/clients/{clientId}": {
@@ -2492,7 +2829,7 @@
           "Users"
         ],
         "summary": "Delete a user's OAuth client",
-        "description": "All users have access to delete clients that they own.\r\nAdmin users have access to clients from any user.",
+        "description": "All users have access to delete clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_deleteClient",
         "parameters": [
           {
@@ -2562,7 +2899,12 @@
           "200": {
             "description": "If the deletion was successful"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/clients/{clientId}/secret:reset": {
@@ -2571,7 +2913,7 @@
           "Users"
         ],
         "summary": "Reset the secret of a user's OAuth client",
-        "description": "All users have access to reset secrets of clients that they own.\r\nAdmin users have access to clients from any user.",
+        "description": "All users have access to reset secrets of clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_resetClientSecret",
         "parameters": [
           {
@@ -2658,7 +3000,108 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}/settings/ruleset": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update the ruleset of a user",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "operationId": "Users_updateRuleset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the operation was not successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "If the operation was successful"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     },
     "/api/v1/users/{id}/settings/ruleset:sync": {
@@ -2667,6 +3110,7 @@
           "Users"
         ],
         "summary": "Sync the ruleset of a user with their osu! ruleset",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_syncRuleset",
         "parameters": [
           {
@@ -2701,10 +3145,35 @@
               }
             }
           },
+          "400": {
+            "description": "If the operation was not successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
             "description": "If the operation was successful"
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [ ]
+          }
+        ]
       }
     }
   },
@@ -2935,7 +3404,7 @@
           64
         ],
         "type": "integer",
-        "description": "Explains why the player failed filtering\n\n0 = None (The player passed filtering, thus there is no failure reason)\n\n1 = NoData (The player does not have a rating / profile in the o!TR database)\n\n2 = MinRating (The player's rating is below the minimum threshold)\n\n4 = MaxRating (The player's rating is above the maximum threshold)\n\n8 = IsProvisional (The player is provisional and the filtering criteria specifies\r\nexclusion of provisional players)\n\n16 = NotEnoughTournaments (The player has not played in the minimum specified\r\namount of tournaments)\n\n32 = PeakRatingTooHigh (The player's all-time peak rating is above the maximum allowed)\n\n64 = NotEnoughMatches (The player has not played in the minimum specified amount of matches)",
+        "description": "Explains why the player failed filtering",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -3027,7 +3496,7 @@
           1
         ],
         "type": "integer",
-        "description": "Indicates whether a player passed or failed filtering\n\n0 = Pass (Indicates the player passed filtering)\n\n1 = Fail (Indicates the player failed filtering)",
+        "description": "Indicates whether a player passed or failed filtering",
         "format": "int32",
         "x-enumNames": [
           "Pass",
@@ -3129,7 +3598,7 @@
           3
         ],
         "type": "integer",
-        "description": "The status of a Database.Entities.Game in the processing flow\n\n0 = NeedsAutomationChecks (The Database.Entities.Game needs automation checks)\n\n1 = NeedsVerification (The Database.Entities.Game is awaiting verification from a\r\nDatabase.Entities.User with verifier permission)\n\n2 = NeedsStatCalculation (The Database.Entities.Game needs stat calculation (Generates the Database.Entities.GameWinRecord))\n\n3 = Done (The Database.Entities.Game has completed all processing steps)",
+        "description": "The status of a Database.Entities.Game in the processing flow",
         "format": "int32",
         "x-enumNames": [
           "NeedsAutomationChecks",
@@ -3159,7 +3628,7 @@
           512
         ],
         "type": "integer",
-        "description": "The reason why a Database.Entities.Game is rejected\n\n0 = None (The Database.Entities.Game is not rejected)\n\n1 = NoScores (The Database.Entities.Game's osu! API data did not contain any Database.Entities.GameScores)\n\n2 = InvalidMods (The Database.Entities.Game has invalid mods applied)\n\n4 = RulesetMismatch (The Database.Entities.Game's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament)\n\n8 = InvalidScoringType (The Database.Entities.Game's Database.Enums.ScoringType is not Database.Enums.ScoringType.ScoreV2)\n\n16 = InvalidTeamType (The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs)\n\n32 = FailedTeamVsConversion (The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs\r\nand attempting Database.Enums.TeamType.TeamVs conversion was not successful)\n\n64 = NoValidScores (The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2)\n\n128 = LobbySizeMismatch (The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament)\n\n256 = NoEndTime (The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined)\n\n512 = RejectedMatch (The Database.Entities.Match the Database.Entities.Game was played in was rejected)",
+        "description": "The reason why a Database.Entities.Game is rejected",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -3236,7 +3705,6 @@
           1
         ],
         "type": "integer",
-        "description": "\n\n0 = Global\n\n1 = Country",
         "format": "int32",
         "x-enumNames": [
           "Global",
@@ -3543,7 +4011,7 @@
           5
         ],
         "type": "integer",
-        "description": "The status of a Database.Entities.Match in the processing flow\n\n0 = NeedsData (The Database.Entities.Match needs data requested from the osu! API)\n\n1 = NeedsAutomationChecks (The Database.Entities.Match needs automation checks)\n\n2 = NeedsVerification (The Database.Entities.Match is awaiting verification from a\r\nDatabase.Entities.User with verifier permission)\n\n3 = NeedsStatCalculation (The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats))\n\n4 = NeedsRatingProcessorData (The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments))\n\n5 = Done (The Database.Entities.Match has completed all processing steps)",
+        "description": "The status of a Database.Entities.Match in the processing flow",
         "format": "int32",
         "x-enumNames": [
           "NeedsData",
@@ -3575,7 +4043,7 @@
           128
         ],
         "type": "integer",
-        "description": "The reason why a Database.Entities.Match is rejected\n\n0 = None (The Database.Entities.Match is not rejected)\n\n1 = NoData (The osu! API returned invalid data or no data for the Database.Entities.Match)\n\n2 = NoGames (The osu! API returned no Database.Entities.Games for the Database.Entities.Match)\n\n4 = InvalidName (The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions)\n\n8 = FailedTeamVsConversion (The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs\r\nconversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful)\n\n16 = NoValidGames (The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified)\n\n32 = UnexpectedGameCount (The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\"))\n\n64 = NoEndTime (The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined)\n\n128 = RejectedTournament (The Database.Entities.Tournament the Database.Entities.Match was played in was rejected)",
+        "description": "The reason why a Database.Entities.Match is rejected",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -3667,7 +4135,7 @@
           3
         ],
         "type": "integer",
-        "description": "Denotes which property a query for !:Database.Entities.Matches will be sorted by\n\n0 = Id (Sort by primary key)\n\n1 = OsuId (Sort by osu! id)\n\n2 = StartTime (Sort by start start time)\n\n3 = EndTime (Sort by end time)",
+        "description": "Denotes which property a query for !:Database.Entities.Matches will be sorted by",
         "format": "int32",
         "x-enumNames": [
           "Id",
@@ -3745,7 +4213,7 @@
           1073741824
         ],
         "type": "integer",
-        "description": "Represents mod values\n\n0 = None (No mods enabled)\n\n1 = NoFail (No fail (NF))\n\n2 = Easy (Easy (EZ))\n\n4 = TouchDevice (Touch Device (TD))\n\n8 = Hidden (Hidden (HD))\n\n16 = HardRock (Hard Rock (HR))\n\n32 = SuddenDeath (Sudden Death (SD))\n\n64 = DoubleTime (Double Time (DT))\n\n128 = Relax (Relax (RX))\n\n256 = HalfTime (Half Time (HT))\n\n512 = Nightcore (Nightcore (NC) (Only set along with DoubleTime. i.e: NC only gives 576))\n\n1024 = Flashlight (Flashlight (FL))\n\n2048 = Autoplay (Autoplay (AT))\n\n4096 = SpunOut (Spun Out (SO))\n\n8192 = Relax2 (Autopilot (AP) (Autopilot))\n\n16384 = Perfect (Perfect (PF) (Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416))\n\n22688 = InvalidMods (Denotes mods that are ineligible for ratings)\n\n32768 = Key4 (4 key (4K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n65536 = Key5 (5 key (5K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n131072 = Key6 (6 key (6K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n262144 = Key7 (7 key (7K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n524288 = Key8 (8 key (8K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n1048576 = FadeIn (Fade In (FI) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n1049688 = ScoreIncreaseMods (Denotes mods that directly impose a modifier on score)\n\n2097152 = Random (Random (RD) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n4194304 = Cinema (Cinema (CM))\n\n8388608 = Target (Target Practice (TP))\n\n16777216 = Key9 (9 Key (9K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n33554432 = KeyCoop (Co-op (CO) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n67108864 = Key1 (1 Key (1K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n134217728 = Key3 (3 Key (3K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n268435456 = Key2 (2 Key (2K) (Applicable only to Database.Enums.Ruleset.ManiaOther))\n\n521109504 = KeyMod (Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers (See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK))\n\n522171579 = FreeModAllowed (Denotes mods that are available to use during Free Mod settings)\n\n536870912 = ScoreV2 (Score v2 (SV2))\n\n1073741824 = Mirror (Mirror (MR) (Applicable only to Database.Enums.Ruleset.ManiaOther))",
+        "description": "Represents mod values",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -3924,7 +4392,6 @@
           6
         ],
         "type": "integer",
-        "description": "\n\n0 = Add\n\n1 = Remove\n\n2 = Replace\n\n3 = Move\n\n4 = Copy\n\n5 = Test\n\n6 = Invalid",
         "format": "int32",
         "x-enumNames": [
           "Add",
@@ -4601,7 +5068,7 @@
           2
         ],
         "type": "integer",
-        "description": "Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment\n\n0 = Initial (The Database.Entities.Processor.RatingAdjustment is the initial rating)\n\n1 = Decay (The Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay))\n\n2 = Match (The Database.Entities.Processor.RatingAdjustment is the result of participation in a Database.Entities.Match)",
+        "description": "Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment",
         "format": "int32",
         "x-enumNames": [
           "Initial",
@@ -4624,7 +5091,7 @@
           5
         ],
         "type": "integer",
-        "description": "Represents osu! play modes\n\n0 = Osu (osu! (standard))\n\n1 = Taiko (osu! Taiko)\n\n2 = Catch (osu! Catch (aka Fruits))\n\n3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))\n\n4 = Mania4k (osu! Mania 4k variant)\n\n5 = Mania7k (osu! Mania 7k variant)",
+        "description": "Represents osu! play modes",
         "format": "int32",
         "x-enumNames": [
           "Osu",
@@ -4650,7 +5117,7 @@
           2
         ],
         "type": "integer",
-        "description": "The status of a Database.Entities.GameScore in the processing flow\n\n0 = NeedsAutomationChecks (The Database.Entities.GameScore needs automation checks)\n\n1 = NeedsVerification (The Database.Entities.GameScore is awaiting verification from a\r\nDatabase.Entities.User with verifier permission)\n\n2 = Done (The Database.Entities.GameScore has completed all processing steps)",
+        "description": "The status of a Database.Entities.GameScore in the processing flow",
         "format": "int32",
         "x-enumNames": [
           "NeedsAutomationChecks",
@@ -4672,7 +5139,7 @@
           8
         ],
         "type": "integer",
-        "description": "The reason why a Database.Entities.GameScore is rejected\n\n0 = None (The Database.Entities.GameScore is not rejected)\n\n1 = ScoreBelowMinimum (The Database.Entities.GameScore's Database.Entities.GameScore.Score is below the minimum threshold)\n\n2 = InvalidMods (The Database.Entities.GameScore was set with any Database.Enums.Mods.InvalidMods)\n\n4 = RulesetMismatch (The Database.Entities.GameScore's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament)\n\n8 = RejectedGame (The Database.Entities.Game the Database.Entities.GameScore was set in was rejected)",
+        "description": "The reason why a Database.Entities.GameScore is rejected",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -4698,7 +5165,7 @@
           3
         ],
         "type": "integer",
-        "description": "Represents the scoring method (win condition) for a Database.Entities.Game\n\n0 = Score (Scoring based on Score v1)\n\n1 = Accuracy (Scoring based on accuracy)\n\n2 = Combo (Scoring based on combo)\n\n3 = ScoreV2 (Scoring based on Score v2)",
+        "description": "Represents the scoring method (win condition) for a Database.Entities.Game",
         "format": "int32",
         "x-enumNames": [
           "Score",
@@ -4748,7 +5215,7 @@
           2
         ],
         "type": "integer",
-        "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set\n\n0 = NoTeam (No team)\n\n1 = Blue (Team blue)\n\n2 = Red (Team red)",
+        "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set",
         "format": "int32",
         "x-enumNames": [
           "NoTeam",
@@ -4769,7 +5236,7 @@
           3
         ],
         "type": "integer",
-        "description": "Represents the team type used for a Database.Entities.Game (See <a href=\"https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer\"> osu! wiki - Multiplayer</a>)\n\n0 = HeadToHead (Free for all)\n\n1 = TagCoop (Free for all (Tag format) (All players play tag on the same beatmap))\n\n2 = TeamVs (Team red vs team blue)\n\n3 = TagTeamVs (Team red vs team blue (Tag format))",
+        "description": "Represents the team type used for a Database.Entities.Game (See <a href=\"https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer\"> osu! wiki - Multiplayer</a>)",
         "format": "int32",
         "x-enumNames": [
           "HeadToHead",
@@ -4895,7 +5362,7 @@
           5
         ],
         "type": "integer",
-        "description": "The status of a Database.Entities.Tournament in the processing flow\n\n0 = NeedsApproval (The Database.Entities.Tournament is awaiting approval from a\r\nDatabase.Entities.User with verifier permission (Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament\r\nwill advance through the processing flow until approved.))\n\n1 = NeedsMatchData (The Database.Entities.Tournament has Database.Entities.Matches with a\r\nDatabase.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData)\n\n2 = NeedsAutomationChecks (The Database.Entities.Tournament needs automation checks)\n\n3 = NeedsVerification (The Database.Entities.Tournament is awaiting verification from a\r\nDatabase.Entities.User with verifier permission)\n\n4 = NeedsStatCalculation (The Database.Entities.Tournament needs stat calculation)\n\n5 = Done (The tournament has completed all processing steps)",
+        "description": "The status of a Database.Entities.Tournament in the processing flow",
         "format": "int32",
         "x-enumNames": [
           "NeedsApproval",
@@ -4925,7 +5392,7 @@
           32
         ],
         "type": "integer",
-        "description": "The reason why a Database.Entities.Tournament is rejected\n\n0 = None (The Database.Entities.Tournament is not rejected)\n\n1 = NoVerifiedMatches (The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified)\n\n2 = NotEnoughVerifiedMatches (The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or\r\nDatabase.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total)\n\n4 = AbnormalWinCondition (The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2 (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc))\n\n8 = AbnormalFormat (The Database.Entities.Tournament's format is not suitable for ratings (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc))\n\n16 = VaryingLobbySize (The Database.Entities.Tournament's lobby sizes are not consistent. (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc))\n\n32 = IncompleteData (The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc. (Only assigned via a \"rejected submission\". <br />\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc))",
+        "description": "The reason why a Database.Entities.Tournament is rejected",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -5083,7 +5550,7 @@
           4
         ],
         "type": "integer",
-        "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore\n\n0 = None (Verification status has not yet been assigned)\n\n1 = PreRejected (The Data Worker has identified an issue during processing)\n\n2 = PreVerified (The Data Worker has not identified any issues during processing)\n\n3 = Rejected (Determined to be unfit for ratings by manual review)\n\n4 = Verified (Determined to be fit for ratings by manual review)",
+        "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore",
         "format": "int32",
         "x-enumNames": [
           "None",
@@ -5099,6 +5566,46 @@
           "Determined to be unfit for ratings by manual review",
           "Determined to be fit for ratings by manual review"
         ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme",
+        "scheme": "BearerAuth",
+        "bearerFormat": "JWT"
+      },
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "OAuth2 Authorization",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "api/v1.0/OAuth/token",
+            "refreshUrl": "api/v1.0/OAuth/refresh",
+            "scopes": {
+              "user": "Claim granted to all users",
+              "client": "Claim granted to all users",
+              "system": "Claim granted to internal privileged clients",
+              "admin": "Claim granted to privileged users",
+              "verifier": "Claim granted to users with permission to verify submission data",
+              "submit": "Claim granted to users with permission to submit tournament data",
+              "whitelist": "Claim granted to users and clients to allow access during times of restricted use"
+            }
+          },
+          "authorizationCode": {
+            "authorizationUrl": "api/v1.0/OAuth/authorize",
+            "refreshUrl": "api/v1.0/OAuth/refresh",
+            "scopes": {
+              "user": "Claim granted to all users",
+              "client": "Claim granted to all users",
+              "system": "Claim granted to internal privileged clients",
+              "admin": "Claim granted to privileged users",
+              "verifier": "Claim granted to users with permission to verify submission data",
+              "submit": "Claim granted to users with permission to submit tournament data",
+              "whitelist": "Claim granted to users and clients to allow access during times of restricted use"
+            }
+          }
+        }
       }
     }
   }
