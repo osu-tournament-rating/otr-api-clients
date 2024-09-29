@@ -35,9 +35,7 @@ jobs:
 
     - name: Detect TS Client Code Change
       run: |
-        if [[ git status --porcelain == *"${{ vars.TS_CLIENT_PATH }}/index.ts"* ]] then
-          echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
-        fi
+        git diff -s --exit-code ${{ github.workspace }}/${{ vars.TS_CLIENT_PATH }}/index.ts || echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
 
     - name: Navigate to TS Client
       if: env.TS_CLIENT_CHANGED
@@ -47,7 +45,7 @@ jobs:
       if: env.TS_CLIENT_CHANGED
       uses: actions/setup-node@v3
       with:
-        node_version: 20
+        node-version: '20'
 
     - name: Bump TS Client Package Version
       if: env.TS_CLIENT_CHANGED
