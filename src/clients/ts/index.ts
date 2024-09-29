@@ -22,8 +22,8 @@ export class BeatmapsWrapper {
     * List all beatmaps
     *
     * Requires Authorization:
-
-    Claim(s): system, admin
+    * 
+    * Claim(s): system, admin
     * @return Returns all beatmaps
     */
     list(): Promise<OtrApiResponse<BeatmapDTO[]>> {
@@ -71,12 +71,11 @@ export class BeatmapsWrapper {
     * Get a beatmap by versatile search
     *
     * Get a beatmap searching first by id, then by osu! beatmap id
-
-    Requires Authorization:
-
-    Claim(s): system, admin
-    * @param key
-    Search key
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): system, admin
+    * @param key Search key
     * @return Returns a beatmap
     */
     get(key: number): Promise<OtrApiResponse<BeatmapDTO>> {
@@ -135,13 +134,12 @@ export class ClientsWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param body
-    (optional)
-
+    * 
+    * Claim(s): admin
+    * @param body (optional) 
     * @return Success
     */
     patchRatelimit(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<void>> {
@@ -194,14 +192,12 @@ export class FilteringWrapper {
 
     /**
     * Filter a list of users based on the criteria as described in
-    API.DTOs.FilteringResultDTO
+    * API.DTOs.FilteringResultDTO
     *
     * Requires Authorization:
-
-    Claim(s): user, client
-    * @param body
-    (optional)
-    The filtering request
+    * 
+    * Claim(s): user, client
+    * @param body (optional) The filtering request
     * @return The filtering result
     */
     filter(body?: FilteringRequestDTO | undefined): Promise<OtrApiResponse<FilteringResultDTO>> {
@@ -265,13 +261,10 @@ export class GamesWrapper {
     * Amend game data
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    The game id
-    * @param body
-    (optional)
-    JsonPatch data
+    * 
+    * Claim(s): admin
+    * @param id The game id
+    * @param body (optional) JsonPatch data
     * @return Returns the patched game
     */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameDTO>> {
@@ -345,13 +338,10 @@ export class GameScoresWrapper {
     * Amend score data
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    The score id
-    * @param body
-    (optional)
-    JsonPatch data
+    * 
+    * Claim(s): admin
+    * @param id The score id
+    * @param body (optional) JsonPatch data
     * @return Returns the patched score
     */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameScoreDTO>> {
@@ -422,25 +412,16 @@ export class LeaderboardsWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): user
-    * @param ruleset
-    (optional)
-
-    * @param page
-    (optional)
-
-    * @param pageSize
-    (optional)
-
-    * @param chartType
-    (optional)
-
-    * @param filter
-    (optional)
-
+    * 
+    * Claim(s): user
+    * @param ruleset (optional) 
+    * @param page (optional) 
+    * @param pageSize (optional) 
+    * @param chartType (optional) 
+    * @param filter (optional) 
     * @return Success
     */
     get(ruleset?: Ruleset | undefined, page?: number | undefined, pageSize?: number | undefined, chartType?: LeaderboardChartType | undefined, filter?: LeaderboardFilterDTO | undefined): Promise<OtrApiResponse<LeaderboardDTO>> {
@@ -512,57 +493,31 @@ export class MatchesWrapper {
     * Gets all matches
     *
     * Results are ordered by id and support pagination. All match data is included.
-
-    Requires Authorization:
-
-    Claim(s): user, client
-    * @param ruleset
-    (optional)
-    Filters results for Database.Entities.Matches with a
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param ruleset (optional) Filters results for Database.Entities.Matches with a
     matching Database.Enums.Ruleset
-    * @param name
-    (optional)
-    Filters results for Database.Entities.Matches with a partially
+    * @param name (optional) Filters results for Database.Entities.Matches with a partially
     matching Database.Entities.Match.Name
-    * @param dateMin
-    (optional)
-    Filters results for Database.Entities.Matches with a
+    * @param dateMin (optional) Filters results for Database.Entities.Matches with a
     Database.Entities.Match.StartTime greater than this value
-    * @param dateMax
-    (optional)
-    Filters results for Database.Entities.Matches with an
+    * @param dateMax (optional) Filters results for Database.Entities.Matches with an
     Database.Entities.Match.EndTime less than this value
-    * @param verificationStatus
-    (optional)
-    Filters results for Database.Entities.Matches with a
+    * @param verificationStatus (optional) Filters results for Database.Entities.Matches with a
     matching Database.Enums.Verification.VerificationStatus
-    * @param rejectionReason
-    (optional)
-    Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
-    * @param processingStatus
-    (optional)
-    Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
-    * @param submittedBy
-    (optional)
-    Filters results for Database.Entities.Matches where the id of the
+    * @param rejectionReason (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
+    * @param processingStatus (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
+    * @param submittedBy (optional) Filters results for Database.Entities.Matches where the id of the
     Database.Entities.User that submitted it matches this value
-    * @param verifiedBy
-    (optional)
-    Filters results for Database.Entities.Matches where the id of the
+    * @param verifiedBy (optional) Filters results for Database.Entities.Matches where the id of the
     Database.Entities.User that verified it matches this value
-    * @param sort
-    (optional)
-    Controls the manner in which results are sorted
-    * @param sortDescending
-    (optional)
-    Denotes whether to sort results in ascending or descending order
-    * @param limit
-    (optional)
-    Controls the number of matches to return. Functions as a "page size".
+    * @param sort (optional) Controls the manner in which results are sorted
+    * @param sortDescending (optional) Denotes whether to sort results in ascending or descending order
+    * @param limit (optional) Controls the number of matches to return. Functions as a "page size".
     Default: 100 Constraints: Minimum 1, Maximum 5000
-    * @param page
-    (optional)
-    Controls which block of size limit to return.
+    * @param page (optional) Controls which block of size limit to return.
     Default: 1, Constraints: Minimum 1
     * @return Returns the desired page of matches
     */
@@ -656,10 +611,9 @@ export class MatchesWrapper {
     * Get a match
     *
     * Requires Authorization:
-
-    Claim(s): user, client
-    * @param id
-    Match id
+    * 
+    * Claim(s): user, client
+    * @param id Match id
     * @return Returns a match
     */
     get(id: number): Promise<OtrApiResponse<MatchDTO>> {
@@ -710,13 +664,10 @@ export class MatchesWrapper {
     * Amend match data
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    The match id
-    * @param body
-    (optional)
-    JsonPatch data
+    * 
+    * Claim(s): admin
+    * @param id The match id
+    * @param body (optional) JsonPatch data
     * @return Returns the patched match
     */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<MatchDTO>> {
@@ -776,13 +727,12 @@ export class MatchesWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): admin, system
-    * @param ruleset
-    (optional)
-
+    * 
+    * Claim(s): admin, system
+    * @param ruleset (optional) 
     * @return Success
     */
     getMatches(osuId: number, ruleset?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
@@ -837,8 +787,8 @@ export class MeWrapper {
     * Get the currently logged in user
     *
     * Requires Authorization:
-
-    Claim(s): user
+    * 
+    * Claim(s): user
     * @return Returns the currently logged in user
     */
     get(): Promise<OtrApiResponse<UserDTO>> {
@@ -890,22 +840,16 @@ export class MeWrapper {
     * Get player stats for the currently logged in user
     *
     * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
-    If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-    API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
-    If no date range is provided, gets all stats without considering date
-
-    Requires Authorization:
-
-    Claim(s): user
-    * @param ruleset
-    (optional)
-    Ruleset to filter for
-    * @param dateMin
-    (optional)
-    Filter from earliest date
-    * @param dateMax
-    (optional)
-    Filter to latest date
+    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    * If no date range is provided, gets all stats without considering date
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param ruleset (optional) Ruleset to filter for
+    * @param dateMin (optional) Filter from earliest date
+    * @param dateMax (optional) Filter to latest date
     * @return Returns the currently logged in user's player stats
     */
     getStats(ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
@@ -969,11 +913,9 @@ export class MeWrapper {
     * Update the ruleset for the currently logged in user
     *
     * Requires Authorization:
-
-    Claim(s): user
-    * @param body
-    (optional)
-
+    * 
+    * Claim(s): user
+    * @param body (optional) 
     * @return If the operation was successful
     */
     updateRuleset(body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
@@ -1032,8 +974,8 @@ export class MeWrapper {
     * Sync the ruleset of the currently logged in user to their osu! ruleset
     *
     * Requires Authorization:
-
-    Claim(s): user
+    * 
+    * Claim(s): user
     * @return If the operation was successful
     */
     syncRuleset(): Promise<OtrApiResponse<void>> {
@@ -1097,9 +1039,7 @@ export class OAuthWrapper {
 
     /**
     * Authorize using an osu! authorization code
-    * @param code
-    (optional)
-    The osu! authorization code
+    * @param code (optional) The osu! authorization code
     * @return Returns user access credentials
     */
     authorize(code?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
@@ -1153,12 +1093,8 @@ export class OAuthWrapper {
 
     /**
     * Authorize using client credentials
-    * @param clientId
-    (optional)
-    The id of the client
-    * @param clientSecret
-    (optional)
-    The secret of the client
+    * @param clientId (optional) The id of the client
+    * @param clientSecret (optional) The secret of the client
     * @return Returns client access credentials
     */
     authorizeClient(clientId?: number | undefined, clientSecret?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
@@ -1218,7 +1154,7 @@ export class OAuthWrapper {
     * Create a new OAuth client
     *
     * Client secret is only returned from creation.
-    The user will have to reset the secret if they lose access.
+    * The user will have to reset the secret if they lose access.
     * @return Returns created client credentials
     */
     createClient(): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
@@ -1266,10 +1202,8 @@ export class OAuthWrapper {
     * Generate new access credentials from a valid refresh token
     *
     * Generated access credentials will contain only a new access token,
-    and the given refresh token is returned with it
-    * @param refreshToken
-    (optional)
-
+    * and the given refresh token is returned with it
+    * @param refreshToken (optional) 
     * @return Returns access credentials containing a new access token
     */
     refresh(refreshToken?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
@@ -1333,10 +1267,11 @@ export class PlayersWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): system
+    * 
+    * Claim(s): system
     * @return Success
     */
     getAll(): Promise<OtrApiResponse<void>> {
@@ -1370,10 +1305,11 @@ export class PlayersWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): user, client
+    * 
+    * Claim(s): user, client
     * @return Success
     */
     get(key: string): Promise<OtrApiResponse<PlayerCompactDTO>> {
@@ -1428,13 +1364,11 @@ export class SearchWrapper {
     * Search for tournaments, matches, and users
     *
     * Allows for partial or full searching on the names of tournaments, matches, and usernames
-
-    Requires Authorization:
-
-    Claim(s): user
-    * @param searchKey
-    (optional)
-    The string to match against names of tournaments, matches, and usernames
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param searchKey (optional) The string to match against names of tournaments, matches, and usernames
     * @return Returns a list of all possible tournaments, matches, and usernames for the given search key
     */
     search(searchKey?: string | undefined): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
@@ -1490,25 +1424,18 @@ export class StatsWrapper {
     * Get a player's stats
     *
     * Gets player by versatile search.
-    If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
-    If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-    API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
-    If no date range is provided, gets all stats without considering date
-
-    Requires Authorization:
-
-    Claim(s): user, client
-    * @param key
-    Key used in versatile search
-    * @param ruleset
-    (optional)
-    Ruleset to filter for
-    * @param dateMin
-    (optional)
-    Filter from earliest date
-    * @param dateMax
-    (optional)
-    Filter to latest date
+    * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
+    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    * If no date range is provided, gets all stats without considering date
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param key Key used in versatile search
+    * @param ruleset (optional) Ruleset to filter for
+    * @param dateMin (optional) Filter from earliest date
+    * @param dateMax (optional) Filter to latest date
     * @return Returns a player's stats
     */
     get(key: string, ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
@@ -1568,13 +1495,12 @@ export class StatsWrapper {
     }
 
     /**
+    * Undocumented
     *
     * Requires Authorization:
-
-    Claim(s): user, client
-    * @param ruleset
-    (optional)
-
+    * 
+    * Claim(s): user, client
+    * @param ruleset (optional) 
     * @return Success
     */
     getRatingHistogram(ruleset?: Ruleset | undefined): Promise<OtrApiResponse<{ [key: string]: number; }>> {
@@ -1639,10 +1565,10 @@ export class TournamentsWrapper {
     * List all tournaments
     *
     * Will not include match data
-
-    Requires Authorization:
-
-    Claim(s): system
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): system
     * @return Returns all tournaments
     */
     list(): Promise<OtrApiResponse<TournamentDTO[]>> {
@@ -1690,11 +1616,9 @@ export class TournamentsWrapper {
     * Submit a tournament
     *
     * Requires Authorization:
-
-    Claim(s): user
-    * @param body
-    (optional)
-    Tournament submission data
+    * 
+    * Claim(s): user
+    * @param body (optional) Tournament submission data
     * @return Returns location information for the created tournament
     */
     create(body?: TournamentSubmissionDTO | undefined): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
@@ -1754,13 +1678,10 @@ export class TournamentsWrapper {
     * Get a tournament
     *
     * Requires Authorization:
-
-    Claim(s): user, client
-    * @param id
-    Tournament id
-    * @param unfiltered
-    (optional)
-    If true, includes all match data, regardless of verification status.
+    * 
+    * Claim(s): user, client
+    * @param id Tournament id
+    * @param unfiltered (optional) If true, includes all match data, regardless of verification status.
                 Also includes all child navigations if true.
                 Default false (strictly verified data with limited navigation properties)
     * @return Returns the tournament
@@ -1817,13 +1738,10 @@ export class TournamentsWrapper {
     * Amend tournament data
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    The tournament id
-    * @param body
-    (optional)
-    JsonPatch data
+    * 
+    * Claim(s): admin
+    * @param id The tournament id
+    * @param body (optional) JsonPatch data
     * @return Returns the patched tournament
     */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<TournamentDTO>> {
@@ -1886,10 +1804,9 @@ export class TournamentsWrapper {
     * List all matches from a tournament
     *
     * Requires Authorization:
-
-    Claim(s): user, client
-    * @param id
-    Tournament id
+    * 
+    * Claim(s): user, client
+    * @param id Tournament id
     * @return Returns all matches from a tournament
     */
     listMatches(id: number): Promise<OtrApiResponse<MatchDTO[]>> {
@@ -1958,10 +1875,9 @@ export class UsersWrapper {
     * Get a user
     *
     * Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param id
-    Id of the user
+    * 
+    * Policy: AccessUserResources
+    * @param id Id of the user
     * @return Returns a user
     */
     get(id: number): Promise<OtrApiResponse<UserDTO>> {
@@ -2012,13 +1928,10 @@ export class UsersWrapper {
     * Update a user's scopes
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    Id of the user
-    * @param body
-    (optional)
-    List of scopes to assign to the user
+    * 
+    * Claim(s): admin
+    * @param id Id of the user
+    * @param body (optional) List of scopes to assign to the user
     * @return Returns an updated user
     */
     updateScopes(id: number, body?: string[] | undefined): Promise<OtrApiResponse<UserDTO>> {
@@ -2080,10 +1993,9 @@ export class UsersWrapper {
     * Get a user's match submissions
     *
     * Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param id
-    Id of the user
+    * 
+    * Policy: AccessUserResources
+    * @param id Id of the user
     * @return Returns a list of submissions
     */
     getSubmissions(id: number): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
@@ -2141,10 +2053,9 @@ export class UsersWrapper {
     * Rejects a user's match submissions
     *
     * Requires Authorization:
-
-    Claim(s): admin
-    * @param id
-    Id of the user
+    * 
+    * Claim(s): admin
+    * @param id Id of the user
     * @return Denotes the operation was successful
     */
     rejectSubmissions(id: number): Promise<OtrApiResponse<void>> {
@@ -2195,12 +2106,11 @@ export class UsersWrapper {
     * Get a user's OAuth clients
     *
     * All users have access to clients that they own. Admin users have access to clients from any user.
-
-    Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param id
-    Id of the user
+    * 
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param id Id of the user
     * @return Returns a list of OAuth clients
     */
     getClients(id: number): Promise<OtrApiResponse<OAuthClientDTO[]>> {
@@ -2258,15 +2168,13 @@ export class UsersWrapper {
     * Delete a user's OAuth client
     *
     * All users have access to delete clients that they own.
-    Admin users have access to clients from any user.
-
-    Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param id
-    Id of the user
-    * @param clientId
-    Id of the OAuth client
+    * Admin users have access to clients from any user.
+    * 
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param id Id of the user
+    * @param clientId Id of the OAuth client
     * @return If the deletion was successful
     */
     deleteClient(id: number, clientId: number): Promise<OtrApiResponse<void>> {
@@ -2323,15 +2231,13 @@ export class UsersWrapper {
     * Reset the secret of a user's OAuth client
     *
     * All users have access to reset secrets of clients that they own.
-    Admin users have access to clients from any user.
-
-    Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param id
-    Id of the user
-    * @param clientId
-    Id of the OAuth client
+    * Admin users have access to clients from any user.
+    * 
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param id Id of the user
+    * @param clientId Id of the OAuth client
     * @return Returns new client credentials if the secret reset was successful
     */
     resetClientSecret(id: number, clientId: number): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
@@ -2392,11 +2298,9 @@ export class UsersWrapper {
     * Update the ruleset of a user
     *
     * Requires Authorization:
-
-    Policy: AccessUserResources
-    * @param body
-    (optional)
-
+    * 
+    * Policy: AccessUserResources
+    * @param body (optional) 
     * @return If the operation was successful
     */
     updateRuleset(id: number, body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
@@ -2454,8 +2358,8 @@ export class UsersWrapper {
     * Sync the ruleset of a user with their osu! ruleset
     *
     * Requires Authorization:
-
-    Policy: AccessUserResources
+    * 
+    * Policy: AccessUserResources
     * @return If the operation was successful
     */
     syncRuleset(id: number): Promise<OtrApiResponse<void>> {
