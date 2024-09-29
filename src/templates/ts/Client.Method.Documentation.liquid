@@ -1,17 +1,17 @@
 {% if operation.HasDocumentation -%}
 /**
 {% if operation.HasSummary -%}
-* {{ operation.Summary }}
+* {{ operation.Summary | replace: "\n", "\n* " }}
+{% else -%}
+* Undocumented
 {% endif -%}
 {% if operation.HasDescription -%}
 *
-* {{ operation.Description }}
+* {{ operation.Description | replace: "\n", "\n* " }}
 {% endif -%}
 {% for parameter in operation.Parameters -%}
 {% if parameter.HasDescriptionOrIsOptional -%}
-* @param {{ parameter.VariableName }}{% if parameter.IsOptional %}
-(optional){% endif %}
-{{ parameter.Description }}
+* @param {{ parameter.VariableName }}{% if parameter.IsOptional %} (optional){% endif %} {{ parameter.Description }}
 {% endif -%}
 {% endfor -%}
 {% if operation.HasResultDescription -%}
