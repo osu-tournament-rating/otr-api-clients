@@ -33,17 +33,8 @@ jobs:
     - name: Generate Clients
       run: nswag run
 
-    - name: Detect Code Changes
-      id: changes
-      uses: jitterbit/get-changed-files@v1
-
     - name: Detect TS Client Code Change
-      run: | 
-        if [[ ${{ steps.changes.outputs.modified }} == *"index.ts"* ]]; then
-          echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
-        else
-          echo "TS_CLIENT_CHANGED=false" >> $GITHUB_ENV
-        fi
+      run: git diff --name-only --exit-code ${{ vars.TS_CLIENT_PATH }}/index.ts || echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
 
     - name: Navigate to TS Client
       if: env.TS_CLIENT_CHANGED == true
