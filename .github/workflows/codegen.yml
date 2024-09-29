@@ -34,20 +34,23 @@ jobs:
       run: nswag run
 
     - name: Detect TS Client Code Change
-      run: git diff --name-only --exit-code ${{ vars.TS_CLIENT_PATH }}/index.ts || echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
+      run: |
+        if [[ git status --porcelain == *"${{ vars.TS_CLIENT_PATH }}/index.ts"* ]] then
+          echo "TS_CLIENT_CHANGED=true" >> $GITHUB_ENV
+        fi
 
     - name: Navigate to TS Client
-      if: env.TS_CLIENT_CHANGED == true
+      if: env.TS_CLIENT_CHANGED
       run: cd ${{ github.workspace }}/${{ vars.TS_CLIENT_PATH }}
 
     - name: Setup node
-      if: env.TS_CLIENT_CHANGED == true
+      if: env.TS_CLIENT_CHANGED
       uses: actions/setup-node@v3
       with:
-        node_version: "20"
+        node_version: 20
 
     - name: Bump TS Client Package Version
-      if: env.TS_CLIENT_CHANGED == true
+      if: env.TS_CLIENT_CHANGED
       run: npm version patch
 
     - name: Navigate to Repository Root
