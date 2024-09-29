@@ -47,7 +47,7 @@ jobs:
 
     - name: Navigate to TS Client
       if: env.TS_CLIENT_CHANGED == true
-      run: cd src/clients/ts
+      run: cd ${{ github.workspace }}/${{ vars.TS_CLIENT_PATH }}
 
     - name: Setup node
       if: env.TS_CLIENT_CHANGED == true
