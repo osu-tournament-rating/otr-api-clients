@@ -19,9 +19,13 @@ export class BeatmapsWrapper {
     }
 
     /**
-     * List all beatmaps
-     * @return Returns all beatmaps
-     */
+    * List all beatmaps
+    *
+    * Requires Authorization:
+
+    Claim(s): system, admin
+    * @return Returns all beatmaps
+    */
     list(): Promise<OtrApiResponse<BeatmapDTO[]>> {
         let url_ = this.baseUrl + "/api/v1/beatmaps";
         url_ = url_.replace(/[?&]$/, "");
@@ -64,10 +68,17 @@ export class BeatmapsWrapper {
     }
 
     /**
-     * Get a beatmap by versatile search
-     * @param key Search key
-     * @return Returns a beatmap
-     */
+    * Get a beatmap by versatile search
+    *
+    * Get a beatmap searching first by id, then by osu! beatmap id
+
+    Requires Authorization:
+
+    Claim(s): system, admin
+    * @param key
+    Search key
+    * @return Returns a beatmap
+    */
     get(key: number): Promise<OtrApiResponse<BeatmapDTO>> {
         let url_ = this.baseUrl + "/api/v1/beatmaps/{key}";
         if (key === undefined || key === null)
@@ -124,9 +135,15 @@ export class ClientsWrapper {
     }
 
     /**
-     * @param body (optional) 
-     * @return Success
-     */
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param body
+    (optional)
+
+    * @return Success
+    */
     patchRatelimit(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit";
         if (id === undefined || id === null)
@@ -176,11 +193,17 @@ export class FilteringWrapper {
     }
 
     /**
-     * Filter a list of users based on the criteria as described in
+    * Filter a list of users based on the criteria as described in
     API.DTOs.FilteringResultDTO
-     * @param body (optional) The filtering request
-     * @return The filtering result
-     */
+    *
+    * Requires Authorization:
+
+    Claim(s): user, client
+    * @param body
+    (optional)
+    The filtering request
+    * @return The filtering result
+    */
     filter(body?: FilteringRequestDTO | undefined): Promise<OtrApiResponse<FilteringResultDTO>> {
         let url_ = this.baseUrl + "/api/v1/filtering";
         url_ = url_.replace(/[?&]$/, "");
@@ -239,11 +262,18 @@ export class GamesWrapper {
     }
 
     /**
-     * Amend game data
-     * @param id The game id
-     * @param body (optional) JsonPatch data
-     * @return Returns the patched game
-     */
+    * Amend game data
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    The game id
+    * @param body
+    (optional)
+    JsonPatch data
+    * @return Returns the patched game
+    */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameDTO>> {
         let url_ = this.baseUrl + "/api/v1/games/{id}";
         if (id === undefined || id === null)
@@ -312,11 +342,18 @@ export class GameScoresWrapper {
     }
 
     /**
-     * Amend score data
-     * @param id The score id
-     * @param body (optional) JsonPatch data
-     * @return Returns the patched score
-     */
+    * Amend score data
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    The score id
+    * @param body
+    (optional)
+    JsonPatch data
+    * @return Returns the patched score
+    */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameScoreDTO>> {
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
         if (id === undefined || id === null)
@@ -385,26 +422,27 @@ export class LeaderboardsWrapper {
     }
 
     /**
-     * @param ruleset (optional) 0 = Osu (osu! (standard))
+    *
+    * Requires Authorization:
 
-    1 = Taiko (osu! Taiko)
+    Claim(s): user
+    * @param ruleset
+    (optional)
 
-    2 = Catch (osu! Catch (aka Fruits))
+    * @param page
+    (optional)
 
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
+    * @param pageSize
+    (optional)
 
-    4 = Mania4k (osu! Mania 4k variant)
+    * @param chartType
+    (optional)
 
-    5 = Mania7k (osu! Mania 7k variant)
-     * @param page (optional) 
-     * @param pageSize (optional) 
-     * @param chartType (optional) 0 = Global
+    * @param filter
+    (optional)
 
-    1 = Country
-     * @param filter (optional) 
-     * @return Success
-     */
+    * @return Success
+    */
     get(ruleset?: Ruleset | undefined, page?: number | undefined, pageSize?: number | undefined, chartType?: LeaderboardChartType | undefined, filter?: LeaderboardFilterDTO | undefined): Promise<OtrApiResponse<LeaderboardDTO>> {
         let url_ = this.baseUrl + "/api/v1/leaderboards?";
         if (ruleset === null)
@@ -471,97 +509,63 @@ export class MatchesWrapper {
     }
 
     /**
-     * Gets all matches
-     * @param ruleset (optional) Filters results for Database.Entities.Matches with a
+    * Gets all matches
+    *
+    * Results are ordered by id and support pagination. All match data is included.
+
+    Requires Authorization:
+
+    Claim(s): user, client
+    * @param ruleset
+    (optional)
+    Filters results for Database.Entities.Matches with a
     matching Database.Enums.Ruleset
-
-    0 = Osu (osu! (standard))
-
-    1 = Taiko (osu! Taiko)
-
-    2 = Catch (osu! Catch (aka Fruits))
-
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
-
-    4 = Mania4k (osu! Mania 4k variant)
-
-    5 = Mania7k (osu! Mania 7k variant)
-     * @param name (optional) Filters results for Database.Entities.Matches with a partially
+    * @param name
+    (optional)
+    Filters results for Database.Entities.Matches with a partially
     matching Database.Entities.Match.Name
-     * @param dateMin (optional) Filters results for Database.Entities.Matches with a
+    * @param dateMin
+    (optional)
+    Filters results for Database.Entities.Matches with a
     Database.Entities.Match.StartTime greater than this value
-     * @param dateMax (optional) Filters results for Database.Entities.Matches with an
+    * @param dateMax
+    (optional)
+    Filters results for Database.Entities.Matches with an
     Database.Entities.Match.EndTime less than this value
-     * @param verificationStatus (optional) Filters results for Database.Entities.Matches with a
+    * @param verificationStatus
+    (optional)
+    Filters results for Database.Entities.Matches with a
     matching Database.Enums.Verification.VerificationStatus
-
-    0 = None (Verification status has not yet been assigned)
-
-    1 = PreRejected (The Data Worker has identified an issue during processing)
-
-    2 = PreVerified (The Data Worker has not identified any issues during processing)
-
-    3 = Rejected (Determined to be unfit for ratings by manual review)
-
-    4 = Verified (Determined to be fit for ratings by manual review)
-     * @param rejectionReason (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
-
-    0 = None (The Database.Entities.Match is not rejected)
-
-    1 = NoData (The osu! API returned invalid data or no data for the Database.Entities.Match)
-
-    2 = NoGames (The osu! API returned no Database.Entities.Games for the Database.Entities.Match)
-
-    4 = InvalidName (The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions)
-
-    8 = FailedTeamVsConversion (The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs
-    conversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful)
-
-    16 = NoValidGames (The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-    of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified)
-
-    32 = UnexpectedGameCount (The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-    of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number
-    (does not satisfy "best of X"))
-
-    64 = NoEndTime (The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined)
-
-    128 = RejectedTournament (The Database.Entities.Tournament the Database.Entities.Match was played in was rejected)
-     * @param processingStatus (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
-
-    0 = NeedsData (The Database.Entities.Match needs data requested from the osu! API)
-
-    1 = NeedsAutomationChecks (The Database.Entities.Match needs automation checks)
-
-    2 = NeedsVerification (The Database.Entities.Match is awaiting verification from a
-    Database.Entities.User with verifier permission)
-
-    3 = NeedsStatCalculation (The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats))
-
-    4 = NeedsRatingProcessorData (The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments))
-
-    5 = Done (The Database.Entities.Match has completed all processing steps)
-     * @param submittedBy (optional) Filters results for Database.Entities.Matches where the id of the
+    * @param rejectionReason
+    (optional)
+    Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
+    * @param processingStatus
+    (optional)
+    Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
+    * @param submittedBy
+    (optional)
+    Filters results for Database.Entities.Matches where the id of the
     Database.Entities.User that submitted it matches this value
-     * @param verifiedBy (optional) Filters results for Database.Entities.Matches where the id of the
+    * @param verifiedBy
+    (optional)
+    Filters results for Database.Entities.Matches where the id of the
     Database.Entities.User that verified it matches this value
-     * @param sort (optional) Controls the manner in which results are sorted
-
-    0 = Id (Sort by primary key)
-
-    1 = OsuId (Sort by osu! id)
-
-    2 = StartTime (Sort by start start time)
-
-    3 = EndTime (Sort by end time)
-     * @param sortDescending (optional) Denotes whether to sort results in ascending or descending order
-     * @param limit (optional) Controls the number of matches to return. Functions as a "page size".
+    * @param sort
+    (optional)
+    Controls the manner in which results are sorted
+    * @param sortDescending
+    (optional)
+    Denotes whether to sort results in ascending or descending order
+    * @param limit
+    (optional)
+    Controls the number of matches to return. Functions as a "page size".
     Default: 100 Constraints: Minimum 1, Maximum 5000
-     * @param page (optional) Controls which block of size limit to return.
+    * @param page
+    (optional)
+    Controls which block of size limit to return.
     Default: 1, Constraints: Minimum 1
-     * @return Returns the desired page of matches
-     */
+    * @return Returns the desired page of matches
+    */
     list(ruleset?: Ruleset | undefined, name?: string | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined, verificationStatus?: VerificationStatus | undefined, rejectionReason?: MatchRejectionReason | undefined, processingStatus?: MatchProcessingStatus | undefined, submittedBy?: number | undefined, verifiedBy?: number | undefined, sort?: MatchesQuerySortType | undefined, sortDescending?: boolean | undefined, limit?: number | undefined, page?: number | undefined): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
         let url_ = this.baseUrl + "/api/v1/matches?";
         if (ruleset === null)
@@ -649,10 +653,15 @@ export class MatchesWrapper {
     }
 
     /**
-     * Get a match
-     * @param id Match id
-     * @return Returns a match
-     */
+    * Get a match
+    *
+    * Requires Authorization:
+
+    Claim(s): user, client
+    * @param id
+    Match id
+    * @return Returns a match
+    */
     get(id: number): Promise<OtrApiResponse<MatchDTO>> {
         let url_ = this.baseUrl + "/api/v1/matches/{id}";
         if (id === undefined || id === null)
@@ -698,11 +707,18 @@ export class MatchesWrapper {
     }
 
     /**
-     * Amend match data
-     * @param id The match id
-     * @param body (optional) JsonPatch data
-     * @return Returns the patched match
-     */
+    * Amend match data
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    The match id
+    * @param body
+    (optional)
+    JsonPatch data
+    * @return Returns the patched match
+    */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<MatchDTO>> {
         let url_ = this.baseUrl + "/api/v1/matches/{id}";
         if (id === undefined || id === null)
@@ -760,20 +776,15 @@ export class MatchesWrapper {
     }
 
     /**
-     * @param ruleset (optional) 0 = Osu (osu! (standard))
+    *
+    * Requires Authorization:
 
-    1 = Taiko (osu! Taiko)
+    Claim(s): admin, system
+    * @param ruleset
+    (optional)
 
-    2 = Catch (osu! Catch (aka Fruits))
-
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
-
-    4 = Mania4k (osu! Mania 4k variant)
-
-    5 = Mania7k (osu! Mania 7k variant)
-     * @return Success
-     */
+    * @return Success
+    */
     getMatches(osuId: number, ruleset?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/matches/player/{osuId}?";
         if (osuId === undefined || osuId === null)
@@ -823,15 +834,21 @@ export class MeWrapper {
     }
 
     /**
-     * Get the currently logged in user
-     */
-    get(): Promise<OtrApiResponse<void>> {
+    * Get the currently logged in user
+    *
+    * Requires Authorization:
+
+    Claim(s): user
+    * @return Returns the currently logged in user
+    */
+    get(): Promise<OtrApiResponse<UserDTO>> {
         let url_ = this.baseUrl + "/api/v1/me";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "text/plain"
             }
         };
 
@@ -840,7 +857,7 @@ export class MeWrapper {
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<void>> {
+    protected processGet(response: Response): Promise<OtrApiResponse<UserDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 401) {
@@ -854,34 +871,44 @@ export class MeWrapper {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `GET` `/users/{id}`", status, _responseText, _headers);
             });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UserDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
-     * Get player stats for the currently logged in user
-     * @param ruleset (optional) Ruleset to filter for
+    * Get player stats for the currently logged in user
+    *
+    * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
+    If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    If no date range is provided, gets all stats without considering date
 
-    0 = Osu (osu! (standard))
+    Requires Authorization:
 
-    1 = Taiko (osu! Taiko)
-
-    2 = Catch (osu! Catch (aka Fruits))
-
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
-
-    4 = Mania4k (osu! Mania 4k variant)
-
-    5 = Mania7k (osu! Mania 7k variant)
-     * @param dateMin (optional) Filter from earliest date
-     * @param dateMax (optional) Filter to latest date
-     */
-    getStats(ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<void>> {
+    Claim(s): user
+    * @param ruleset
+    (optional)
+    Ruleset to filter for
+    * @param dateMin
+    (optional)
+    Filter from earliest date
+    * @param dateMax
+    (optional)
+    Filter to latest date
+    * @return Returns the currently logged in user's player stats
+    */
+    getStats(ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
         let url_ = this.baseUrl + "/api/v1/me/stats?";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
@@ -900,6 +927,7 @@ export class MeWrapper {
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "text/plain"
             }
         };
 
@@ -908,7 +936,7 @@ export class MeWrapper {
         });
     }
 
-    protected processGetStats(response: Response): Promise<OtrApiResponse<void>> {
+    protected processGetStats(response: Response): Promise<OtrApiResponse<PlayerStatsDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 401) {
@@ -922,18 +950,32 @@ export class MeWrapper {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `GET` `/stats/{key}`", status, _responseText, _headers);
             });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PlayerStatsDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
-     * Update the ruleset for the currently logged in user
-     * @param body (optional) 
-     */
+    * Update the ruleset for the currently logged in user
+    *
+    * Requires Authorization:
+
+    Claim(s): user
+    * @param body
+    (optional)
+
+    * @return If the operation was successful
+    */
     updateRuleset(body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/me/settings/ruleset";
         url_ = url_.replace(/[?&]$/, "");
@@ -963,9 +1005,20 @@ export class MeWrapper {
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
             });
-        } else if (status === 307) {
+        } else if (status === 308) {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `POST` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            return new OtrApiResponse(status, _headers, null as any);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -976,8 +1029,13 @@ export class MeWrapper {
     }
 
     /**
-     * Sync the ruleset of the currently logged in user to their osu! ruleset
-     */
+    * Sync the ruleset of the currently logged in user to their osu! ruleset
+    *
+    * Requires Authorization:
+
+    Claim(s): user
+    * @return If the operation was successful
+    */
     syncRuleset(): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/me/settings/ruleset:sync";
         url_ = url_.replace(/[?&]$/, "");
@@ -1003,9 +1061,20 @@ export class MeWrapper {
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
             });
-        } else if (status === 307) {
+        } else if (status === 308) {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `POST` `/users/{id}/settings/ruleset:sync`", status, _responseText, _headers);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            return new OtrApiResponse(status, _headers, null as any);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1027,10 +1096,12 @@ export class OAuthWrapper {
     }
 
     /**
-     * Authorize using an osu! authorization code
-     * @param code (optional) The osu! authorization code
-     * @return Returns user access credentials
-     */
+    * Authorize using an osu! authorization code
+    * @param code
+    (optional)
+    The osu! authorization code
+    * @return Returns user access credentials
+    */
     authorize(code?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/authorize?";
         if (code === null)
@@ -1081,11 +1152,15 @@ export class OAuthWrapper {
     }
 
     /**
-     * Authorize using client credentials
-     * @param clientId (optional) The id of the client
-     * @param clientSecret (optional) The secret of the client
-     * @return Returns client access credentials
-     */
+    * Authorize using client credentials
+    * @param clientId
+    (optional)
+    The id of the client
+    * @param clientSecret
+    (optional)
+    The secret of the client
+    * @return Returns client access credentials
+    */
     authorizeClient(clientId?: number | undefined, clientSecret?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/token?";
         if (clientId === null)
@@ -1140,9 +1215,12 @@ export class OAuthWrapper {
     }
 
     /**
-     * Create a new OAuth client
-     * @return Returns created client credentials
-     */
+    * Create a new OAuth client
+    *
+    * Client secret is only returned from creation.
+    The user will have to reset the secret if they lose access.
+    * @return Returns created client credentials
+    */
     createClient(): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/client";
         url_ = url_.replace(/[?&]$/, "");
@@ -1185,10 +1263,15 @@ export class OAuthWrapper {
     }
 
     /**
-     * Generate new access credentials from a valid refresh token
-     * @param refreshToken (optional) 
-     * @return Returns access credentials containing a new access token
-     */
+    * Generate new access credentials from a valid refresh token
+    *
+    * Generated access credentials will contain only a new access token,
+    and the given refresh token is returned with it
+    * @param refreshToken
+    (optional)
+
+    * @return Returns access credentials containing a new access token
+    */
     refresh(refreshToken?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
         if (refreshToken === null)
@@ -1250,8 +1333,12 @@ export class PlayersWrapper {
     }
 
     /**
-     * @return Success
-     */
+    *
+    * Requires Authorization:
+
+    Claim(s): system
+    * @return Success
+    */
     getAll(): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/players/all";
         url_ = url_.replace(/[?&]$/, "");
@@ -1283,8 +1370,12 @@ export class PlayersWrapper {
     }
 
     /**
-     * @return Success
-     */
+    *
+    * Requires Authorization:
+
+    Claim(s): user, client
+    * @return Success
+    */
     get(key: string): Promise<OtrApiResponse<PlayerCompactDTO>> {
         let url_ = this.baseUrl + "/api/v1/players/{key}/info";
         if (key === undefined || key === null)
@@ -1334,10 +1425,18 @@ export class SearchWrapper {
     }
 
     /**
-     * Search for tournaments, matches, and users
-     * @param searchKey (optional) The string to match against names of tournaments, matches, and usernames
-     * @return Returns a list of all possible tournaments, matches, and usernames for the given search key
-     */
+    * Search for tournaments, matches, and users
+    *
+    * Allows for partial or full searching on the names of tournaments, matches, and usernames
+
+    Requires Authorization:
+
+    Claim(s): user
+    * @param searchKey
+    (optional)
+    The string to match against names of tournaments, matches, and usernames
+    * @return Returns a list of all possible tournaments, matches, and usernames for the given search key
+    */
     search(searchKey?: string | undefined): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
         let url_ = this.baseUrl + "/api/v1/search?";
         if (searchKey === null)
@@ -1388,26 +1487,30 @@ export class StatsWrapper {
     }
 
     /**
-     * Get a player's stats
-     * @param key Key used in versatile search
-     * @param ruleset (optional) Ruleset to filter for
+    * Get a player's stats
+    *
+    * Gets player by versatile search.
+    If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
+    If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    If no date range is provided, gets all stats without considering date
 
-    0 = Osu (osu! (standard))
+    Requires Authorization:
 
-    1 = Taiko (osu! Taiko)
-
-    2 = Catch (osu! Catch (aka Fruits))
-
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
-
-    4 = Mania4k (osu! Mania 4k variant)
-
-    5 = Mania7k (osu! Mania 7k variant)
-     * @param dateMin (optional) Filter from earliest date
-     * @param dateMax (optional) Filter to latest date
-     * @return Returns a player's stats
-     */
+    Claim(s): user, client
+    * @param key
+    Key used in versatile search
+    * @param ruleset
+    (optional)
+    Ruleset to filter for
+    * @param dateMin
+    (optional)
+    Filter from earliest date
+    * @param dateMax
+    (optional)
+    Filter to latest date
+    * @return Returns a player's stats
+    */
     get(key: string, ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
         let url_ = this.baseUrl + "/api/v1/stats/{key}?";
         if (key === undefined || key === null)
@@ -1465,20 +1568,15 @@ export class StatsWrapper {
     }
 
     /**
-     * @param ruleset (optional) 0 = Osu (osu! (standard))
+    *
+    * Requires Authorization:
 
-    1 = Taiko (osu! Taiko)
+    Claim(s): user, client
+    * @param ruleset
+    (optional)
 
-    2 = Catch (osu! Catch (aka Fruits))
-
-    3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-    not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k))
-
-    4 = Mania4k (osu! Mania 4k variant)
-
-    5 = Mania7k (osu! Mania 7k variant)
-     * @return Success
-     */
+    * @return Success
+    */
     getRatingHistogram(ruleset?: Ruleset | undefined): Promise<OtrApiResponse<{ [key: string]: number; }>> {
         let url_ = this.baseUrl + "/api/v1/stats/histogram?";
         if (ruleset === null)
@@ -1538,9 +1636,15 @@ export class TournamentsWrapper {
     }
 
     /**
-     * List all tournaments
-     * @return Returns all tournaments
-     */
+    * List all tournaments
+    *
+    * Will not include match data
+
+    Requires Authorization:
+
+    Claim(s): system
+    * @return Returns all tournaments
+    */
     list(): Promise<OtrApiResponse<TournamentDTO[]>> {
         let url_ = this.baseUrl + "/api/v1/tournaments";
         url_ = url_.replace(/[?&]$/, "");
@@ -1583,10 +1687,16 @@ export class TournamentsWrapper {
     }
 
     /**
-     * Submit a tournament
-     * @param body (optional) Tournament submission data
-     * @return Returns location information for the created tournament
-     */
+    * Submit a tournament
+    *
+    * Requires Authorization:
+
+    Claim(s): user
+    * @param body
+    (optional)
+    Tournament submission data
+    * @return Returns location information for the created tournament
+    */
     create(body?: TournamentSubmissionDTO | undefined): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
         let url_ = this.baseUrl + "/api/v1/tournaments";
         url_ = url_.replace(/[?&]$/, "");
@@ -1641,13 +1751,20 @@ export class TournamentsWrapper {
     }
 
     /**
-     * Get a tournament
-     * @param id Tournament id
-     * @param unfiltered (optional) If true, includes all match data, regardless of verification status.
+    * Get a tournament
+    *
+    * Requires Authorization:
+
+    Claim(s): user, client
+    * @param id
+    Tournament id
+    * @param unfiltered
+    (optional)
+    If true, includes all match data, regardless of verification status.
                 Also includes all child navigations if true.
                 Default false (strictly verified data with limited navigation properties)
-     * @return Returns the tournament
-     */
+    * @return Returns the tournament
+    */
     get(id: number, unfiltered?: boolean | undefined): Promise<OtrApiResponse<TournamentDTO>> {
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}?";
         if (id === undefined || id === null)
@@ -1697,11 +1814,18 @@ export class TournamentsWrapper {
     }
 
     /**
-     * Amend tournament data
-     * @param id The tournament id
-     * @param body (optional) JsonPatch data
-     * @return Returns the patched tournament
-     */
+    * Amend tournament data
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    The tournament id
+    * @param body
+    (optional)
+    JsonPatch data
+    * @return Returns the patched tournament
+    */
     update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<TournamentDTO>> {
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
         if (id === undefined || id === null)
@@ -1759,10 +1883,15 @@ export class TournamentsWrapper {
     }
 
     /**
-     * List all matches from a tournament
-     * @param id Tournament id
-     * @return Returns all matches from a tournament
-     */
+    * List all matches from a tournament
+    *
+    * Requires Authorization:
+
+    Claim(s): user, client
+    * @param id
+    Tournament id
+    * @return Returns all matches from a tournament
+    */
     listMatches(id: number): Promise<OtrApiResponse<MatchDTO[]>> {
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/matches";
         if (id === undefined || id === null)
@@ -1826,10 +1955,15 @@ export class UsersWrapper {
     }
 
     /**
-     * Get a user
-     * @param id Id of the user
-     * @return Returns a user
-     */
+    * Get a user
+    *
+    * Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param id
+    Id of the user
+    * @return Returns a user
+    */
     get(id: number): Promise<OtrApiResponse<UserDTO>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}";
         if (id === undefined || id === null)
@@ -1875,11 +2009,18 @@ export class UsersWrapper {
     }
 
     /**
-     * Update a user's scopes
-     * @param id Id of the user
-     * @param body (optional) List of scopes to assign to the user
-     * @return Returns an updated user
-     */
+    * Update a user's scopes
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    Id of the user
+    * @param body
+    (optional)
+    List of scopes to assign to the user
+    * @return Returns an updated user
+    */
     updateScopes(id: number, body?: string[] | undefined): Promise<OtrApiResponse<UserDTO>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/scopes";
         if (id === undefined || id === null)
@@ -1936,10 +2077,15 @@ export class UsersWrapper {
     }
 
     /**
-     * Get a user's match submissions
-     * @param id Id of the user
-     * @return Returns a list of submissions
-     */
+    * Get a user's match submissions
+    *
+    * Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param id
+    Id of the user
+    * @return Returns a list of submissions
+    */
     getSubmissions(id: number): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/submissions";
         if (id === undefined || id === null)
@@ -1992,10 +2138,15 @@ export class UsersWrapper {
     }
 
     /**
-     * Rejects a user's match submissions
-     * @param id Id of the user
-     * @return Denotes the operation was successful
-     */
+    * Rejects a user's match submissions
+    *
+    * Requires Authorization:
+
+    Claim(s): admin
+    * @param id
+    Id of the user
+    * @return Denotes the operation was successful
+    */
     rejectSubmissions(id: number): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/submissions:reject";
         if (id === undefined || id === null)
@@ -2041,10 +2192,17 @@ export class UsersWrapper {
     }
 
     /**
-     * Get a user's OAuth clients
-     * @param id Id of the user
-     * @return Returns a list of OAuth clients
-     */
+    * Get a user's OAuth clients
+    *
+    * All users have access to clients that they own. Admin users have access to clients from any user.
+
+    Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param id
+    Id of the user
+    * @return Returns a list of OAuth clients
+    */
     getClients(id: number): Promise<OtrApiResponse<OAuthClientDTO[]>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients";
         if (id === undefined || id === null)
@@ -2097,11 +2255,20 @@ export class UsersWrapper {
     }
 
     /**
-     * Delete a user's OAuth client
-     * @param id Id of the user
-     * @param clientId Id of the OAuth client
-     * @return If the deletion was successful
-     */
+    * Delete a user's OAuth client
+    *
+    * All users have access to delete clients that they own.
+    Admin users have access to clients from any user.
+
+    Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param id
+    Id of the user
+    * @param clientId
+    Id of the OAuth client
+    * @return If the deletion was successful
+    */
     deleteClient(id: number, clientId: number): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}";
         if (id === undefined || id === null)
@@ -2153,11 +2320,20 @@ export class UsersWrapper {
     }
 
     /**
-     * Reset the secret of a user's OAuth client
-     * @param id Id of the user
-     * @param clientId Id of the OAuth client
-     * @return Returns new client credentials if the secret reset was successful
-     */
+    * Reset the secret of a user's OAuth client
+    *
+    * All users have access to reset secrets of clients that they own.
+    Admin users have access to clients from any user.
+
+    Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param id
+    Id of the user
+    * @param clientId
+    Id of the OAuth client
+    * @return Returns new client credentials if the secret reset was successful
+    */
     resetClientSecret(id: number, clientId: number): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}/secret:reset";
         if (id === undefined || id === null)
@@ -2213,9 +2389,75 @@ export class UsersWrapper {
     }
 
     /**
-     * Sync the ruleset of a user with their osu! ruleset
-     * @return If the operation was successful
-     */
+    * Update the ruleset of a user
+    *
+    * Requires Authorization:
+
+    Policy: AccessUserResources
+    * @param body
+    (optional)
+
+    * @return If the operation was successful
+    */
+    updateRuleset(id: number, body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
+        let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateRuleset(_response);
+        });
+    }
+
+    protected processUpdateRuleset(response: Response): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            return new OtrApiResponse(status, _headers, null as any);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Sync the ruleset of a user with their osu! ruleset
+    *
+    * Requires Authorization:
+
+    Policy: AccessUserResources
+    * @return If the operation was successful
+    */
     syncRuleset(id: number): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset:sync";
         if (id === undefined || id === null)
@@ -2243,6 +2485,13 @@ export class UsersWrapper {
             let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
@@ -2592,7 +2841,7 @@ export interface ICreatedAtRouteValues {
 }
 
 /**
-* Explains why the player failed filtering 0 = None (The player passed filtering, thus there is no failure reason) 1 = NoData (The player does not have a rating / profile in the o!TR database) 2 = MinRating (The player's rating is below the minimum threshold) 4 = MaxRating (The player's rating is above the maximum threshold) 8 = IsProvisional (The player is provisional and the filtering criteria specifies exclusion of provisional players) 16 = NotEnoughTournaments (The player has not played in the minimum specified amount of tournaments) 32 = PeakRatingTooHigh (The player's all-time peak rating is above the maximum allowed) 64 = NotEnoughMatches (The player has not played in the minimum specified amount of matches)
+* Explains why the player failed filtering
 *
 * Bitwise flag
 */
@@ -2711,7 +2960,7 @@ this many matches */
     osuPlayerIds?: number[];
 }
 
-/** Indicates whether a player passed or failed filtering 0 = Pass (Indicates the player passed filtering) 1 = Fail (Indicates the player failed filtering) */
+/** Indicates whether a player passed or failed filtering */
 export enum FilteringResult {
     /** Indicates the player passed filtering */
     Pass = 0,
@@ -2885,7 +3134,7 @@ export interface IGameDTO {
     scores?: GameScoreDTO[];
 }
 
-/** The status of a Database.Entities.Game in the processing flow 0 = NeedsAutomationChecks (The Database.Entities.Game needs automation checks) 1 = NeedsVerification (The Database.Entities.Game is awaiting verification from a Database.Entities.User with verifier permission) 2 = NeedsStatCalculation (The Database.Entities.Game needs stat calculation (Generates the Database.Entities.GameWinRecord)) 3 = Done (The Database.Entities.Game has completed all processing steps) */
+/** The status of a Database.Entities.Game in the processing flow */
 export enum GameProcessingStatus {
     /** The Database.Entities.Game needs automation checks */
     NeedsAutomationChecks = 0,
@@ -2899,7 +3148,7 @@ Database.Entities.User with verifier permission */
 }
 
 /**
-* The reason why a Database.Entities.Game is rejected 0 = None (The Database.Entities.Game is not rejected) 1 = NoScores (The Database.Entities.Game's osu! API data did not contain any Database.Entities.GameScores) 2 = InvalidMods (The Database.Entities.Game has invalid mods applied) 4 = RulesetMismatch (The Database.Entities.Game's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament) 8 = InvalidScoringType (The Database.Entities.Game's Database.Enums.ScoringType is not Database.Enums.ScoringType.ScoreV2) 16 = InvalidTeamType (The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs) 32 = FailedTeamVsConversion (The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs and attempting Database.Enums.TeamType.TeamVs conversion was not successful) 64 = NoValidScores (The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2) 128 = LobbySizeMismatch (The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is not equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament) 256 = NoEndTime (The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined) 512 = RejectedMatch (The Database.Entities.Match the Database.Entities.Game was played in was rejected)
+* The reason why a Database.Entities.Game is rejected
 *
 * Bitwise flag
 */
@@ -3008,7 +3257,6 @@ export interface IGameScoreDTO {
     accuracy?: number;
 }
 
-/** 0 = Global 1 = Country */
 export enum LeaderboardChartType {
     Global = 0,
     Country = 1,
@@ -3566,7 +3814,7 @@ export interface IMatchDTOPagedResultDTO {
     results?: MatchDTO[];
 }
 
-/** The status of a Database.Entities.Match in the processing flow 0 = NeedsData (The Database.Entities.Match needs data requested from the osu! API) 1 = NeedsAutomationChecks (The Database.Entities.Match needs automation checks) 2 = NeedsVerification (The Database.Entities.Match is awaiting verification from a Database.Entities.User with verifier permission) 3 = NeedsStatCalculation (The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats)) 4 = NeedsRatingProcessorData (The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments)) 5 = Done (The Database.Entities.Match has completed all processing steps) */
+/** The status of a Database.Entities.Match in the processing flow */
 export enum MatchProcessingStatus {
     /** The Database.Entities.Match needs data requested from the osu! API */
     NeedsData = 0,
@@ -3584,7 +3832,7 @@ Database.Entities.User with verifier permission */
 }
 
 /**
-* The reason why a Database.Entities.Match is rejected 0 = None (The Database.Entities.Match is not rejected) 1 = NoData (The osu! API returned invalid data or no data for the Database.Entities.Match) 2 = NoGames (The osu! API returned no Database.Entities.Games for the Database.Entities.Match) 4 = InvalidName (The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions) 8 = FailedTeamVsConversion (The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs conversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful) 16 = NoValidGames (The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified) 32 = UnexpectedGameCount (The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number (does not satisfy "best of X")) 64 = NoEndTime (The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined) 128 = RejectedTournament (The Database.Entities.Tournament the Database.Entities.Match was played in was rejected)
+* The reason why a Database.Entities.Match is rejected
 *
 * Bitwise flag
 */
@@ -3733,7 +3981,7 @@ export interface IMatchSubmissionStatusDTO {
     updated?: Date | undefined;
 }
 
-/** Denotes which property a query for !:Database.Entities.Matches will be sorted by 0 = Id (Sort by primary key) 1 = OsuId (Sort by osu! id) 2 = StartTime (Sort by start start time) 3 = EndTime (Sort by end time) */
+/** Denotes which property a query for !:Database.Entities.Matches will be sorted by */
 export enum MatchesQuerySortType {
     /** Sort by primary key */
     Id = 0,
@@ -3796,7 +4044,7 @@ export interface IModStatsDTO {
 }
 
 /**
-* Represents mod values 0 = None (No mods enabled) 1 = NoFail (No fail (NF)) 2 = Easy (Easy (EZ)) 4 = TouchDevice (Touch Device (TD)) 8 = Hidden (Hidden (HD)) 16 = HardRock (Hard Rock (HR)) 32 = SuddenDeath (Sudden Death (SD)) 64 = DoubleTime (Double Time (DT)) 128 = Relax (Relax (RX)) 256 = HalfTime (Half Time (HT)) 512 = Nightcore (Nightcore (NC) (Only set along with DoubleTime. i.e: NC only gives 576)) 1024 = Flashlight (Flashlight (FL)) 2048 = Autoplay (Autoplay (AT)) 4096 = SpunOut (Spun Out (SO)) 8192 = Relax2 (Autopilot (AP) (Autopilot)) 16384 = Perfect (Perfect (PF) (Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416)) 22688 = InvalidMods (Denotes mods that are ineligible for ratings) 32768 = Key4 (4 key (4K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 65536 = Key5 (5 key (5K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 131072 = Key6 (6 key (6K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 262144 = Key7 (7 key (7K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 524288 = Key8 (8 key (8K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 1048576 = FadeIn (Fade In (FI) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 1049688 = ScoreIncreaseMods (Denotes mods that directly impose a modifier on score) 2097152 = Random (Random (RD) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 4194304 = Cinema (Cinema (CM)) 8388608 = Target (Target Practice (TP)) 16777216 = Key9 (9 Key (9K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 33554432 = KeyCoop (Co-op (CO) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 67108864 = Key1 (1 Key (1K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 134217728 = Key3 (3 Key (3K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 268435456 = Key2 (2 Key (2K) (Applicable only to Database.Enums.Ruleset.ManiaOther)) 521109504 = KeyMod (Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers (See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK)) 522171579 = FreeModAllowed (Denotes mods that are available to use during Free Mod settings) 536870912 = ScoreV2 (Score v2 (SV2)) 1073741824 = Mirror (Mirror (MR) (Applicable only to Database.Enums.Ruleset.ManiaOther))
+* Represents mod values
 *
 * Bitwise flag
 */
@@ -4093,7 +4341,6 @@ export interface IOperation {
     value?: any | undefined;
 }
 
-/** 0 = Add 1 = Remove 2 = Replace 3 = Move 4 = Copy 5 = Test 6 = Invalid */
 export enum OperationType {
     Add = 0,
     Remove = 1,
@@ -5348,7 +5595,7 @@ export interface IRatingAdjustmentDTO {
     matchId?: number | undefined;
 }
 
-/** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment 0 = Initial (The Database.Entities.Processor.RatingAdjustment is the initial rating) 1 = Decay (The Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay)) 2 = Match (The Database.Entities.Processor.RatingAdjustment is the result of participation in a Database.Entities.Match) */
+/** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
 export enum RatingAdjustmentType {
     /** The Database.Entities.Processor.RatingAdjustment is the initial rating */
     Initial = 0,
@@ -5358,7 +5605,7 @@ export enum RatingAdjustmentType {
     Match = 2,
 }
 
-/** Represents osu! play modes 0 = Osu (osu! (standard)) 1 = Taiko (osu! Taiko) 2 = Catch (osu! Catch (aka Fruits)) 3 = ManiaOther (osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)) 4 = Mania4k (osu! Mania 4k variant) 5 = Mania7k (osu! Mania 7k variant) */
+/** Represents osu! play modes */
 export enum Ruleset {
     /** osu! (standard) */
     Osu = 0,
@@ -5375,7 +5622,7 @@ not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enu
     Mania7k = 5,
 }
 
-/** The status of a Database.Entities.GameScore in the processing flow 0 = NeedsAutomationChecks (The Database.Entities.GameScore needs automation checks) 1 = NeedsVerification (The Database.Entities.GameScore is awaiting verification from a Database.Entities.User with verifier permission) 2 = Done (The Database.Entities.GameScore has completed all processing steps) */
+/** The status of a Database.Entities.GameScore in the processing flow */
 export enum ScoreProcessingStatus {
     /** The Database.Entities.GameScore needs automation checks */
     NeedsAutomationChecks = 0,
@@ -5387,7 +5634,7 @@ Database.Entities.User with verifier permission */
 }
 
 /**
-* The reason why a Database.Entities.GameScore is rejected 0 = None (The Database.Entities.GameScore is not rejected) 1 = ScoreBelowMinimum (The Database.Entities.GameScore's Database.Entities.GameScore.Score is below the minimum threshold) 2 = InvalidMods (The Database.Entities.GameScore was set with any Database.Enums.Mods.InvalidMods) 4 = RulesetMismatch (The Database.Entities.GameScore's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament) 8 = RejectedGame (The Database.Entities.Game the Database.Entities.GameScore was set in was rejected)
+* The reason why a Database.Entities.GameScore is rejected
 *
 * Bitwise flag
 */
@@ -5404,7 +5651,7 @@ export enum ScoreRejectionReason {
     RejectedGame = 8,
 }
 
-/** Represents the scoring method (win condition) for a Database.Entities.Game 0 = Score (Scoring based on Score v1) 1 = Accuracy (Scoring based on accuracy) 2 = Combo (Scoring based on combo) 3 = ScoreV2 (Scoring based on Score v2) */
+/** Represents the scoring method (win condition) for a Database.Entities.Game */
 export enum ScoringType {
     /** Scoring based on Score v1 */
     Score = 0,
@@ -5492,7 +5739,7 @@ export interface ISearchResponseCollectionDTO {
     players?: PlayerSearchResultDTO[];
 }
 
-/** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set 0 = NoTeam (No team) 1 = Blue (Team blue) 2 = Red (Team red) */
+/** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
 export enum Team {
     /** No team */
     NoTeam = 0,
@@ -5502,7 +5749,7 @@ export enum Team {
     Red = 2,
 }
 
-/** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) 0 = HeadToHead (Free for all) 1 = TagCoop (Free for all (Tag format) (All players play tag on the same beatmap)) 2 = TeamVs (Team red vs team blue) 3 = TagTeamVs (Team red vs team blue (Tag format)) */
+/** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
 export enum TeamType {
     /** Free for all */
     HeadToHead = 0,
@@ -5710,7 +5957,7 @@ export interface ITournamentDTO {
     matches?: MatchDTO[];
 }
 
-/** The status of a Database.Entities.Tournament in the processing flow 0 = NeedsApproval (The Database.Entities.Tournament is awaiting approval from a Database.Entities.User with verifier permission (Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament will advance through the processing flow until approved.)) 1 = NeedsMatchData (The Database.Entities.Tournament has Database.Entities.Matches with a Database.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData) 2 = NeedsAutomationChecks (The Database.Entities.Tournament needs automation checks) 3 = NeedsVerification (The Database.Entities.Tournament is awaiting verification from a Database.Entities.User with verifier permission) 4 = NeedsStatCalculation (The Database.Entities.Tournament needs stat calculation) 5 = Done (The tournament has completed all processing steps) */
+/** The status of a Database.Entities.Tournament in the processing flow */
 export enum TournamentProcessingStatus {
     /** The Database.Entities.Tournament is awaiting approval from a
 Database.Entities.User with verifier permission (Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament
@@ -5731,7 +5978,7 @@ Database.Entities.User with verifier permission */
 }
 
 /**
-* The reason why a Database.Entities.Tournament is rejected 0 = None (The Database.Entities.Tournament is not rejected) 1 = NoVerifiedMatches (The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified) 2 = NotEnoughVerifiedMatches (The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total) 4 = AbnormalWinCondition (The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2 (Only assigned via a "rejected submission". <br /> Covers cases such as gimmicky win conditions, mixed win conditions, etc)) 8 = AbnormalFormat (The Database.Entities.Tournament's format is not suitable for ratings (Only assigned via a "rejected submission". <br /> Covers cases such as excessive gimmicks, relax, multiple modes, etc)) 16 = VaryingLobbySize (The Database.Entities.Tournament's lobby sizes are not consistent. (Only assigned via a "rejected submission". <br /> Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc)) 32 = IncompleteData (The Database.Entities.Tournament's data is incomplete or not recoverable Covers cases where match links are lost to time, private, main sheet is deleted, missing rounds, etc. (Only assigned via a "rejected submission". <br /> Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc))
+* The reason why a Database.Entities.Tournament is rejected
 *
 * Bitwise flag
 */
@@ -6027,7 +6274,7 @@ export interface IUserSettingsDTO {
     rulesetIsControlled?: boolean;
 }
 
-/** The verification status of a Database.Entities.Tournament, Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore 0 = None (Verification status has not yet been assigned) 1 = PreRejected (The Data Worker has identified an issue during processing) 2 = PreVerified (The Data Worker has not identified any issues during processing) 3 = Rejected (Determined to be unfit for ratings by manual review) 4 = Verified (Determined to be fit for ratings by manual review) */
+/** The verification status of a Database.Entities.Tournament, Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
 export enum VerificationStatus {
     /** Verification status has not yet been assigned */
     None = 0,
