@@ -12,7 +12,7 @@
           "Beatmaps"
         ],
         "summary": "List all beatmaps",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): system, admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Beatmaps_list",
         "responses": {
           "200": {
@@ -47,11 +47,10 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
-              "system",
               "admin"
             ]
           }
@@ -64,7 +63,7 @@
           "Beatmaps"
         ],
         "summary": "Get a beatmap by versatile search",
-        "description": "Get a beatmap searching first by id, then by osu! beatmap id\n\nRequires Authorization:\n\nClaim(s): system, admin",
+        "description": "Get a beatmap searching first by id, then by osu! beatmap id\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Beatmaps_get",
         "parameters": [
           {
@@ -123,11 +122,10 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
-              "system",
               "admin"
             ]
           }
@@ -196,7 +194,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -283,12 +281,447 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
               "user",
               "client"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/games/{id}/notes": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Creates an admin note for a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_createAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Game id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a game matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the authorized user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the created admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "List all admin notes from a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_listAdminNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Game id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a game matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns all admin notes from a game",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/games/{id}/notes/{noteId}": {
+      "patch": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Updates an admin note for a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_updateAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Game id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If the requester did not create the admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Deletes an admin note for a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_deleteAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Game id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
             ]
           }
         ]
@@ -416,7 +849,442 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/gamescores/{id}/notes": {
+      "post": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "Creates an admin note for a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_createAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Score id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a score matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the authorized user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the created admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "List all admin notes for a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_listAdminNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Score id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a score matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns all admin notes from a score",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/gamescores/{id}/notes/{noteId}": {
+      "patch": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "Updates an admin note for a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_updateAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Score id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If the requester did not create the admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "Deletes an admin note for a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_deleteAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Score id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -548,7 +1416,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -577,8 +1445,11 @@
           {
             "name": "Page",
             "in": "query",
+            "description": "The zero-indexed page offset. Page 0 returns the first PageSize results.",
             "style": "form",
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 0,
               "type": "integer",
               "format": "int32"
             }
@@ -586,8 +1457,11 @@
           {
             "name": "PageSize",
             "in": "query",
+            "description": "The number of elements to return per page",
             "style": "form",
             "schema": {
+              "maximum": 100,
+              "minimum": 5,
               "type": "integer",
               "format": "int32"
             }
@@ -595,6 +1469,7 @@
           {
             "name": "ChartType",
             "in": "query",
+            "description": "Defines whether the leaderboard should be global or filtered by country",
             "style": "form",
             "schema": {
               "$ref": "#/components/schemas/LeaderboardChartType"
@@ -633,11 +1508,446 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
               "user"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/notes": {
+      "post": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Creates an admin note for a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_createAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the authorized user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the created admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "List all admin notes from a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_listAdminNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns all admin notes from a match",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/notes/{noteId}": {
+      "patch": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Updates an admin note for a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_updateAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If the requester did not create the admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Deletes an admin note for a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_deleteAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
             ]
           }
         ]
@@ -806,7 +2116,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -882,7 +2192,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1013,7 +2323,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1028,7 +2338,7 @@
         "tags": [
           "Matches"
         ],
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin, system",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Matches_getMatches",
         "parameters": [
           {
@@ -1057,12 +2367,11 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
-              "admin",
-              "system"
+              "admin"
             ]
           }
         ]
@@ -1077,53 +2386,16 @@
         "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_get",
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authenticated",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "302": {
             "description": "Redirects to `GET` `/users/{id}`"
           },
           "200": {
-            "description": "Returns the currently logged in user",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDTO"
-                }
-              }
-            }
+            "description": "Returns the currently logged in user"
           }
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1173,26 +2445,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authenticated",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "302": {
             "description": "Redirects to `GET` `/stats/{key}`"
           },
@@ -1219,7 +2471,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1262,26 +2514,6 @@
           }
         },
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authenticated",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "308": {
             "description": "Redirects to `POST` `/users/{id}/settings/ruleset`"
           },
@@ -1311,7 +2543,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1330,28 +2562,8 @@
         "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_syncRuleset",
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authenticated",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "308": {
-            "description": "Redirects to `POST` `/users/{id}/settings/ruleset:sync`"
+            "description": "Redirect"
           },
           "400": {
             "description": "If the operation was not successful",
@@ -1375,11 +2587,14 @@
           },
           "200": {
             "description": "If the operation was successful"
+          },
+          "307": {
+            "description": "Redirects to `POST` `/users/{id}/settings/ruleset:sync`"
           }
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1409,7 +2624,7 @@
         ],
         "responses": {
           "401": {
-            "description": "Unauthorized",
+            "description": "If there was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1433,23 +2648,20 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               }
             }
-          },
-          "201": {
-            "description": "If there was an error during authorization"
           }
         }
       }
@@ -1483,8 +2695,8 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized",
+          "400": {
+            "description": "If there was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1508,23 +2720,20 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               }
             }
-          },
-          "201": {
-            "description": "If there was an error during authorization"
           }
         }
       }
@@ -1535,29 +2744,9 @@
           "OAuth"
         ],
         "summary": "Create a new OAuth client",
-        "description": "Client secret is only returned from creation.\r\nThe user will have to reset the secret if they lose access.",
+        "description": "Client secret is only returned from creation.\r\nThe user will have to reset the secret if they lose access.\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "OAuth_createClient",
         "responses": {
-          "401": {
-            "description": "If the user is not properly authenticated",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Returns created client credentials",
             "content": {
@@ -1578,7 +2767,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ]
       }
     },
     "/api/v1/oauth/refresh": {
@@ -1601,8 +2800,8 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized",
+          "400": {
+            "description": "If the given refresh token is invalid, or there was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1626,52 +2825,460 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OAuthResponseDTO"
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
                 }
               }
             }
-          },
-          "201": {
-            "description": "If the given refresh token is invalid, or there was an error during authorization"
           }
         }
       }
     },
-    "/api/v1/players/all": {
-      "get": {
+    "/api/v1/players/{id}/notes": {
+      "post": {
         "tags": [
           "Players"
         ],
-        "description": "\n\nRequires Authorization:\n\nClaim(s): system",
-        "operationId": "Players_getAll",
+        "summary": "Creates an admin note for a player",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Players_createAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Player id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "responses": {
+          "404": {
+            "description": "If a player matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the authorized user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "Success"
+            "description": "Returns the created admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
           }
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
-              "system"
+              "admin"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "List all admin notes for a player",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Players_listAdminNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Player id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a player matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns all admin notes from a player",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
             ]
           }
         ]
       }
     },
-    "/api/v1/players/{key}/info": {
+    "/api/v1/players/{id}/notes/{noteId}": {
+      "patch": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Updates an admin note for a player",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Players_updateAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Player id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If the requester did not create the admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Deletes an admin note for a player",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Players_deleteAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Player id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/players/{key}": {
       "get": {
         "tags": [
           "Players"
@@ -1713,7 +3320,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1767,7 +3374,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1870,7 +3477,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1934,7 +3541,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -1945,17 +3552,558 @@
         ]
       }
     },
+    "/api/v1/tournaments/{id}/notes": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Creates an admin note for a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_createAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "If the requester is not properly authorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If a tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "If the authorized user does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the created admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "List all admin notes from a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_listAdminNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns all admin notes from a tournament",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/tournaments/{id}/notes/{noteId}": {
+      "patch": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Updates an admin note for a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_updateAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "string"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "If the requester is not properly authorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "If the requester did not create the admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Deletes an admin note for a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_deleteAdminNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "noteId",
+            "in": "path",
+            "description": "Admin note id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "If the requester is not properly authorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the updated admin note",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      }
+    },
     "/api/v1/tournaments": {
       "get": {
         "tags": [
           "Tournaments"
         ],
-        "summary": "List all tournaments",
-        "description": "Will not include match data\n\nRequires Authorization:\n\nClaim(s): system",
+        "summary": "Get all tournaments which fit an optional request query",
+        "description": "Will not include match data",
         "operationId": "Tournaments_list",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "description": "The page number",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "The size of the page",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Verified",
+            "in": "query",
+            "description": "Whether the tournaments must be verified",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Ruleset",
+            "in": "query",
+            "description": "An optional ruleset to filter by",
+            "style": "form",
+            "schema": {
+              "$ref": "#/components/schemas/Ruleset"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Returns all tournaments",
+            "description": "Returns all tournaments which fit the request query",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1982,18 +4130,28 @@
                 }
               }
             }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": [ ]
           },
-          {
-            "OAuth2": [
-              "system"
-            ]
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
-        ]
+        }
       },
       "post": {
         "tags": [
@@ -2028,42 +4186,22 @@
           }
         },
         "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "400": {
-            "description": "If the given !:tournamentSubmission is malformed\r\nIf a tournament matching the given name and ruleset already exists",
+            "description": "If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2091,7 +4229,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2122,13 +4260,13 @@
             }
           },
           {
-            "name": "unfiltered",
+            "name": "verified",
             "in": "query",
-            "description": "If true, includes all match data, regardless of verification status.\r\n            Also includes all child navigations if true.\r\n            Default false (strictly verified data with limited navigation properties)",
+            "description": "If true, specifically includes verified match data. If false,\r\n            includes all data, regardless of verification status.\r\n            Also includes all child navigations if false.\r\n            Default true (strictly verified data with limited navigation properties)",
             "style": "form",
             "schema": {
               "type": "boolean",
-              "default": false
+              "default": true
             }
           }
         ],
@@ -2176,7 +4314,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2307,7 +4445,46 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Delete a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The tournament was deleted successfully"
+          },
+          "404": {
+            "description": "The tournament does not exist"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2391,7 +4568,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2467,7 +4644,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -2594,7 +4771,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2678,7 +4855,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -2734,7 +4911,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           },
           {
             "OAuth2": [
@@ -2818,7 +4995,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -2902,7 +5079,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -3003,7 +5180,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -3099,7 +5276,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -3171,7 +5348,7 @@
         },
         "security": [
           {
-            "BearerAuth": [ ]
+            "Bearer": [ ]
           }
         ]
       }
@@ -3179,6 +5356,77 @@
   },
   "components": {
     "schemas": {
+      "AccessCredentialsDTO": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Access token",
+            "nullable": true
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token",
+            "nullable": true
+          },
+          "accessExpiration": {
+            "type": "integer",
+            "description": "Lifetime of the access token in seconds",
+            "format": "int32",
+            "nullable": true
+          },
+          "refreshExpiration": {
+            "type": "integer",
+            "description": "Lifetime of the refresh token in seconds",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents access credentials and their expiry"
+      },
+      "AdminNoteDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The id of the admin note",
+            "format": "int32"
+          },
+          "created": {
+            "type": "string",
+            "description": "Timestamp of creation",
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "description": "Timestamp of the last update if available",
+            "format": "date-time",
+            "nullable": true
+          },
+          "referenceId": {
+            "type": "integer",
+            "description": "Id of the parent entity",
+            "format": "int32"
+          },
+          "adminUserId": {
+            "type": "integer",
+            "description": "Id of the admin user that created the note",
+            "format": "int32"
+          },
+          "adminUsername": {
+            "type": "string",
+            "description": "Username of the admin user that created the note",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "description": "Content of the note"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a note for an entity created by an admin"
+      },
       "AggregatePlayerMatchStatsDTO": {
         "type": "object",
         "properties": {
@@ -3536,7 +5784,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Id of the game",
+            "description": "Primary key",
             "format": "int32"
           },
           "ruleset": {
@@ -3553,7 +5801,7 @@
           },
           "osuId": {
             "type": "integer",
-            "description": "osu! id of the game",
+            "description": "osu! id",
             "format": "int64"
           },
           "verificationStatus": {
@@ -3561,6 +5809,9 @@
           },
           "processingStatus": {
             "$ref": "#/components/schemas/GameProcessingStatus"
+          },
+          "warningFlags": {
+            "$ref": "#/components/schemas/GameWarningFlags"
           },
           "rejectionReason": {
             "$ref": "#/components/schemas/GameRejectionReason"
@@ -3579,12 +5830,19 @@
           "beatmap": {
             "$ref": "#/components/schemas/BeatmapDTO"
           },
+          "adminNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNoteDTO"
+            },
+            "description": "All associated admin notes"
+          },
           "scores": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/GameScoreDTO"
             },
-            "description": "All match scores for the game"
+            "description": "All match scores"
           }
         },
         "additionalProperties": false,
@@ -3695,9 +5953,37 @@
             "type": "number",
             "description": "The accuracy of the score",
             "format": "double"
+          },
+          "adminNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNoteDTO"
+            },
+            "description": "All associated admin notes"
           }
         },
         "additionalProperties": false
+      },
+      "GameWarningFlags": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "description": "Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
+        "format": "int32",
+        "x-enumNames": [
+          "None",
+          "BeatmapUsedOnce",
+          "BeatmapNotInMappool"
+        ],
+        "x-enumDescriptions": [
+          "The Database.Entities.Game has no warnings",
+          "If the parent Database.Entities.Tournament does not have a submitted pool of\r\nDatabase.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap\r\nis played only once throughout the entire Database.Entities.Tournament",
+          "If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,\r\nthe Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,\r\nand the Database.Entities.Game is not one of the first two in the Database.Entities.Match"
+        ],
+        "x-bitwiseFlag": true
       },
       "LeaderboardChartType": {
         "enum": [
@@ -3953,6 +6239,9 @@
           "rejectionReason": {
             "$ref": "#/components/schemas/MatchRejectionReason"
           },
+          "warningFlags": {
+            "$ref": "#/components/schemas/MatchWarningFlags"
+          },
           "processingStatus": {
             "$ref": "#/components/schemas/MatchProcessingStatus"
           },
@@ -3961,12 +6250,22 @@
             "description": "Timestamp of the last time the match was processed",
             "format": "date-time"
           },
+          "tournament": {
+            "$ref": "#/components/schemas/TournamentCompactDTO"
+          },
           "games": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/GameDTO"
             },
             "description": "List of games played during the match"
+          },
+          "adminNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNoteDTO"
+            },
+            "description": "All associated admin notes"
           }
         },
         "additionalProperties": false,
@@ -4126,6 +6425,27 @@
         },
         "additionalProperties": false,
         "description": "Represents the status of a submitted match"
+      },
+      "MatchWarningFlags": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "description": "Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
+        "format": "int32",
+        "x-enumNames": [
+          "None",
+          "UnexpectedTitleFormat",
+          "LowGameCount"
+        ],
+        "x-enumDescriptions": [
+          "The Database.Entities.Match has no warnings",
+          "The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
+          "The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4"
+        ],
+        "x-bitwiseFlag": true
       },
       "MatchesQuerySortType": {
         "enum": [
@@ -4341,22 +6661,6 @@
         "additionalProperties": false,
         "description": "Represents an OAuth client"
       },
-      "OAuthResponseDTO": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "accessExpiration": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "additionalProperties": false
-      },
       "Operation": {
         "type": "object",
         "properties": {
@@ -4472,7 +6776,6 @@
           "filteringResultMessage": {
             "type": "string",
             "description": "The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form",
-            "nullable": true,
             "readOnly": true
           },
           "filteringFailReasonMessage": {
@@ -5251,6 +7554,65 @@
           "Team red vs team blue (Tag format)"
         ]
       },
+      "TournamentCompactDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The tournament id",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "description": "The tournament name"
+          },
+          "abbreviation": {
+            "type": "string"
+          },
+          "forumUrl": {
+            "type": "string",
+            "description": "The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used)"
+          },
+          "rankRangeLowerBound": {
+            "type": "integer",
+            "description": "Lowest rank a player can be to participate",
+            "format": "int32"
+          },
+          "ruleset": {
+            "$ref": "#/components/schemas/Ruleset"
+          },
+          "lobbySize": {
+            "type": "integer",
+            "description": "Expected in-match team size",
+            "format": "int32"
+          },
+          "verificationStatus": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "processingStatus": {
+            "$ref": "#/components/schemas/TournamentProcessingStatus"
+          },
+          "rejectionReason": {
+            "$ref": "#/components/schemas/TournamentRejectionReason"
+          },
+          "created": {
+            "type": "string",
+            "description": "The timestamp of submission",
+            "format": "date-time"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "The start date of the first match",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "The end date of the last match",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "TournamentCreatedResultDTO": {
         "type": "object",
         "properties": {
@@ -5290,23 +7652,31 @@
         "properties": {
           "id": {
             "type": "integer",
+            "description": "The tournament id",
             "format": "int32"
           },
           "name": {
             "type": "string",
-            "description": "The name of the tournament"
+            "description": "The tournament name"
           },
           "abbreviation": {
-            "type": "string",
-            "description": "Acronym / shortened name of the tournament\r\n<example>For osu! World Cup 2023, this value would be \"OWC23\"</example>"
+            "type": "string"
           },
           "forumUrl": {
             "type": "string",
-            "description": "The osu! forum post advertising this tournament"
+            "description": "The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used)"
           },
           "rankRangeLowerBound": {
             "type": "integer",
-            "description": "Lowest rank a player can be to participate in the tournament",
+            "description": "Lowest rank a player can be to participate",
+            "format": "int32"
+          },
+          "ruleset": {
+            "$ref": "#/components/schemas/Ruleset"
+          },
+          "lobbySize": {
+            "type": "integer",
+            "description": "Expected in-match team size",
             "format": "int32"
           },
           "verificationStatus": {
@@ -5318,27 +7688,19 @@
           "rejectionReason": {
             "$ref": "#/components/schemas/TournamentRejectionReason"
           },
-          "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
-          },
-          "lobbySize": {
-            "type": "integer",
-            "description": "Expected in-match team size",
-            "format": "int32"
-          },
           "created": {
             "type": "string",
-            "description": "The timestamp of submission for the tournament",
+            "description": "The timestamp of submission",
             "format": "date-time"
           },
           "startTime": {
             "type": "string",
-            "description": "The start date of the first match played in the tournament",
+            "description": "The start date of the first match",
             "format": "date-time"
           },
           "endTime": {
             "type": "string",
-            "description": "The end date of the last match played in the tournament",
+            "description": "The end date of the last match",
             "format": "date-time"
           },
           "matches": {
@@ -5347,6 +7709,13 @@
               "$ref": "#/components/schemas/MatchDTO"
             },
             "description": "All associated match data (Will be empty for bulk requests such as List)"
+          },
+          "adminNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNoteDTO"
+            },
+            "description": "All admin notes associated with the tournament"
           }
         },
         "additionalProperties": false,
@@ -5470,6 +7839,9 @@
           "ruleset": {
             "$ref": "#/components/schemas/Ruleset"
           },
+          "rejectionReason": {
+            "$ref": "#/components/schemas/TournamentRejectionReason"
+          },
           "ids": {
             "type": "array",
             "items": {
@@ -5477,6 +7849,14 @@
               "format": "int64"
             },
             "description": "List of osu! match ids"
+          },
+          "beatmapIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "A collection of pooled osu! beatmap ids"
           }
         },
         "additionalProperties": false,
@@ -5569,44 +7949,47 @@
       }
     },
     "securitySchemes": {
-      "BearerAuth": {
+      "Bearer": {
         "type": "http",
-        "description": "JWT Authorization header using the Bearer scheme",
-        "scheme": "BearerAuth",
+        "description": "JWT Authorization using the Bearer scheme. Paste **ONLY** your JWT in the text box below",
+        "scheme": "Bearer",
         "bearerFormat": "JWT"
       },
       "OAuth2": {
         "type": "oauth2",
-        "description": "OAuth2 Authorization",
+        "description": "OAuth2 Authentication",
         "flows": {
           "clientCredentials": {
             "tokenUrl": "api/v1.0/OAuth/token",
             "refreshUrl": "api/v1.0/OAuth/refresh",
             "scopes": {
-              "user": "Claim granted to all users",
-              "client": "Claim granted to all users",
-              "system": "Claim granted to internal privileged clients",
-              "admin": "Claim granted to privileged users",
-              "verifier": "Claim granted to users with permission to verify submission data",
-              "submit": "Claim granted to users with permission to submit tournament data",
-              "whitelist": "Claim granted to users and clients to allow access during times of restricted use"
+              "user": "Role granted to all users.",
+              "client": "Role granted to all clients.",
+              "admin": "Role granted to privileged users.",
+              "verifier": "Role granted to users with permission to verify submission data.",
+              "submit": "Role granted to users with permission to submit tournament data.",
+              "whitelist": "Role granted to users and clients to allow access during times of restricted use."
             }
           },
           "authorizationCode": {
             "authorizationUrl": "api/v1.0/OAuth/authorize",
             "refreshUrl": "api/v1.0/OAuth/refresh",
             "scopes": {
-              "user": "Claim granted to all users",
-              "client": "Claim granted to all users",
-              "system": "Claim granted to internal privileged clients",
-              "admin": "Claim granted to privileged users",
-              "verifier": "Claim granted to users with permission to verify submission data",
-              "submit": "Claim granted to users with permission to submit tournament data",
-              "whitelist": "Claim granted to users and clients to allow access during times of restricted use"
+              "user": "Role granted to all users.",
+              "client": "Role granted to all clients.",
+              "admin": "Role granted to privileged users.",
+              "verifier": "Role granted to users with permission to verify submission data.",
+              "submit": "Role granted to users with permission to submit tournament data.",
+              "whitelist": "Role granted to users and clients to allow access during times of restricted use."
             }
           }
         }
       }
     }
-  }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

@@ -23,7 +23,7 @@ export class BeatmapsWrapper {
     *
     * Requires Authorization:
     * 
-    * Claim(s): system, admin
+    * Claim(s): admin
     * @return Returns all beatmaps
     */
     list(): Promise<OtrApiResponse<BeatmapDTO[]>> {
@@ -74,7 +74,7 @@ export class BeatmapsWrapper {
     * 
     * Requires Authorization:
     * 
-    * Claim(s): system, admin
+    * Claim(s): admin
     * @param key Search key
     * @return Returns a beatmap
     */
@@ -258,6 +258,264 @@ export class GamesWrapper {
     }
 
     /**
+    * Creates an admin note for a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Game id
+    * @param body (optional) 
+    * @return Returns the created admin note
+    */
+    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAdminNote(_response);
+        });
+    }
+
+    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * List all admin notes from a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Game id
+    * @return Returns all admin notes from a game
+    */
+    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminNotes(_response);
+        });
+    }
+
+    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminNoteDTO.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Updates an admin note for a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Game id
+    * @param noteId Admin note id
+    * @param body (optional) 
+    * @return Returns the updated admin note
+    */
+    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminNote(_response);
+        });
+    }
+
+    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Deletes an admin note for a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Game id
+    * @param noteId Admin note id
+    * @return Returns the updated admin note
+    */
+    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminNote(_response);
+        });
+    }
+
+    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
     * Amend game data
     *
     * Requires Authorization:
@@ -332,6 +590,264 @@ export class GameScoresWrapper {
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
         this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+    * Creates an admin note for a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Score id
+    * @param body (optional) 
+    * @return Returns the created admin note
+    */
+    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAdminNote(_response);
+        });
+    }
+
+    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * List all admin notes for a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Score id
+    * @return Returns all admin notes from a score
+    */
+    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminNotes(_response);
+        });
+    }
+
+    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminNoteDTO.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Updates an admin note for a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Score id
+    * @param noteId Admin note id
+    * @param body (optional) 
+    * @return Returns the updated admin note
+    */
+    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminNote(_response);
+        });
+    }
+
+    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Deletes an admin note for a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Score id
+    * @param noteId Admin note id
+    * @return Returns the updated admin note
+    */
+    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminNote(_response);
+        });
+    }
+
+    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -418,9 +934,9 @@ export class LeaderboardsWrapper {
     * 
     * Claim(s): user
     * @param ruleset (optional) 
-    * @param page (optional) 
-    * @param pageSize (optional) 
-    * @param chartType (optional) 
+    * @param page (optional) The zero-indexed page offset. Page 0 returns the first PageSize results.
+    * @param pageSize (optional) The number of elements to return per page
+    * @param chartType (optional) Defines whether the leaderboard should be global or filtered by country
     * @param filter (optional) 
     * @return Success
     */
@@ -487,6 +1003,264 @@ export class MatchesWrapper {
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
         this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+    * Creates an admin note for a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Match id
+    * @param body (optional) 
+    * @return Returns the created admin note
+    */
+    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAdminNote(_response);
+        });
+    }
+
+    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * List all admin notes from a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Match id
+    * @return Returns all admin notes from a match
+    */
+    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminNotes(_response);
+        });
+    }
+
+    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminNoteDTO.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Updates an admin note for a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Match id
+    * @param noteId Admin note id
+    * @param body (optional) 
+    * @return Returns the updated admin note
+    */
+    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminNote(_response);
+        });
+    }
+
+    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Deletes an admin note for a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Match id
+    * @param noteId Admin note id
+    * @return Returns the updated admin note
+    */
+    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminNote(_response);
+        });
+    }
+
+    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -731,7 +1505,7 @@ export class MatchesWrapper {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin, system
+    * Claim(s): admin
     * @param ruleset (optional) 
     * @return Success
     */
@@ -791,14 +1565,13 @@ export class MeWrapper {
     * Claim(s): user
     * @return Returns the currently logged in user
     */
-    get(): Promise<OtrApiResponse<UserDTO>> {
+    get(): Promise<OtrApiResponse<void>> {
         let url_ = this.baseUrl + "/api/v1/me";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "text/plain"
             }
         };
 
@@ -807,33 +1580,23 @@ export class MeWrapper {
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<UserDTO>> {
+    protected processGet(response: Response): Promise<OtrApiResponse<void>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
-            return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
-            });
-        } else if (status === 302) {
+        if (status === 302) {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `GET` `/users/{id}`", status, _responseText, _headers);
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = UserDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
+            return new OtrApiResponse(status, _headers, null as any);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -883,14 +1646,7 @@ export class MeWrapper {
     protected processGetStats(response: Response): Promise<OtrApiResponse<PlayerStatsDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
-            return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
-            });
-        } else if (status === 302) {
+        if (status === 302) {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `GET` `/stats/{key}`", status, _responseText, _headers);
             });
@@ -940,14 +1696,7 @@ export class MeWrapper {
     protected processUpdateRuleset(response: Response): Promise<OtrApiResponse<void>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
-            return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
-            });
-        } else if (status === 308) {
+        if (status === 308) {
             return response.text().then((_responseText) => {
             return throwException("Redirects to `POST` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
             });
@@ -996,16 +1745,9 @@ export class MeWrapper {
     protected processSyncRuleset(response: Response): Promise<OtrApiResponse<void>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
+        if (status === 308) {
             return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("If the requester is not properly authenticated", status, _responseText, _headers, result401);
-            });
-        } else if (status === 308) {
-            return response.text().then((_responseText) => {
-            return throwException("Redirects to `POST` `/users/{id}/settings/ruleset:sync`", status, _responseText, _headers);
+            return throwException("Redirect", status, _responseText, _headers);
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -1017,6 +1759,10 @@ export class MeWrapper {
         } else if (status === 200) {
             return response.text().then((_responseText) => {
             return new OtrApiResponse(status, _headers, null as any);
+            });
+        } else if (status === 307) {
+            return response.text().then((_responseText) => {
+            return throwException("Redirects to `POST` `/users/{id}/settings/ruleset:sync`", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1042,7 +1788,7 @@ export class OAuthWrapper {
     * @param code (optional) The osu! authorization code
     * @return Returns user access credentials
     */
-    authorize(code?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    authorize(code?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/authorize?";
         if (code === null)
             throw new Error("The parameter 'code' cannot be null.");
@@ -1062,7 +1808,7 @@ export class OAuthWrapper {
         });
     }
 
-    protected processAuthorize(response: Response): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    protected processAuthorize(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 401) {
@@ -1070,25 +1816,21 @@ export class OAuthWrapper {
             let result401: any = null;
             let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            return throwException("If there was an error during authorization", status, _responseText, _headers, result401);
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = OAuthResponseDTO.fromJS(resultData200);
+            result200 = AccessCredentialsDTO.fromJS(resultData200);
             return new OtrApiResponse(status, _headers, result200);
-            });
-        } else if (status === 201) {
-            return response.text().then((_responseText) => {
-            return throwException("If there was an error during authorization", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<OAuthResponseDTO>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -1097,7 +1839,7 @@ export class OAuthWrapper {
     * @param clientSecret (optional) The secret of the client
     * @return Returns client access credentials
     */
-    authorizeClient(clientId?: number | undefined, clientSecret?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    authorizeClient(clientId?: number | undefined, clientSecret?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/token?";
         if (clientId === null)
             throw new Error("The parameter 'clientId' cannot be null.");
@@ -1121,33 +1863,29 @@ export class OAuthWrapper {
         });
     }
 
-    protected processAuthorizeClient(response: Response): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    protected processAuthorizeClient(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
+        if (status === 400) {
             return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If there was an error during authorization", status, _responseText, _headers, result400);
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = OAuthResponseDTO.fromJS(resultData200);
+            result200 = AccessCredentialsDTO.fromJS(resultData200);
             return new OtrApiResponse(status, _headers, result200);
-            });
-        } else if (status === 201) {
-            return response.text().then((_responseText) => {
-            return throwException("If there was an error during authorization", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<OAuthResponseDTO>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -1155,6 +1893,10 @@ export class OAuthWrapper {
     *
     * Client secret is only returned from creation.
     * The user will have to reset the secret if they lose access.
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user
     * @return Returns created client credentials
     */
     createClient(): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
@@ -1176,14 +1918,7 @@ export class OAuthWrapper {
     protected processCreateClient(response: Response): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
-            return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("If the user is not properly authenticated", status, _responseText, _headers, result401);
-            });
-        } else if (status === 200) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
@@ -1206,7 +1941,7 @@ export class OAuthWrapper {
     * @param refreshToken (optional) 
     * @return Returns access credentials containing a new access token
     */
-    refresh(refreshToken?: string | undefined): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    refresh(refreshToken?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
         if (refreshToken === null)
             throw new Error("The parameter 'refreshToken' cannot be null.");
@@ -1226,33 +1961,29 @@ export class OAuthWrapper {
         });
     }
 
-    protected processRefresh(response: Response): Promise<OtrApiResponse<OAuthResponseDTO>> {
+    protected processRefresh(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
+        if (status === 400) {
             return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the given refresh token is invalid, or there was an error during authorization", status, _responseText, _headers, result400);
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = OAuthResponseDTO.fromJS(resultData200);
+            result200 = AccessCredentialsDTO.fromJS(resultData200);
             return new OtrApiResponse(status, _headers, result200);
-            });
-        } else if (status === 201) {
-            return response.text().then((_responseText) => {
-            return throwException("If the given refresh token is invalid, or there was an error during authorization", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<OAuthResponseDTO>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
@@ -1267,41 +1998,261 @@ export class PlayersWrapper {
     }
 
     /**
-    * Undocumented
+    * Creates an admin note for a player
     *
     * Requires Authorization:
     * 
-    * Claim(s): system
-    * @return Success
+    * Claim(s): admin
+    * @param id Player id
+    * @param body (optional) 
+    * @return Returns the created admin note
     */
-    getAll(): Promise<OtrApiResponse<void>> {
-        let url_ = this.baseUrl + "/api/v1/players/all";
+    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(body);
+
         let options_: RequestInit = {
-            method: "GET",
+            body: content_,
+            method: "POST",
             headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAll(_response);
+            return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processGetAll(response: Response): Promise<OtrApiResponse<void>> {
+    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 404) {
             return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * List all admin notes for a player
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Player id
+    * @return Returns all admin notes from a player
+    */
+    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminNotes(_response);
+        });
+    }
+
+    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminNoteDTO.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Updates an admin note for a player
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Player id
+    * @param noteId Admin note id
+    * @param body (optional) 
+    * @return Returns the updated admin note
+    */
+    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminNote(_response);
+        });
+    }
+
+    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Deletes an admin note for a player
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Player id
+    * @param noteId Admin note id
+    * @return Returns the updated admin note
+    */
+    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminNote(_response);
+        });
+    }
+
+    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -1313,7 +2264,7 @@ export class PlayersWrapper {
     * @return Success
     */
     get(key: string): Promise<OtrApiResponse<PlayerCompactDTO>> {
-        let url_ = this.baseUrl + "/api/v1/players/{key}/info";
+        let url_ = this.baseUrl + "/api/v1/players/{key}";
         if (key === undefined || key === null)
             throw new Error("The parameter 'key' must be defined.");
         url_ = url_.replace("{key}", encodeURIComponent("" + key));
@@ -1562,17 +2513,312 @@ export class TournamentsWrapper {
     }
 
     /**
-    * List all tournaments
+    * Creates an admin note for a tournament
     *
-    * Will not include match data
-    * 
     * Requires Authorization:
     * 
-    * Claim(s): system
-    * @return Returns all tournaments
+    * Claim(s): admin
+    * @param id Tournament id
+    * @param body (optional) 
+    * @return Returns the created admin note
     */
-    list(): Promise<OtrApiResponse<TournamentDTO[]>> {
-        let url_ = this.baseUrl + "/api/v1/tournaments";
+    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAdminNote(_response);
+        });
+    }
+
+    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * List all admin notes from a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Tournament id
+    * @return Returns all admin notes from a tournament
+    */
+    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminNotes(_response);
+        });
+    }
+
+    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminNoteDTO.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Updates an admin note for a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Tournament id
+    * @param noteId Admin note id
+    * @param body (optional) 
+    * @return Returns the updated admin note
+    */
+    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminNote(_response);
+        });
+    }
+
+    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Deletes an admin note for a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Tournament id
+    * @param noteId Admin note id
+    * @return Returns the updated admin note
+    */
+    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminNote(_response);
+        });
+    }
+
+    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminNoteDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Get all tournaments which fit an optional request query
+    *
+    * Will not include match data
+    * @param page The page number
+    * @param pageSize The size of the page
+    * @param verified (optional) Whether the tournaments must be verified
+    * @param ruleset (optional) An optional ruleset to filter by
+    * @return Returns all tournaments which fit the request query
+    */
+    list(page: number, pageSize: number, verified?: boolean | undefined, ruleset?: Ruleset | undefined): Promise<OtrApiResponse<TournamentDTO[]>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments?";
+        if (page === undefined || page === null)
+            throw new Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "Page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "Verified=" + encodeURIComponent("" + verified) + "&";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "Ruleset=" + encodeURIComponent("" + ruleset) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1603,6 +2849,13 @@ export class TournamentsWrapper {
                 result200 = <any>null;
             }
             return new OtrApiResponse(status, _headers, result200);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1644,20 +2897,12 @@ export class TournamentsWrapper {
     protected processCreate(response: Response): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 401) {
-            return response.text().then((_responseText) => {
-            let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
-            });
-        } else if (status === 400) {
+        if (status === 400) {
             return response.text().then((_responseText) => {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
-            return throwException("If the given !:tournamentSubmission is malformed\r\nIf a tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
             });
         } else if (status === 201) {
             return response.text().then((_responseText) => {
@@ -1681,20 +2926,21 @@ export class TournamentsWrapper {
     * 
     * Claim(s): user, client
     * @param id Tournament id
-    * @param unfiltered (optional) If true, includes all match data, regardless of verification status.
-                Also includes all child navigations if true.
-                Default false (strictly verified data with limited navigation properties)
+    * @param verified (optional) If true, specifically includes verified match data. If false,
+                includes all data, regardless of verification status.
+                Also includes all child navigations if false.
+                Default true (strictly verified data with limited navigation properties)
     * @return Returns the tournament
     */
-    get(id: number, unfiltered?: boolean | undefined): Promise<OtrApiResponse<TournamentDTO>> {
+    get(id: number, verified?: boolean | undefined): Promise<OtrApiResponse<TournamentDTO>> {
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}?";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        if (unfiltered === null)
-            throw new Error("The parameter 'unfiltered' cannot be null.");
-        else if (unfiltered !== undefined)
-            url_ += "unfiltered=" + encodeURIComponent("" + unfiltered) + "&";
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1798,6 +3044,52 @@ export class TournamentsWrapper {
             });
         }
         return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Delete a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param id Tournament id
+    * @return The tournament was deleted successfully
+    */
+    delete(id: number): Promise<OtrApiResponse<void>> {
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: Response): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return new OtrApiResponse(status, _headers, null as any);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("The tournament does not exist", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -2410,6 +3702,140 @@ export class UsersWrapper {
     }
 }
 
+/** Represents access credentials and their expiry */
+export class AccessCredentialsDTO implements IAccessCredentialsDTO {
+    /** Access token */
+    accessToken?: string | undefined;
+    /** Refresh token */
+    refreshToken?: string | undefined;
+    /** Lifetime of the access token in seconds */
+    accessExpiration?: number | undefined;
+    /** Lifetime of the refresh token in seconds */
+    refreshExpiration?: number | undefined;
+
+    constructor(data?: IAccessCredentialsDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.accessToken = _data["accessToken"];
+            this.refreshToken = _data["refreshToken"];
+            this.accessExpiration = _data["accessExpiration"];
+            this.refreshExpiration = _data["refreshExpiration"];
+        }
+    }
+
+    static fromJS(data: any): AccessCredentialsDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new AccessCredentialsDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["accessToken"] = this.accessToken;
+        data["refreshToken"] = this.refreshToken;
+        data["accessExpiration"] = this.accessExpiration;
+        data["refreshExpiration"] = this.refreshExpiration;
+        return data;
+    }
+}
+
+/** Represents access credentials and their expiry */
+export interface IAccessCredentialsDTO {
+    /** Access token */
+    accessToken?: string | undefined;
+    /** Refresh token */
+    refreshToken?: string | undefined;
+    /** Lifetime of the access token in seconds */
+    accessExpiration?: number | undefined;
+    /** Lifetime of the refresh token in seconds */
+    refreshExpiration?: number | undefined;
+}
+
+/** Represents a note for an entity created by an admin */
+export class AdminNoteDTO implements IAdminNoteDTO {
+    /** The id of the admin note */
+    id?: number;
+    /** Timestamp of creation */
+    created?: Date;
+    /** Timestamp of the last update if available */
+    updated?: Date | undefined;
+    /** Id of the parent entity */
+    referenceId?: number;
+    /** Id of the admin user that created the note */
+    adminUserId?: number;
+    /** Username of the admin user that created the note */
+    adminUsername?: string | undefined;
+    /** Content of the note */
+    note?: string;
+
+    constructor(data?: IAdminNoteDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
+            this.updated = _data["updated"] ? new Date(_data["updated"].toString()) : <any>undefined;
+            this.referenceId = _data["referenceId"];
+            this.adminUserId = _data["adminUserId"];
+            this.adminUsername = _data["adminUsername"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): AdminNoteDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminNoteDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
+        data["updated"] = this.updated ? this.updated.toISOString() : <any>undefined;
+        data["referenceId"] = this.referenceId;
+        data["adminUserId"] = this.adminUserId;
+        data["adminUsername"] = this.adminUsername;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+/** Represents a note for an entity created by an admin */
+export interface IAdminNoteDTO {
+    /** The id of the admin note */
+    id?: number;
+    /** Timestamp of creation */
+    created?: Date;
+    /** Timestamp of the last update if available */
+    updated?: Date | undefined;
+    /** Id of the parent entity */
+    referenceId?: number;
+    /** Id of the admin user that created the note */
+    adminUserId?: number;
+    /** Username of the admin user that created the note */
+    adminUsername?: string | undefined;
+    /** Content of the note */
+    note?: string;
+}
+
 /** Represents an aggregate of match statistics for a player during a period of time */
 export class AggregatePlayerMatchStatsDTO implements IAggregatePlayerMatchStatsDTO {
     /** The player's average match cost during the period */
@@ -2936,23 +4362,26 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
 
 /** Represents a single game (osu! beatmap) played in a match */
 export class GameDTO implements IGameDTO {
-    /** Id of the game */
+    /** Primary key */
     id?: number;
     ruleset?: Ruleset;
     scoringType?: ScoringType;
     teamType?: TeamType;
     mods?: Mods;
-    /** osu! id of the game */
+    /** osu! id */
     osuId?: number;
     verificationStatus?: VerificationStatus;
     processingStatus?: GameProcessingStatus;
+    warningFlags?: GameWarningFlags;
     rejectionReason?: GameRejectionReason;
     /** Timestamp of the beginning of the game */
     startTime?: Date;
     /** Timestamp of the end of the game */
     endTime?: Date | undefined;
     beatmap?: BeatmapDTO;
-    /** All match scores for the game */
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
+    /** All match scores */
     scores?: GameScoreDTO[];
 
     constructor(data?: IGameDTO) {
@@ -2974,10 +4403,16 @@ export class GameDTO implements IGameDTO {
             this.osuId = _data["osuId"];
             this.verificationStatus = _data["verificationStatus"];
             this.processingStatus = _data["processingStatus"];
+            this.warningFlags = _data["warningFlags"];
             this.rejectionReason = _data["rejectionReason"];
             this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
             this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
             this.beatmap = _data["beatmap"] ? BeatmapDTO.fromJS(_data["beatmap"]) : <any>undefined;
+            if (Array.isArray(_data["adminNotes"])) {
+                this.adminNotes = [] as any;
+                for (let item of _data["adminNotes"])
+                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
+            }
             if (Array.isArray(_data["scores"])) {
                 this.scores = [] as any;
                 for (let item of _data["scores"])
@@ -3003,10 +4438,16 @@ export class GameDTO implements IGameDTO {
         data["osuId"] = this.osuId;
         data["verificationStatus"] = this.verificationStatus;
         data["processingStatus"] = this.processingStatus;
+        data["warningFlags"] = this.warningFlags;
         data["rejectionReason"] = this.rejectionReason;
         data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
         data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
         data["beatmap"] = this.beatmap ? this.beatmap.toJSON() : <any>undefined;
+        if (Array.isArray(this.adminNotes)) {
+            data["adminNotes"] = [];
+            for (let item of this.adminNotes)
+                data["adminNotes"].push(item.toJSON());
+        }
         if (Array.isArray(this.scores)) {
             data["scores"] = [];
             for (let item of this.scores)
@@ -3018,23 +4459,26 @@ export class GameDTO implements IGameDTO {
 
 /** Represents a single game (osu! beatmap) played in a match */
 export interface IGameDTO {
-    /** Id of the game */
+    /** Primary key */
     id?: number;
     ruleset?: Ruleset;
     scoringType?: ScoringType;
     teamType?: TeamType;
     mods?: Mods;
-    /** osu! id of the game */
+    /** osu! id */
     osuId?: number;
     verificationStatus?: VerificationStatus;
     processingStatus?: GameProcessingStatus;
+    warningFlags?: GameWarningFlags;
     rejectionReason?: GameRejectionReason;
     /** Timestamp of the beginning of the game */
     startTime?: Date;
     /** Timestamp of the end of the game */
     endTime?: Date | undefined;
     beatmap?: BeatmapDTO;
-    /** All match scores for the game */
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
+    /** All match scores */
     scores?: GameScoreDTO[];
 }
 
@@ -3099,6 +4543,8 @@ export class GameScoreDTO implements IGameScoreDTO {
     rejectionReason?: ScoreRejectionReason;
     /** The accuracy of the score */
     accuracy?: number;
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
 
     constructor(data?: IGameScoreDTO) {
         if (data) {
@@ -3120,6 +4566,11 @@ export class GameScoreDTO implements IGameScoreDTO {
             this.processingStatus = _data["processingStatus"];
             this.rejectionReason = _data["rejectionReason"];
             this.accuracy = _data["accuracy"];
+            if (Array.isArray(_data["adminNotes"])) {
+                this.adminNotes = [] as any;
+                for (let item of _data["adminNotes"])
+                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
+            }
         }
     }
 
@@ -3141,6 +4592,11 @@ export class GameScoreDTO implements IGameScoreDTO {
         data["processingStatus"] = this.processingStatus;
         data["rejectionReason"] = this.rejectionReason;
         data["accuracy"] = this.accuracy;
+        if (Array.isArray(this.adminNotes)) {
+            data["adminNotes"] = [];
+            for (let item of this.adminNotes)
+                data["adminNotes"].push(item.toJSON());
+        }
         return data;
     }
 }
@@ -3159,6 +4615,26 @@ export interface IGameScoreDTO {
     rejectionReason?: ScoreRejectionReason;
     /** The accuracy of the score */
     accuracy?: number;
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
+}
+
+/**
+* Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected but should have attention drawn to them during manual review
+*
+* Bitwise flag
+*/
+export enum GameWarningFlags {
+    /** The Database.Entities.Game has no warnings */
+    None = 0,
+    /** If the parent Database.Entities.Tournament does not have a submitted pool of
+Database.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap
+is played only once throughout the entire Database.Entities.Tournament */
+    BeatmapUsedOnce = 1,
+    /** If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,
+the Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,
+and the Database.Entities.Game is not one of the first two in the Database.Entities.Match */
+    BeatmapNotInMappool = 2,
 }
 
 export enum LeaderboardChartType {
@@ -3567,11 +5043,15 @@ export class MatchDTO implements IMatchDTO {
     endTime?: Date | undefined;
     verificationStatus?: VerificationStatus;
     rejectionReason?: MatchRejectionReason;
+    warningFlags?: MatchWarningFlags;
     processingStatus?: MatchProcessingStatus;
     /** Timestamp of the last time the match was processed */
     lastProcessingDate?: Date;
+    tournament?: TournamentCompactDTO;
     /** List of games played during the match */
     games?: GameDTO[];
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
 
     constructor(data?: IMatchDTO) {
         if (data) {
@@ -3592,12 +5072,19 @@ export class MatchDTO implements IMatchDTO {
             this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
             this.verificationStatus = _data["verificationStatus"];
             this.rejectionReason = _data["rejectionReason"];
+            this.warningFlags = _data["warningFlags"];
             this.processingStatus = _data["processingStatus"];
             this.lastProcessingDate = _data["lastProcessingDate"] ? new Date(_data["lastProcessingDate"].toString()) : <any>undefined;
+            this.tournament = _data["tournament"] ? TournamentCompactDTO.fromJS(_data["tournament"]) : <any>undefined;
             if (Array.isArray(_data["games"])) {
                 this.games = [] as any;
                 for (let item of _data["games"])
                     this.games!.push(GameDTO.fromJS(item));
+            }
+            if (Array.isArray(_data["adminNotes"])) {
+                this.adminNotes = [] as any;
+                for (let item of _data["adminNotes"])
+                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
             }
         }
     }
@@ -3619,12 +5106,19 @@ export class MatchDTO implements IMatchDTO {
         data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
         data["verificationStatus"] = this.verificationStatus;
         data["rejectionReason"] = this.rejectionReason;
+        data["warningFlags"] = this.warningFlags;
         data["processingStatus"] = this.processingStatus;
         data["lastProcessingDate"] = this.lastProcessingDate ? this.lastProcessingDate.toISOString() : <any>undefined;
+        data["tournament"] = this.tournament ? this.tournament.toJSON() : <any>undefined;
         if (Array.isArray(this.games)) {
             data["games"] = [];
             for (let item of this.games)
                 data["games"].push(item.toJSON());
+        }
+        if (Array.isArray(this.adminNotes)) {
+            data["adminNotes"] = [];
+            for (let item of this.adminNotes)
+                data["adminNotes"].push(item.toJSON());
         }
         return data;
     }
@@ -3645,11 +5139,15 @@ export interface IMatchDTO {
     endTime?: Date | undefined;
     verificationStatus?: VerificationStatus;
     rejectionReason?: MatchRejectionReason;
+    warningFlags?: MatchWarningFlags;
     processingStatus?: MatchProcessingStatus;
     /** Timestamp of the last time the match was processed */
     lastProcessingDate?: Date;
+    tournament?: TournamentCompactDTO;
     /** List of games played during the match */
     games?: GameDTO[];
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
 }
 
 /** Represents a paged list of results */
@@ -3883,6 +5381,21 @@ export interface IMatchSubmissionStatusDTO {
     created?: Date;
     /** Date that the match was last updated */
     updated?: Date | undefined;
+}
+
+/**
+* Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected but should have attention drawn to them during manual review
+*
+* Bitwise flag
+*/
+export enum MatchWarningFlags {
+    /** The Database.Entities.Match has no warnings */
+    None = 0,
+    /** The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament
+lobby title conventions */
+    UnexpectedTitleFormat = 1,
+    /** The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4 */
+    LowGameCount = 2,
 }
 
 /** Denotes which property a query for !:Database.Entities.Matches will be sorted by */
@@ -4149,50 +5662,6 @@ export interface IOAuthClientDTO {
     rateLimitOverrides?: RateLimitOverrides;
 }
 
-export class OAuthResponseDTO implements IOAuthResponseDTO {
-    accessToken?: string;
-    refreshToken?: string;
-    accessExpiration?: number;
-
-    constructor(data?: IOAuthResponseDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.accessToken = _data["accessToken"];
-            this.refreshToken = _data["refreshToken"];
-            this.accessExpiration = _data["accessExpiration"];
-        }
-    }
-
-    static fromJS(data: any): OAuthResponseDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new OAuthResponseDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["accessToken"] = this.accessToken;
-        data["refreshToken"] = this.refreshToken;
-        data["accessExpiration"] = this.accessExpiration;
-        return data;
-    }
-}
-
-export interface IOAuthResponseDTO {
-    accessToken?: string;
-    refreshToken?: string;
-    accessExpiration?: number;
-}
-
 export class Operation implements IOperation {
     operationType?: OperationType;
     path?: string | undefined;
@@ -4338,7 +5807,7 @@ export class PlayerFilteringResultDTO implements IPlayerFilteringResultDTO {
     filteringResult?: FilteringResult;
     filteringFailReason?: FilteringFailReason;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    readonly filteringResultMessage?: string | undefined;
+    readonly filteringResultMessage?: string;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
     readonly filteringFailReasonMessage?: string | undefined;
 
@@ -4394,7 +5863,7 @@ export interface IPlayerFilteringResultDTO {
     filteringResult?: FilteringResult;
     filteringFailReason?: FilteringFailReason;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    filteringResultMessage?: string | undefined;
+    filteringResultMessage?: string;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
     filteringFailReasonMessage?: string | undefined;
 }
@@ -5665,6 +7134,106 @@ export enum TeamType {
     TagTeamVs = 3,
 }
 
+export class TournamentCompactDTO implements ITournamentCompactDTO {
+    /** The tournament id */
+    id?: number;
+    /** The tournament name */
+    name?: string;
+    abbreviation?: string;
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
+    forumUrl?: string;
+    /** Lowest rank a player can be to participate */
+    rankRangeLowerBound?: number;
+    ruleset?: Ruleset;
+    /** Expected in-match team size */
+    lobbySize?: number;
+    verificationStatus?: VerificationStatus;
+    processingStatus?: TournamentProcessingStatus;
+    rejectionReason?: TournamentRejectionReason;
+    /** The timestamp of submission */
+    created?: Date;
+    /** The start date of the first match */
+    startTime?: Date;
+    /** The end date of the last match */
+    endTime?: Date;
+
+    constructor(data?: ITournamentCompactDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.abbreviation = _data["abbreviation"];
+            this.forumUrl = _data["forumUrl"];
+            this.rankRangeLowerBound = _data["rankRangeLowerBound"];
+            this.ruleset = _data["ruleset"];
+            this.lobbySize = _data["lobbySize"];
+            this.verificationStatus = _data["verificationStatus"];
+            this.processingStatus = _data["processingStatus"];
+            this.rejectionReason = _data["rejectionReason"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
+            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
+            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): TournamentCompactDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new TournamentCompactDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["abbreviation"] = this.abbreviation;
+        data["forumUrl"] = this.forumUrl;
+        data["rankRangeLowerBound"] = this.rankRangeLowerBound;
+        data["ruleset"] = this.ruleset;
+        data["lobbySize"] = this.lobbySize;
+        data["verificationStatus"] = this.verificationStatus;
+        data["processingStatus"] = this.processingStatus;
+        data["rejectionReason"] = this.rejectionReason;
+        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
+        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
+        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
+        return data;
+    }
+}
+
+export interface ITournamentCompactDTO {
+    /** The tournament id */
+    id?: number;
+    /** The tournament name */
+    name?: string;
+    abbreviation?: string;
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
+    forumUrl?: string;
+    /** Lowest rank a player can be to participate */
+    rankRangeLowerBound?: number;
+    ruleset?: Ruleset;
+    /** Expected in-match team size */
+    lobbySize?: number;
+    verificationStatus?: VerificationStatus;
+    processingStatus?: TournamentProcessingStatus;
+    rejectionReason?: TournamentRejectionReason;
+    /** The timestamp of submission */
+    created?: Date;
+    /** The start date of the first match */
+    startTime?: Date;
+    /** The end date of the last match */
+    endTime?: Date;
+}
+
 /** Represents a created tournament */
 export class TournamentCreatedResultDTO implements ITournamentCreatedResultDTO {
     /** Id of the resource */
@@ -5745,30 +7314,31 @@ export interface ITournamentCreatedResultDTO {
 
 /** Represents a tournament */
 export class TournamentDTO implements ITournamentDTO {
+    /** The tournament id */
     id?: number;
-    /** The name of the tournament */
+    /** The tournament name */
     name?: string;
-    /** Acronym / shortened name of the tournament
-<example>For osu! World Cup 2023, this value would be "OWC23"</example> */
     abbreviation?: string;
-    /** The osu! forum post advertising this tournament */
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
     forumUrl?: string;
-    /** Lowest rank a player can be to participate in the tournament */
+    /** Lowest rank a player can be to participate */
     rankRangeLowerBound?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
     ruleset?: Ruleset;
     /** Expected in-match team size */
     lobbySize?: number;
-    /** The timestamp of submission for the tournament */
+    verificationStatus?: VerificationStatus;
+    processingStatus?: TournamentProcessingStatus;
+    rejectionReason?: TournamentRejectionReason;
+    /** The timestamp of submission */
     created?: Date;
-    /** The start date of the first match played in the tournament */
+    /** The start date of the first match */
     startTime?: Date;
-    /** The end date of the last match played in the tournament */
+    /** The end date of the last match */
     endTime?: Date;
     /** All associated match data (Will be empty for bulk requests such as List) */
     matches?: MatchDTO[];
+    /** All admin notes associated with the tournament */
+    adminNotes?: AdminNoteDTO[];
 
     constructor(data?: ITournamentDTO) {
         if (data) {
@@ -5786,11 +7356,11 @@ export class TournamentDTO implements ITournamentDTO {
             this.abbreviation = _data["abbreviation"];
             this.forumUrl = _data["forumUrl"];
             this.rankRangeLowerBound = _data["rankRangeLowerBound"];
+            this.ruleset = _data["ruleset"];
+            this.lobbySize = _data["lobbySize"];
             this.verificationStatus = _data["verificationStatus"];
             this.processingStatus = _data["processingStatus"];
             this.rejectionReason = _data["rejectionReason"];
-            this.ruleset = _data["ruleset"];
-            this.lobbySize = _data["lobbySize"];
             this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
             this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
             this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
@@ -5798,6 +7368,11 @@ export class TournamentDTO implements ITournamentDTO {
                 this.matches = [] as any;
                 for (let item of _data["matches"])
                     this.matches!.push(MatchDTO.fromJS(item));
+            }
+            if (Array.isArray(_data["adminNotes"])) {
+                this.adminNotes = [] as any;
+                for (let item of _data["adminNotes"])
+                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
             }
         }
     }
@@ -5816,11 +7391,11 @@ export class TournamentDTO implements ITournamentDTO {
         data["abbreviation"] = this.abbreviation;
         data["forumUrl"] = this.forumUrl;
         data["rankRangeLowerBound"] = this.rankRangeLowerBound;
+        data["ruleset"] = this.ruleset;
+        data["lobbySize"] = this.lobbySize;
         data["verificationStatus"] = this.verificationStatus;
         data["processingStatus"] = this.processingStatus;
         data["rejectionReason"] = this.rejectionReason;
-        data["ruleset"] = this.ruleset;
-        data["lobbySize"] = this.lobbySize;
         data["created"] = this.created ? this.created.toISOString() : <any>undefined;
         data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
         data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
@@ -5829,36 +7404,42 @@ export class TournamentDTO implements ITournamentDTO {
             for (let item of this.matches)
                 data["matches"].push(item.toJSON());
         }
+        if (Array.isArray(this.adminNotes)) {
+            data["adminNotes"] = [];
+            for (let item of this.adminNotes)
+                data["adminNotes"].push(item.toJSON());
+        }
         return data;
     }
 }
 
 /** Represents a tournament */
 export interface ITournamentDTO {
+    /** The tournament id */
     id?: number;
-    /** The name of the tournament */
+    /** The tournament name */
     name?: string;
-    /** Acronym / shortened name of the tournament
-<example>For osu! World Cup 2023, this value would be "OWC23"</example> */
     abbreviation?: string;
-    /** The osu! forum post advertising this tournament */
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
     forumUrl?: string;
-    /** Lowest rank a player can be to participate in the tournament */
+    /** Lowest rank a player can be to participate */
     rankRangeLowerBound?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
     ruleset?: Ruleset;
     /** Expected in-match team size */
     lobbySize?: number;
-    /** The timestamp of submission for the tournament */
+    verificationStatus?: VerificationStatus;
+    processingStatus?: TournamentProcessingStatus;
+    rejectionReason?: TournamentRejectionReason;
+    /** The timestamp of submission */
     created?: Date;
-    /** The start date of the first match played in the tournament */
+    /** The start date of the first match */
     startTime?: Date;
-    /** The end date of the last match played in the tournament */
+    /** The end date of the last match */
     endTime?: Date;
     /** All associated match data (Will be empty for bulk requests such as List) */
     matches?: MatchDTO[];
+    /** All admin notes associated with the tournament */
+    adminNotes?: AdminNoteDTO[];
 }
 
 /** The status of a Database.Entities.Tournament in the processing flow */
@@ -5982,8 +7563,11 @@ export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
     /** Expected in-match team size */
     lobbySize?: number;
     ruleset?: Ruleset;
+    rejectionReason?: TournamentRejectionReason;
     /** List of osu! match ids */
     ids?: number[];
+    /** A collection of pooled osu! beatmap ids */
+    beatmapIds?: number[];
 
     constructor(data?: ITournamentSubmissionDTO) {
         if (data) {
@@ -6002,10 +7586,16 @@ export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
             this.rankRangeLowerBound = _data["rankRangeLowerBound"];
             this.lobbySize = _data["lobbySize"];
             this.ruleset = _data["ruleset"];
+            this.rejectionReason = _data["rejectionReason"];
             if (Array.isArray(_data["ids"])) {
                 this.ids = [] as any;
                 for (let item of _data["ids"])
                     this.ids!.push(item);
+            }
+            if (Array.isArray(_data["beatmapIds"])) {
+                this.beatmapIds = [] as any;
+                for (let item of _data["beatmapIds"])
+                    this.beatmapIds!.push(item);
             }
         }
     }
@@ -6025,10 +7615,16 @@ export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
         data["rankRangeLowerBound"] = this.rankRangeLowerBound;
         data["lobbySize"] = this.lobbySize;
         data["ruleset"] = this.ruleset;
+        data["rejectionReason"] = this.rejectionReason;
         if (Array.isArray(this.ids)) {
             data["ids"] = [];
             for (let item of this.ids)
                 data["ids"].push(item);
+        }
+        if (Array.isArray(this.beatmapIds)) {
+            data["beatmapIds"] = [];
+            for (let item of this.beatmapIds)
+                data["beatmapIds"].push(item);
         }
         return data;
     }
@@ -6048,8 +7644,11 @@ export interface ITournamentSubmissionDTO {
     /** Expected in-match team size */
     lobbySize?: number;
     ruleset?: Ruleset;
+    rejectionReason?: TournamentRejectionReason;
     /** List of osu! match ids */
     ids?: number[];
+    /** A collection of pooled osu! beatmap ids */
+    beatmapIds?: number[];
 }
 
 /** Represents user account information */
