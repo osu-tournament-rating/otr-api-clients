@@ -2390,7 +2390,24 @@
             "description": "Redirects to `GET` `/users/{id}`"
           },
           "200": {
-            "description": "Returns the currently logged in user"
+            "description": "Returns the currently logged in user",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5400,7 +5417,7 @@
           },
           "updated": {
             "type": "string",
-            "description": "Timestamp of the last update if available",
+            "description": "Timestamp of the last update, if available",
             "format": "date-time",
             "nullable": true
           },
@@ -5409,15 +5426,8 @@
             "description": "Id of the parent entity",
             "format": "int32"
           },
-          "adminUserId": {
-            "type": "integer",
-            "description": "Id of the admin user that created the note",
-            "format": "int32"
-          },
-          "adminUsername": {
-            "type": "string",
-            "description": "Username of the admin user that created the note",
-            "nullable": true
+          "adminUser": {
+            "$ref": "#/components/schemas/UserCompactDTO"
           },
           "note": {
             "type": "string",
@@ -6737,12 +6747,14 @@
             "type": "string",
             "description": "osu! country code"
           },
-          "rulesetData": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PlayerOsuRulesetDataDTO"
-            },
-            "description": "A collection of API.DTOs.PlayerOsuRulesetDataDTO, one for each !:Enums.Ruleset"
+          "ruleset": {
+            "$ref": "#/components/schemas/Ruleset"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "Id of the associated user, if available",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -6851,38 +6863,6 @@
         },
         "additionalProperties": false,
         "description": "Represents counts of participation in games of differing mod combinations"
-      },
-      "PlayerOsuRulesetDataDTO": {
-        "type": "object",
-        "properties": {
-          "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
-          },
-          "pp": {
-            "type": "number",
-            "description": "Performance points",
-            "format": "double"
-          },
-          "globalRank": {
-            "type": "integer",
-            "description": "Last recorded global rank",
-            "format": "int32"
-          },
-          "earliestGlobalRank": {
-            "type": "integer",
-            "description": "Global rank approximately at the time of the Database.Entities.Player's first appearance in a Database.Entities.Match",
-            "format": "int32",
-            "nullable": true
-          },
-          "earliestGlobalRankDate": {
-            "type": "string",
-            "description": "Timestamp for when the API.DTOs.PlayerOsuRulesetDataDTO.EarliestGlobalRank was recorded",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Data for a Database.Entities.Player in a API.DTOs.PlayerOsuRulesetDataDTO.Ruleset obtained from the osu! API and/or osu!Track API"
       },
       "PlayerRatingChartDTO": {
         "type": "object",
@@ -7862,50 +7842,57 @@
         "additionalProperties": false,
         "description": "An incoming tournament submission"
       },
+      "UserCompactDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Id",
+            "format": "int32"
+          },
+          "lastLogin": {
+            "type": "string",
+            "description": "Timestamp of the user's last login to the o!TR website",
+            "format": "date-time",
+            "nullable": true
+          },
+          "player": {
+            "$ref": "#/components/schemas/PlayerCompactDTO"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents user information"
+      },
       "UserDTO": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Id of the user",
+            "description": "Id",
             "format": "int32"
+          },
+          "lastLogin": {
+            "type": "string",
+            "description": "Timestamp of the user's last login to the o!TR website",
+            "format": "date-time",
+            "nullable": true
+          },
+          "player": {
+            "$ref": "#/components/schemas/PlayerCompactDTO"
           },
           "scopes": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "List of permissions granted to the user",
-            "nullable": true
-          },
-          "playerId": {
-            "type": "integer",
-            "description": "Id of the associated player",
-            "format": "int32",
-            "nullable": true
-          },
-          "osuId": {
-            "type": "integer",
-            "description": "osu! id of the associated player",
-            "format": "int64",
-            "nullable": true
-          },
-          "country": {
-            "type": "string",
-            "description": "osu! country country code of the associated player",
-            "nullable": true
-          },
-          "username": {
-            "type": "string",
-            "description": "osu! username of the associated player",
-            "nullable": true
+            "description": "List of permissions granted to the user"
           },
           "settings": {
             "$ref": "#/components/schemas/UserSettingsDTO"
           }
         },
         "additionalProperties": false,
-        "description": "Represents user account information"
+        "description": "Represents user information including optional data"
       },
       "UserSettingsDTO": {
         "type": "object",

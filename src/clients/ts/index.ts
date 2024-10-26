@@ -8,14 +8,67 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-export class BeatmapsWrapper {
+export class OtrApiWrapperConfiguration implements IOtrApiWrapperConfiguration {
+  public baseUrl: string;
+
+  public headers: HeadersInit;
+
+  constructor(baseUrl: string, headers?: HeadersInit) {
+    this.baseUrl = baseUrl;
+    this.headers = headers ?? {};
+  }
+}
+
+export abstract class OtrApiWrapperBase {
+  protected configuration: IOtrApiWrapperConfiguration;
+  protected accessToken?: string;
+
+  constructor(configuration: IOtrApiWrapperConfiguration) {
+    this.configuration = configuration;
+  }
+
+  protected transformOptions = (options: RequestInit): Promise<RequestInit> => {
+    options.redirect = "follow";
+
+    options.headers = {
+      ...options.headers,
+      ...this.configuration.headers
+    };
+    
+    if (this.accessToken) {
+      options.headers = {
+        ...options.headers,
+        Authorization: `Bearer ${this.accessToken}`
+      };
+    }
+
+    return Promise.resolve(options);
+  }
+
+  protected getBaseUrl(..._: any[]): string { return this.configuration.baseUrl }
+
+  /**
+   * Set's the wrapper's current access token
+   * @param accessToken Access token to set
+   */
+  public setAccessToken(accessToken: string): void {
+    this.accessToken = accessToken;
+  }
+}
+
+export class BeatmapsWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -37,7 +90,9 @@ export class BeatmapsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processList(_response);
         });
     }
@@ -92,7 +147,9 @@ export class BeatmapsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -123,14 +180,19 @@ export class BeatmapsWrapper {
     }
 }
 
-export class ClientsWrapper {
+export class ClientsWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -159,7 +221,9 @@ export class ClientsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processPatchRatelimit(_response);
         });
     }
@@ -180,14 +244,19 @@ export class ClientsWrapper {
     }
 }
 
-export class FilteringWrapper {
+export class FilteringWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -215,7 +284,9 @@ export class FilteringWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processFilter(_response);
         });
     }
@@ -247,14 +318,19 @@ export class FilteringWrapper {
     }
 }
 
-export class GamesWrapper {
+export class GamesWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -285,7 +361,9 @@ export class GamesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateAdminNote(_response);
         });
     }
@@ -345,7 +423,9 @@ export class GamesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListAdminNotes(_response);
         });
     }
@@ -414,7 +494,9 @@ export class GamesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateAdminNote(_response);
         });
     }
@@ -478,7 +560,9 @@ export class GamesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteAdminNote(_response);
         });
     }
@@ -543,7 +627,9 @@ export class GamesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdate(_response);
         });
     }
@@ -582,14 +668,19 @@ export class GamesWrapper {
     }
 }
 
-export class GameScoresWrapper {
+export class GameScoresWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -620,7 +711,9 @@ export class GameScoresWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateAdminNote(_response);
         });
     }
@@ -680,7 +773,9 @@ export class GameScoresWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListAdminNotes(_response);
         });
     }
@@ -749,7 +844,9 @@ export class GameScoresWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateAdminNote(_response);
         });
     }
@@ -813,7 +910,9 @@ export class GameScoresWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteAdminNote(_response);
         });
     }
@@ -878,7 +977,9 @@ export class GameScoresWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdate(_response);
         });
     }
@@ -917,14 +1018,19 @@ export class GameScoresWrapper {
     }
 }
 
-export class LeaderboardsWrapper {
+export class LeaderboardsWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -971,7 +1077,9 @@ export class LeaderboardsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -995,14 +1103,19 @@ export class LeaderboardsWrapper {
     }
 }
 
-export class MatchesWrapper {
+export class MatchesWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -1033,7 +1146,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateAdminNote(_response);
         });
     }
@@ -1093,7 +1208,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListAdminNotes(_response);
         });
     }
@@ -1162,7 +1279,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateAdminNote(_response);
         });
     }
@@ -1226,7 +1345,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteAdminNote(_response);
         });
     }
@@ -1358,7 +1479,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processList(_response);
         });
     }
@@ -1404,7 +1527,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -1462,7 +1587,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdate(_response);
         });
     }
@@ -1526,7 +1653,9 @@ export class MatchesWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGetMatches(_response);
         });
     }
@@ -1547,14 +1676,19 @@ export class MatchesWrapper {
     }
 }
 
-export class MeWrapper {
+export class MeWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -1565,22 +1699,25 @@ export class MeWrapper {
     * Claim(s): user
     * @return Returns the currently logged in user
     */
-    get(): Promise<OtrApiResponse<void>> {
+    get(): Promise<OtrApiResponse<UserDTO>> {
         let url_ = this.baseUrl + "/api/v1/me";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "text/plain"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<void>> {
+    protected processGet(response: Response): Promise<OtrApiResponse<UserDTO>> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 302) {
@@ -1589,14 +1726,17 @@ export class MeWrapper {
             });
         } else if (status === 200) {
             return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UserDTO.fromJS(resultData200);
+            return new OtrApiResponse(status, _headers, result200);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -1638,7 +1778,9 @@ export class MeWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGetStats(_response);
         });
     }
@@ -1688,7 +1830,9 @@ export class MeWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateRuleset(_response);
         });
     }
@@ -1737,7 +1881,9 @@ export class MeWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processSyncRuleset(_response);
         });
     }
@@ -1773,14 +1919,19 @@ export class MeWrapper {
     }
 }
 
-export class OAuthWrapper {
+export class OAuthWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -1803,7 +1954,9 @@ export class OAuthWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processAuthorize(_response);
         });
     }
@@ -1858,7 +2011,9 @@ export class OAuthWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processAuthorizeClient(_response);
         });
     }
@@ -1910,7 +2065,9 @@ export class OAuthWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateClient(_response);
         });
     }
@@ -1956,7 +2113,9 @@ export class OAuthWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processRefresh(_response);
         });
     }
@@ -1987,14 +2146,19 @@ export class OAuthWrapper {
     }
 }
 
-export class PlayersWrapper {
+export class PlayersWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -2025,7 +2189,9 @@ export class PlayersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateAdminNote(_response);
         });
     }
@@ -2085,7 +2251,9 @@ export class PlayersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListAdminNotes(_response);
         });
     }
@@ -2154,7 +2322,9 @@ export class PlayersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateAdminNote(_response);
         });
     }
@@ -2218,7 +2388,9 @@ export class PlayersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteAdminNote(_response);
         });
     }
@@ -2277,7 +2449,9 @@ export class PlayersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -2301,14 +2475,19 @@ export class PlayersWrapper {
     }
 }
 
-export class SearchWrapper {
+export class SearchWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -2337,7 +2516,9 @@ export class SearchWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processSearch(_response);
         });
     }
@@ -2361,14 +2542,19 @@ export class SearchWrapper {
     }
 }
 
-export class StatsWrapper {
+export class StatsWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -2415,7 +2601,9 @@ export class StatsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -2469,7 +2657,9 @@ export class StatsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGetRatingHistogram(_response);
         });
     }
@@ -2502,14 +2692,19 @@ export class StatsWrapper {
     }
 }
 
-export class TournamentsWrapper {
+export class TournamentsWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -2540,7 +2735,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreateAdminNote(_response);
         });
     }
@@ -2607,7 +2804,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListAdminNotes(_response);
         });
     }
@@ -2676,7 +2875,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateAdminNote(_response);
         });
     }
@@ -2747,7 +2948,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteAdminNote(_response);
         });
     }
@@ -2828,7 +3031,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processList(_response);
         });
     }
@@ -2889,7 +3094,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processCreate(_response);
         });
     }
@@ -2950,7 +3157,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -3008,7 +3217,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdate(_response);
         });
     }
@@ -3068,7 +3279,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDelete(_response);
         });
     }
@@ -3115,7 +3328,9 @@ export class TournamentsWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processListMatches(_response);
         });
     }
@@ -3153,14 +3368,19 @@ export class TournamentsWrapper {
     }
 }
 
-export class UsersWrapper {
+export class UsersWrapper extends OtrApiWrapperBase {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super(configuration);
+        if (http) {
+          this.http = http;
+        } else {
+          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
+        }
+        this.baseUrl = this.getBaseUrl("");
     }
 
     /**
@@ -3186,7 +3406,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGet(_response);
         });
     }
@@ -3244,7 +3466,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateScopes(_response);
         });
     }
@@ -3304,7 +3528,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGetSubmissions(_response);
         });
     }
@@ -3363,7 +3589,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processRejectSubmissions(_response);
         });
     }
@@ -3419,7 +3647,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processGetClients(_response);
         });
     }
@@ -3485,7 +3715,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processDeleteClient(_response);
         });
     }
@@ -3549,7 +3781,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processResetClientSecret(_response);
         });
     }
@@ -3612,7 +3846,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processUpdateRuleset(_response);
         });
     }
@@ -3667,7 +3903,9 @@ export class UsersWrapper {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.processSyncRuleset(_response);
         });
     }
@@ -3766,14 +4004,11 @@ export class AdminNoteDTO implements IAdminNoteDTO {
     id?: number;
     /** Timestamp of creation */
     created?: Date;
-    /** Timestamp of the last update if available */
+    /** Timestamp of the last update, if available */
     updated?: Date | undefined;
     /** Id of the parent entity */
     referenceId?: number;
-    /** Id of the admin user that created the note */
-    adminUserId?: number;
-    /** Username of the admin user that created the note */
-    adminUsername?: string | undefined;
+    adminUser?: UserCompactDTO;
     /** Content of the note */
     note?: string;
 
@@ -3792,8 +4027,7 @@ export class AdminNoteDTO implements IAdminNoteDTO {
             this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
             this.updated = _data["updated"] ? new Date(_data["updated"].toString()) : <any>undefined;
             this.referenceId = _data["referenceId"];
-            this.adminUserId = _data["adminUserId"];
-            this.adminUsername = _data["adminUsername"];
+            this.adminUser = _data["adminUser"] ? UserCompactDTO.fromJS(_data["adminUser"]) : <any>undefined;
             this.note = _data["note"];
         }
     }
@@ -3811,8 +4045,7 @@ export class AdminNoteDTO implements IAdminNoteDTO {
         data["created"] = this.created ? this.created.toISOString() : <any>undefined;
         data["updated"] = this.updated ? this.updated.toISOString() : <any>undefined;
         data["referenceId"] = this.referenceId;
-        data["adminUserId"] = this.adminUserId;
-        data["adminUsername"] = this.adminUsername;
+        data["adminUser"] = this.adminUser ? this.adminUser.toJSON() : <any>undefined;
         data["note"] = this.note;
         return data;
     }
@@ -3824,14 +4057,11 @@ export interface IAdminNoteDTO {
     id?: number;
     /** Timestamp of creation */
     created?: Date;
-    /** Timestamp of the last update if available */
+    /** Timestamp of the last update, if available */
     updated?: Date | undefined;
     /** Id of the parent entity */
     referenceId?: number;
-    /** Id of the admin user that created the note */
-    adminUserId?: number;
-    /** Username of the admin user that created the note */
-    adminUsername?: string | undefined;
+    adminUser?: UserCompactDTO;
     /** Content of the note */
     note?: string;
 }
@@ -5734,8 +5964,9 @@ export class PlayerCompactDTO implements IPlayerCompactDTO {
     username?: string;
     /** osu! country code */
     country?: string;
-    /** A collection of API.DTOs.PlayerOsuRulesetDataDTO, one for each !:Enums.Ruleset */
-    rulesetData?: PlayerOsuRulesetDataDTO[];
+    ruleset?: Ruleset;
+    /** Id of the associated user, if available */
+    userId?: number | undefined;
 
     constructor(data?: IPlayerCompactDTO) {
         if (data) {
@@ -5752,11 +5983,8 @@ export class PlayerCompactDTO implements IPlayerCompactDTO {
             this.osuId = _data["osuId"];
             this.username = _data["username"];
             this.country = _data["country"];
-            if (Array.isArray(_data["rulesetData"])) {
-                this.rulesetData = [] as any;
-                for (let item of _data["rulesetData"])
-                    this.rulesetData!.push(PlayerOsuRulesetDataDTO.fromJS(item));
-            }
+            this.ruleset = _data["ruleset"];
+            this.userId = _data["userId"];
         }
     }
 
@@ -5773,11 +6001,8 @@ export class PlayerCompactDTO implements IPlayerCompactDTO {
         data["osuId"] = this.osuId;
         data["username"] = this.username;
         data["country"] = this.country;
-        if (Array.isArray(this.rulesetData)) {
-            data["rulesetData"] = [];
-            for (let item of this.rulesetData)
-                data["rulesetData"].push(item.toJSON());
-        }
+        data["ruleset"] = this.ruleset;
+        data["userId"] = this.userId;
         return data;
     }
 }
@@ -5792,8 +6017,9 @@ export interface IPlayerCompactDTO {
     username?: string;
     /** osu! country code */
     country?: string;
-    /** A collection of API.DTOs.PlayerOsuRulesetDataDTO, one for each !:Enums.Ruleset */
-    rulesetData?: PlayerOsuRulesetDataDTO[];
+    ruleset?: Ruleset;
+    /** Id of the associated user, if available */
+    userId?: number | undefined;
 }
 
 /** Represents one player's filtering result */
@@ -5998,68 +6224,6 @@ export interface IPlayerModStatsDTO {
     playedHDHR?: ModStatsDTO;
     playedHDDT?: ModStatsDTO;
     playedHDEZ?: ModStatsDTO;
-}
-
-/** Data for a Database.Entities.Player in a API.DTOs.PlayerOsuRulesetDataDTO.Ruleset obtained from the osu! API and/or osu!Track API */
-export class PlayerOsuRulesetDataDTO implements IPlayerOsuRulesetDataDTO {
-    ruleset?: Ruleset;
-    /** Performance points */
-    pp?: number;
-    /** Last recorded global rank */
-    globalRank?: number;
-    /** Global rank approximately at the time of the Database.Entities.Player's first appearance in a Database.Entities.Match */
-    earliestGlobalRank?: number | undefined;
-    /** Timestamp for when the API.DTOs.PlayerOsuRulesetDataDTO.EarliestGlobalRank was recorded */
-    earliestGlobalRankDate?: Date | undefined;
-
-    constructor(data?: IPlayerOsuRulesetDataDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.ruleset = _data["ruleset"];
-            this.pp = _data["pp"];
-            this.globalRank = _data["globalRank"];
-            this.earliestGlobalRank = _data["earliestGlobalRank"];
-            this.earliestGlobalRankDate = _data["earliestGlobalRankDate"] ? new Date(_data["earliestGlobalRankDate"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): PlayerOsuRulesetDataDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerOsuRulesetDataDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["ruleset"] = this.ruleset;
-        data["pp"] = this.pp;
-        data["globalRank"] = this.globalRank;
-        data["earliestGlobalRank"] = this.earliestGlobalRank;
-        data["earliestGlobalRankDate"] = this.earliestGlobalRankDate ? this.earliestGlobalRankDate.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-/** Data for a Database.Entities.Player in a API.DTOs.PlayerOsuRulesetDataDTO.Ruleset obtained from the osu! API and/or osu!Track API */
-export interface IPlayerOsuRulesetDataDTO {
-    ruleset?: Ruleset;
-    /** Performance points */
-    pp?: number;
-    /** Last recorded global rank */
-    globalRank?: number;
-    /** Global rank approximately at the time of the Database.Entities.Player's first appearance in a Database.Entities.Match */
-    earliestGlobalRank?: number | undefined;
-    /** Timestamp for when the API.DTOs.PlayerOsuRulesetDataDTO.EarliestGlobalRank was recorded */
-    earliestGlobalRankDate?: Date | undefined;
 }
 
 /** Represents data used to construct a rating delta chart for a player */
@@ -7651,20 +7815,65 @@ export interface ITournamentSubmissionDTO {
     beatmapIds?: number[];
 }
 
-/** Represents user account information */
-export class UserDTO implements IUserDTO {
-    /** Id of the user */
+/** Represents user information */
+export class UserCompactDTO implements IUserCompactDTO {
+    /** Id */
     id?: number;
+    /** Timestamp of the user's last login to the o!TR website */
+    lastLogin?: Date | undefined;
+    player?: PlayerCompactDTO;
+
+    constructor(data?: IUserCompactDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.lastLogin = _data["lastLogin"] ? new Date(_data["lastLogin"].toString()) : <any>undefined;
+            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): UserCompactDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new UserCompactDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["lastLogin"] = this.lastLogin ? this.lastLogin.toISOString() : <any>undefined;
+        data["player"] = this.player ? this.player.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+/** Represents user information */
+export interface IUserCompactDTO {
+    /** Id */
+    id?: number;
+    /** Timestamp of the user's last login to the o!TR website */
+    lastLogin?: Date | undefined;
+    player?: PlayerCompactDTO;
+}
+
+/** Represents user information including optional data */
+export class UserDTO implements IUserDTO {
+    /** Id */
+    id?: number;
+    /** Timestamp of the user's last login to the o!TR website */
+    lastLogin?: Date | undefined;
+    player?: PlayerCompactDTO;
     /** List of permissions granted to the user */
-    scopes?: string[] | undefined;
-    /** Id of the associated player */
-    playerId?: number | undefined;
-    /** osu! id of the associated player */
-    osuId?: number | undefined;
-    /** osu! country country code of the associated player */
-    country?: string | undefined;
-    /** osu! username of the associated player */
-    username?: string | undefined;
+    scopes?: string[];
     settings?: UserSettingsDTO;
 
     constructor(data?: IUserDTO) {
@@ -7679,15 +7888,13 @@ export class UserDTO implements IUserDTO {
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
+            this.lastLogin = _data["lastLogin"] ? new Date(_data["lastLogin"].toString()) : <any>undefined;
+            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : <any>undefined;
             if (Array.isArray(_data["scopes"])) {
                 this.scopes = [] as any;
                 for (let item of _data["scopes"])
                     this.scopes!.push(item);
             }
-            this.playerId = _data["playerId"];
-            this.osuId = _data["osuId"];
-            this.country = _data["country"];
-            this.username = _data["username"];
             this.settings = _data["settings"] ? UserSettingsDTO.fromJS(_data["settings"]) : <any>undefined;
         }
     }
@@ -7702,34 +7909,27 @@ export class UserDTO implements IUserDTO {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
+        data["lastLogin"] = this.lastLogin ? this.lastLogin.toISOString() : <any>undefined;
+        data["player"] = this.player ? this.player.toJSON() : <any>undefined;
         if (Array.isArray(this.scopes)) {
             data["scopes"] = [];
             for (let item of this.scopes)
                 data["scopes"].push(item);
         }
-        data["playerId"] = this.playerId;
-        data["osuId"] = this.osuId;
-        data["country"] = this.country;
-        data["username"] = this.username;
         data["settings"] = this.settings ? this.settings.toJSON() : <any>undefined;
         return data;
     }
 }
 
-/** Represents user account information */
+/** Represents user information including optional data */
 export interface IUserDTO {
-    /** Id of the user */
+    /** Id */
     id?: number;
+    /** Timestamp of the user's last login to the o!TR website */
+    lastLogin?: Date | undefined;
+    player?: PlayerCompactDTO;
     /** List of permissions granted to the user */
-    scopes?: string[] | undefined;
-    /** Id of the associated player */
-    playerId?: number | undefined;
-    /** osu! id of the associated player */
-    osuId?: number | undefined;
-    /** osu! country country code of the associated player */
-    country?: string | undefined;
-    /** osu! username of the associated player */
-    username?: string | undefined;
+    scopes?: string[];
     settings?: UserSettingsDTO;
 }
 
@@ -7833,4 +8033,13 @@ function throwException(message: string, status: number, response: string, heade
         throw result;
     else
         throw new OtrApiException(message, status, response, headers, null);
+}
+
+/** Configuration required for o!TR API Wrappers */
+export interface IOtrApiWrapperConfiguration {
+  /** The base URL of the API */
+  baseUrl: string;
+
+  /** Default headers to be included in every request */
+  headers: HeadersInit;
 }
