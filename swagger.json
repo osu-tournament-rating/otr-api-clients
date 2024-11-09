@@ -54,7 +54,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/beatmaps/{key}": {
@@ -129,67 +130,81 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/clients/{id}/ratelimit": {
-      "patch": {
+      "post": {
         "tags": [
           "Clients"
         ],
+        "summary": "Set the rate limit for a client",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
-        "operationId": "Clients_patchRatelimit",
+        "operationId": "Clients_patchRateLimit",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The client id",
             "required": true,
             "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "rateLimitOverride",
+            "in": "query",
+            "description": "The new rate limit for the client",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json-patch+json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Operation"
+        "responses": {
+          "404": {
+            "description": "If the provided id does not belong to a client",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
-              }
-            },
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Operation"
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
-              }
-            },
-            "text/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Operation"
-                }
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Operation"
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
-          }
-        },
-        "responses": {
+          },
           "200": {
-            "description": "Success"
+            "description": "Returns the patched client",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -201,7 +216,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/filtering": {
@@ -217,22 +233,42 @@
           "content": {
             "application/json-patch+json": {
               "schema": {
-                "$ref": "#/components/schemas/FilteringRequestDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FilteringRequestDTO"
+                  }
+                ],
+                "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilteringRequestDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FilteringRequestDTO"
+                  }
+                ],
+                "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/FilteringRequestDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FilteringRequestDTO"
+                  }
+                ],
+                "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/FilteringRequestDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FilteringRequestDTO"
+                  }
+                ],
+                "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
               }
             }
           }
@@ -289,7 +325,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/games/{id}/notes": {
@@ -408,7 +445,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "get": {
         "tags": [
@@ -490,7 +528,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/games/{id}/notes/{noteId}": {
@@ -620,7 +659,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -724,7 +764,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/games/{id}": {
@@ -856,7 +897,48 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
+      },
+      "delete": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Delete a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Game id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The game was deleted successfully"
+          },
+          "404": {
+            "description": "The game does not exist"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/gamescores/{id}/notes": {
@@ -975,7 +1057,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "get": {
         "tags": [
@@ -1057,7 +1140,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/gamescores/{id}/notes/{noteId}": {
@@ -1187,7 +1271,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -1291,7 +1376,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/gamescores/{id}": {
@@ -1423,7 +1509,48 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
+      },
+      "delete": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "Delete a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Score id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The score was deleted successfully"
+          },
+          "404": {
+            "description": "The score does not exist"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/leaderboards": {
@@ -1439,7 +1566,12 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ],
+              "description": "Represents osu! play modes"
             }
           },
           {
@@ -1472,7 +1604,13 @@
             "description": "Defines whether the leaderboard should be global or filtered by country",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/LeaderboardChartType"
+              "maximum": 1,
+              "minimum": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LeaderboardChartType"
+                }
+              ]
             }
           },
           {
@@ -1480,7 +1618,12 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/LeaderboardFilterDTO"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LeaderboardFilterDTO"
+                }
+              ],
+              "description": "Filters for the leaderboard"
             }
           }
         ],
@@ -1515,7 +1658,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches/{id}/notes": {
@@ -1634,7 +1778,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "get": {
         "tags": [
@@ -1716,7 +1861,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches/{id}/notes/{noteId}": {
@@ -1846,7 +1992,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -1950,7 +2097,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches": {
@@ -1968,7 +2116,11 @@
             "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Ruleset",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
             }
           },
           {
@@ -2006,7 +2158,11 @@
             "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Verification.VerificationStatus",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/VerificationStatus"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/VerificationStatus"
+                }
+              ]
             }
           },
           {
@@ -2015,7 +2171,11 @@
             "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/MatchRejectionReason"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MatchRejectionReason"
+                }
+              ]
             }
           },
           {
@@ -2024,7 +2184,11 @@
             "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/MatchProcessingStatus"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MatchProcessingStatus"
+                }
+              ]
             }
           },
           {
@@ -2053,7 +2217,11 @@
             "description": "Controls the manner in which results are sorted",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/MatchesQuerySortType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MatchQuerySortType"
+                }
+              ]
             }
           },
           {
@@ -2124,7 +2292,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches/{id}": {
@@ -2200,7 +2369,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "patch": {
         "tags": [
@@ -2330,7 +2500,48 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
+      },
+      "delete": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Delete a match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The match was deleted successfully"
+          },
+          "404": {
+            "description": "The match does not exist"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches/player/{osuId}": {
@@ -2356,7 +2567,12 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ],
+              "description": "Represents osu! play modes"
             }
           }
         ],
@@ -2374,7 +2590,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/me": {
@@ -2419,7 +2636,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/me/stats": {
@@ -2437,7 +2655,11 @@
             "description": "Ruleset to filter for",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
             }
           },
           {
@@ -2495,7 +2717,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/me/settings/ruleset": {
@@ -2510,22 +2733,42 @@
           "content": {
             "application/json-patch+json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             }
           }
@@ -2567,7 +2810,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/me/settings/ruleset:sync": {
@@ -2618,7 +2862,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/oauth/authorize": {
@@ -2680,7 +2925,8 @@
               }
             }
           }
-        }
+        },
+        "x-requiresAuthorization": false
       }
     },
     "/api/v1/oauth/token": {
@@ -2752,7 +2998,8 @@
               }
             }
           }
-        }
+        },
+        "x-requiresAuthorization": false
       }
     },
     "/api/v1/oauth/client": {
@@ -2794,7 +3041,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/oauth/refresh": {
@@ -2857,7 +3105,8 @@
               }
             }
           }
-        }
+        },
+        "x-requiresAuthorization": false
       }
     },
     "/api/v1/players/{id}/notes": {
@@ -2976,7 +3225,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "get": {
         "tags": [
@@ -3058,7 +3308,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/players/{id}/notes/{noteId}": {
@@ -3188,7 +3439,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -3292,7 +3544,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/players/{key}": {
@@ -3345,7 +3598,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/search": {
@@ -3398,7 +3652,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/stats/{key}": {
@@ -3426,7 +3681,11 @@
             "description": "Ruleset to filter for",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
             }
           },
           {
@@ -3502,7 +3761,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/stats/histogram": {
@@ -3518,7 +3778,13 @@
             "in": "query",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ],
+              "description": "Represents osu! play modes",
+              "default": 0
             }
           }
         ],
@@ -3566,7 +3832,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments/{id}/notes": {
@@ -3705,7 +3972,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "get": {
         "tags": [
@@ -3787,7 +4055,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments/{id}/notes/{noteId}": {
@@ -3937,7 +4206,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -4061,7 +4331,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments": {
@@ -4081,7 +4352,7 @@
             "style": "form",
             "schema": {
               "maximum": 2147483647,
-              "minimum": 1,
+              "minimum": 0,
               "type": "integer",
               "format": "int32"
             }
@@ -4093,8 +4364,8 @@
             "required": true,
             "style": "form",
             "schema": {
-              "maximum": 2147483647,
-              "minimum": 1,
+              "maximum": 100,
+              "minimum": 5,
               "type": "integer",
               "format": "int32"
             }
@@ -4114,7 +4385,33 @@
             "description": "An optional ruleset to filter by",
             "style": "form",
             "schema": {
-              "$ref": "#/components/schemas/Ruleset"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
+            }
+          },
+          {
+            "name": "QuerySortType",
+            "in": "query",
+            "description": "The key used to sort results by",
+            "style": "form",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TournamentQuerySortType"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Descending",
+            "in": "query",
+            "description": "Whether the tournaments are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.QuerySortType",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -4168,7 +4465,8 @@
               }
             }
           }
-        }
+        },
+        "x-requiresAuthorization": false
       },
       "post": {
         "tags": [
@@ -4182,22 +4480,42 @@
           "content": {
             "application/json-patch+json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                  }
+                ],
+                "description": "An incoming tournament submission"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                  }
+                ],
+                "description": "An incoming tournament submission"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                  }
+                ],
+                "description": "An incoming tournament submission"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TournamentSubmissionDTO"
+                  }
+                ],
+                "description": "An incoming tournament submission"
               }
             }
           }
@@ -4253,7 +4571,8 @@
               "user"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments/{id}": {
@@ -4279,7 +4598,7 @@
           {
             "name": "verified",
             "in": "query",
-            "description": "If true, specifically includes verified match data. If false,\r\n            includes all data, regardless of verification status.\r\n            Also includes all child navigations if false.\r\n            Default true (strictly verified data with limited navigation properties)",
+            "description": "If true, specifically includes verified match data. If false,\r\nincludes all data, regardless of verification status.\r\nAlso includes all child navigations if false.\r\nDefault true (strictly verified data with limited navigation properties)",
             "style": "form",
             "schema": {
               "type": "boolean",
@@ -4339,7 +4658,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "patch": {
         "tags": [
@@ -4469,7 +4789,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       },
       "delete": {
         "tags": [
@@ -4508,7 +4829,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments/{id}/matches": {
@@ -4593,7 +4915,8 @@
               "client"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}": {
@@ -4663,7 +4986,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/scopes": {
@@ -4795,7 +5119,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/submissions": {
@@ -4874,7 +5199,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/submissions:reject": {
@@ -4935,7 +5261,8 @@
               "admin"
             ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/clients": {
@@ -4944,7 +5271,7 @@
           "Users"
         ],
         "summary": "Get a user's OAuth clients",
-        "description": "All users have access to clients that they own. Admin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "All users have access to clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_getClients",
         "parameters": [
           {
@@ -5014,7 +5341,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/clients/{clientId}": {
@@ -5098,7 +5426,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/clients/{clientId}/secret:reset": {
@@ -5199,7 +5528,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/settings/ruleset": {
@@ -5214,6 +5544,7 @@
           {
             "name": "id",
             "in": "path",
+            "description": "Id of the user",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5223,25 +5554,46 @@
           }
         ],
         "requestBody": {
+          "description": "The new ruleset",
           "content": {
             "application/json-patch+json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Ruleset"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Ruleset"
+                  }
+                ],
+                "description": "Represents osu! play modes"
               }
             }
           }
@@ -5295,7 +5647,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/users/{id}/settings/ruleset:sync": {
@@ -5310,6 +5663,7 @@
           {
             "name": "id",
             "in": "path",
+            "description": "Id of the user",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5367,7 +5721,8 @@
           {
             "Bearer": [ ]
           }
-        ]
+        ],
+        "x-requiresAuthorization": true
       }
     }
   },
@@ -5403,6 +5758,13 @@
         "description": "Represents access credentials and their expiry"
       },
       "AdminNoteDTO": {
+        "required": [
+          "adminUser",
+          "created",
+          "id",
+          "note",
+          "referenceId"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5427,7 +5789,12 @@
             "format": "int32"
           },
           "adminUser": {
-            "$ref": "#/components/schemas/UserCompactDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserCompactDTO"
+              }
+            ],
+            "description": "The admin user that created the note"
           },
           "note": {
             "type": "string",
@@ -5438,6 +5805,27 @@
         "description": "Represents a note for an entity created by an admin"
       },
       "AggregatePlayerMatchStatsDTO": {
+        "required": [
+          "averageGamesPlayedAggregate",
+          "averageMatchCostAggregate",
+          "averagePlacingAggregate",
+          "bestWinStreak",
+          "gamesLost",
+          "gamesPlayed",
+          "gamesWon",
+          "gameWinRate",
+          "highestRating",
+          "matchAverageAccuracyAggregate",
+          "matchAverageMissesAggregate",
+          "matchAverageScoreAggregate",
+          "matchesLost",
+          "matchesPlayed",
+          "matchesWon",
+          "matchWinRate",
+          "periodEnd",
+          "periodStart",
+          "ratingGained"
+        ],
         "type": "object",
         "properties": {
           "averageMatchCostAggregate": {
@@ -5555,6 +5943,20 @@
         "description": "Represents an aggregate of match statistics for a player during a period of time"
       },
       "BeatmapDTO": {
+        "required": [
+          "ar",
+          "artist",
+          "cs",
+          "hp",
+          "id",
+          "length",
+          "mapperId",
+          "mapperName",
+          "od",
+          "osuId",
+          "sr",
+          "title"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5650,6 +6052,26 @@
         "additionalProperties": false,
         "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult"
       },
+      "CreatedResultBaseDTO": {
+        "required": [
+          "id",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Id of the resource",
+            "format": "int32"
+          },
+          "location": {
+            "type": "string",
+            "description": "URL of where the new resource can be accessed"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a newly created resource"
+      },
       "FilteringFailReason": {
         "enum": [
           0,
@@ -5664,6 +6086,7 @@
         "type": "integer",
         "description": "Explains why the player failed filtering",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "NoData",
@@ -5683,14 +6106,25 @@
           "The player has not played in the minimum specified\r\namount of tournaments",
           "The player's all-time peak rating is above the maximum allowed",
           "The player has not played in the minimum specified amount of matches"
-        ],
-        "x-bitwiseFlag": true
+        ]
       },
       "FilteringRequestDTO": {
+        "required": [
+          "allowProvisional",
+          "osuPlayerIds",
+          "ruleset"
+        ],
         "type": "object",
         "properties": {
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "maximum": 5,
+            "minimum": 0,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "minRating": {
             "maximum": 2147483647,
@@ -5766,6 +6200,11 @@
         ]
       },
       "FilteringResultDTO": {
+        "required": [
+          "filteringResults",
+          "playersFailed",
+          "playersPassed"
+        ],
         "type": "object",
         "properties": {
           "playersPassed": {
@@ -5790,6 +6229,21 @@
         "description": "Represents a filterings result for a collection of players"
       },
       "GameDTO": {
+        "required": [
+          "adminNotes",
+          "id",
+          "mods",
+          "osuId",
+          "processingStatus",
+          "rejectionReason",
+          "ruleset",
+          "scores",
+          "scoringType",
+          "startTime",
+          "teamType",
+          "verificationStatus",
+          "warningFlags"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -5798,16 +6252,36 @@
             "format": "int32"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "scoringType": {
-            "$ref": "#/components/schemas/ScoringType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScoringType"
+              }
+            ],
+            "description": "Represents the scoring method (win condition) for a Database.Entities.Game"
           },
           "teamType": {
-            "$ref": "#/components/schemas/TeamType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TeamType"
+              }
+            ],
+            "description": "Represents the team type used for a Database.Entities.Game (See <a href=\"https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer\"> osu! wiki - Multiplayer</a>)"
           },
           "mods": {
-            "$ref": "#/components/schemas/Mods"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Mods"
+              }
+            ],
+            "description": "Represents mod values"
           },
           "osuId": {
             "type": "integer",
@@ -5815,16 +6289,36 @@
             "format": "int64"
           },
           "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore"
           },
           "processingStatus": {
-            "$ref": "#/components/schemas/GameProcessingStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameProcessingStatus"
+              }
+            ],
+            "description": "The status of a Database.Entities.Game in the processing flow"
           },
           "warningFlags": {
-            "$ref": "#/components/schemas/GameWarningFlags"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameWarningFlags"
+              }
+            ],
+            "description": "Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review"
           },
           "rejectionReason": {
-            "$ref": "#/components/schemas/GameRejectionReason"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameRejectionReason"
+              }
+            ],
+            "description": "The reason why a Database.Entities.Game is rejected"
           },
           "startTime": {
             "type": "string",
@@ -5838,7 +6332,13 @@
             "nullable": true
           },
           "beatmap": {
-            "$ref": "#/components/schemas/BeatmapDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BeatmapDTO"
+              }
+            ],
+            "description": "The beatmap played",
+            "nullable": true
           },
           "adminNotes": {
             "type": "array",
@@ -5877,7 +6377,7 @@
         "x-enumDescriptions": [
           "The Database.Entities.Game needs automation checks",
           "The Database.Entities.Game is awaiting verification from a\r\nDatabase.Entities.User with verifier permission",
-          "The Database.Entities.Game needs stat calculation (Generates the Database.Entities.GameWinRecord)",
+          "The Database.Entities.Game needs stat calculation\n\nGenerates the Database.Entities.GameWinRecord",
           "The Database.Entities.Game has completed all processing steps"
         ]
       },
@@ -5898,6 +6398,7 @@
         "type": "integer",
         "description": "The reason why a Database.Entities.Game is rejected",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "NoScores",
@@ -5923,10 +6424,21 @@
           "The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament",
           "The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined",
           "The Database.Entities.Match the Database.Entities.Game was played in was rejected"
-        ],
-        "x-bitwiseFlag": true
+        ]
       },
       "GameScoreDTO": {
+        "required": [
+          "accuracy",
+          "adminNotes",
+          "misses",
+          "mods",
+          "playerId",
+          "processingStatus",
+          "rejectionReason",
+          "score",
+          "team",
+          "verificationStatus"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -5935,7 +6447,12 @@
             "format": "int32"
           },
           "team": {
-            "$ref": "#/components/schemas/Team"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              }
+            ],
+            "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set"
           },
           "score": {
             "type": "integer",
@@ -5943,7 +6460,12 @@
             "format": "int32"
           },
           "mods": {
-            "$ref": "#/components/schemas/Mods"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Mods"
+              }
+            ],
+            "description": "Represents mod values"
           },
           "misses": {
             "type": "integer",
@@ -5951,13 +6473,28 @@
             "format": "int32"
           },
           "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore"
           },
           "processingStatus": {
-            "$ref": "#/components/schemas/ScoreProcessingStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScoreProcessingStatus"
+              }
+            ],
+            "description": "The status of a Database.Entities.GameScore in the processing flow"
           },
           "rejectionReason": {
-            "$ref": "#/components/schemas/ScoreRejectionReason"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScoreRejectionReason"
+              }
+            ],
+            "description": "The reason why a Database.Entities.GameScore is rejected"
           },
           "accuracy": {
             "type": "number",
@@ -5983,6 +6520,7 @@
         "type": "integer",
         "description": "Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "BeatmapUsedOnce",
@@ -5992,8 +6530,30 @@
           "The Database.Entities.Game has no warnings",
           "If the parent Database.Entities.Tournament does not have a submitted pool of\r\nDatabase.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap\r\nis played only once throughout the entire Database.Entities.Tournament",
           "If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,\r\nthe Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,\r\nand the Database.Entities.Game is not one of the first two in the Database.Entities.Match"
+        ]
+      },
+      "HttpValidationProblemDetails": {
+        "required": [
+          "errors"
         ],
-        "x-bitwiseFlag": true
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProblemDetails"
+          }
+        ],
+        "properties": {
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "additionalProperties": { }
       },
       "LeaderboardChartType": {
         "enum": [
@@ -6012,17 +6572,32 @@
         ]
       },
       "LeaderboardDTO": {
+        "required": [
+          "filterDefaults",
+          "leaderboard",
+          "ruleset",
+          "totalPlayerCount"
+        ],
         "type": "object",
         "properties": {
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "totalPlayerCount": {
             "type": "integer",
             "format": "int32"
           },
           "filterDefaults": {
-            "$ref": "#/components/schemas/LeaderboardFilterDefaultsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LeaderboardFilterDefaultsDTO"
+              }
+            ]
           },
           "leaderboard": {
             "type": "array",
@@ -6085,13 +6660,24 @@
             "nullable": true
           },
           "tierFilters": {
-            "$ref": "#/components/schemas/LeaderboardTierFilterDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LeaderboardTierFilterDTO"
+              }
+            ],
+            "description": "A collection of optional filters for tiers",
+            "nullable": true
           }
         },
         "additionalProperties": false,
         "description": "Filters for the leaderboard"
       },
       "LeaderboardFilterDefaultsDTO": {
+        "required": [
+          "maxMatches",
+          "maxRank",
+          "maxRating"
+        ],
         "type": "object",
         "properties": {
           "maxRank": {
@@ -6110,6 +6696,17 @@
         "additionalProperties": false
       },
       "LeaderboardPlayerInfoDTO": {
+        "required": [
+          "globalRank",
+          "matchesPlayed",
+          "name",
+          "osuId",
+          "playerId",
+          "rating",
+          "ruleset",
+          "tier",
+          "winRate"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -6143,7 +6740,12 @@
             "format": "double"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "country": {
             "type": "string",
@@ -6154,6 +6756,17 @@
         "description": "Individual line items in the leaderboard"
       },
       "LeaderboardTierFilterDTO": {
+        "required": [
+          "filterBronze",
+          "filterDiamond",
+          "filterEliteGrandmaster",
+          "filterEmerald",
+          "filterGold",
+          "filterGrandmaster",
+          "filterMaster",
+          "filterPlatinum",
+          "filterSilver"
+        ],
         "type": "object",
         "properties": {
           "filterBronze": {
@@ -6188,19 +6801,25 @@
         "description": "A collection of booleans representing which tiers to filter.\r\n            \r\nFalse = Default, no behavioral change\r\nTrue = Explicitly included in leaderboard results\r\n            \r\nIf *all* tiers are set to false, or all tiers are set to true, the leaderboard will return\r\nas if no tier filters were applied.\r\n            \r\nFor example, if Bronze and Emerald are true and everything else is false,\r\nthen only Bronze and Emerald players will show up in the leaderboard\r\n(specifically, Bronze III-I and Emerald III-I)"
       },
       "MatchCreatedResultDTO": {
+        "required": [
+          "createdAtRouteValues",
+          "osuId"
+        ],
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CreatedResultBaseDTO"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Id of the resource",
-            "format": "int32"
-          },
-          "location": {
-            "type": "string",
-            "description": "URL of where the new resource can be accessed"
-          },
           "createdAtRouteValues": {
-            "$ref": "#/components/schemas/CreatedAtRouteValues"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreatedAtRouteValues"
+              }
+            ],
+            "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult",
+            "readOnly": true
           },
           "osuId": {
             "type": "integer",
@@ -6212,6 +6831,20 @@
         "description": "Represents a created match"
       },
       "MatchDTO": {
+        "required": [
+          "adminNotes",
+          "games",
+          "id",
+          "lastProcessingDate",
+          "name",
+          "osuId",
+          "processingStatus",
+          "rejectionReason",
+          "ruleset",
+          "tournament",
+          "verificationStatus",
+          "warningFlags"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -6229,7 +6862,12 @@
             "description": "Title of the lobby"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "startTime": {
             "type": "string",
@@ -6244,16 +6882,36 @@
             "nullable": true
           },
           "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore"
           },
           "rejectionReason": {
-            "$ref": "#/components/schemas/MatchRejectionReason"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MatchRejectionReason"
+              }
+            ],
+            "description": "The reason why a Database.Entities.Match is rejected"
           },
           "warningFlags": {
-            "$ref": "#/components/schemas/MatchWarningFlags"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MatchWarningFlags"
+              }
+            ],
+            "description": "Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review"
           },
           "processingStatus": {
-            "$ref": "#/components/schemas/MatchProcessingStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MatchProcessingStatus"
+              }
+            ],
+            "description": "The status of a Database.Entities.Match in the processing flow"
           },
           "lastProcessingDate": {
             "type": "string",
@@ -6261,7 +6919,12 @@
             "format": "date-time"
           },
           "tournament": {
-            "$ref": "#/components/schemas/TournamentCompactDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentCompactDTO"
+              }
+            ],
+            "description": "The API.DTOs.TournamentCompactDTO this match was played in"
           },
           "games": {
             "type": "array",
@@ -6282,6 +6945,10 @@
         "description": "Represents a played match"
       },
       "MatchDTOPagedResultDTO": {
+        "required": [
+          "count",
+          "results"
+        ],
         "type": "object",
         "properties": {
           "next": {
@@ -6334,9 +7001,35 @@
           "The Database.Entities.Match needs data requested from the osu! API",
           "The Database.Entities.Match needs automation checks",
           "The Database.Entities.Match is awaiting verification from a\r\nDatabase.Entities.User with verifier permission",
-          "The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats)",
-          "The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments)",
+          "The Database.Entities.Match needs stat calculation\n\nGenerates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats",
+          "The Database.Entities.Match is awaiting rating processor data\n\nGenerates all Database.Entities.Processor.RatingAdjustments",
           "The Database.Entities.Match has completed all processing steps"
+        ]
+      },
+      "MatchQuerySortType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "description": "Denotes which property a query for !:Database.Entities.Matches will be sorted by",
+        "format": "int32",
+        "x-enumNames": [
+          "Id",
+          "OsuId",
+          "StartTime",
+          "EndTime",
+          "Created"
+        ],
+        "x-enumDescriptions": [
+          "Sort by primary key",
+          "Sort by osu! id",
+          "Sort by start time",
+          "Sort by end time",
+          "Sort by creation date"
         ]
       },
       "MatchRejectionReason": {
@@ -6354,11 +7047,12 @@
         "type": "integer",
         "description": "The reason why a Database.Entities.Match is rejected",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "NoData",
           "NoGames",
-          "InvalidName",
+          "NamePrefixMismatch",
           "FailedTeamVsConversion",
           "NoValidGames",
           "UnexpectedGameCount",
@@ -6369,16 +7063,19 @@
           "The Database.Entities.Match is not rejected",
           "The osu! API returned invalid data or no data for the Database.Entities.Match",
           "The osu! API returned no Database.Entities.Games for the Database.Entities.Match",
-          "The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions",
+          "The Database.Entities.Match's Database.Entities.Match.Name does not start with the\r\nparent Database.Entities.Tournament's Database.Entities.Tournament.Abbreviation",
           "The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs\r\nconversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful",
           "The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified",
           "The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\")",
           "The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined",
           "The Database.Entities.Tournament the Database.Entities.Match was played in was rejected"
-        ],
-        "x-bitwiseFlag": true
+        ]
       },
       "MatchSearchResultDTO": {
+        "required": [
+          "id",
+          "osuId"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -6401,6 +7098,11 @@
         "description": "Represents a search result for a match"
       },
       "MatchSubmissionStatusDTO": {
+        "required": [
+          "created",
+          "id",
+          "osuId"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -6419,7 +7121,13 @@
             "nullable": true
           },
           "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "Current verification status of the match",
+            "nullable": true
           },
           "created": {
             "type": "string",
@@ -6445,42 +7153,25 @@
         "type": "integer",
         "description": "Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
-          "UnexpectedTitleFormat",
+          "UnexpectedNameFormat",
           "LowGameCount"
         ],
         "x-enumDescriptions": [
           "The Database.Entities.Match has no warnings",
           "The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
           "The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4"
-        ],
-        "x-bitwiseFlag": true
-      },
-      "MatchesQuerySortType": {
-        "enum": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "description": "Denotes which property a query for !:Database.Entities.Matches will be sorted by",
-        "format": "int32",
-        "x-enumNames": [
-          "Id",
-          "OsuId",
-          "StartTime",
-          "EndTime"
-        ],
-        "x-enumDescriptions": [
-          "Sort by primary key",
-          "Sort by osu! id",
-          "Sort by start start time",
-          "Sort by end time"
         ]
       },
       "ModStatsDTO": {
+        "required": [
+          "gamesPlayed",
+          "gamesWon",
+          "normalizedAverageScore",
+          "winRate"
+        ],
         "type": "object",
         "properties": {
           "gamesPlayed": {
@@ -6545,6 +7236,7 @@
         "type": "integer",
         "description": "Represents mod values",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "NoFail",
@@ -6594,53 +7286,45 @@
           "Double Time (DT)",
           "Relax (RX)",
           "Half Time (HT)",
-          "Nightcore (NC) (Only set along with DoubleTime. i.e: NC only gives 576)",
+          "Nightcore (NC)\n\nOnly set along with DoubleTime. i.e: NC only gives 576",
           "Flashlight (FL)",
           "Autoplay (AT)",
           "Spun Out (SO)",
-          "Autopilot (AP) (Autopilot)",
-          "Perfect (PF) (Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416)",
-          "Denotes mods that are ineligible for ratings",
-          "4 key (4K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "5 key (5K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "6 key (6K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "7 key (7K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "8 key (8K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "Fade In (FI) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "Denotes mods that directly impose a modifier on score",
-          "Random (RD) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
+          "Autopilot (AP)\n\nAutopilot",
+          "Perfect (PF)\n\nOnly set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416",
+          "4 key (4K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "5 key (5K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "6 key (6K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "7 key (7K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "8 key (8K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "Fade In (FI)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "Random (RD)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
           "Cinema (CM)",
           "Target Practice (TP)",
-          "9 Key (9K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "Co-op (CO) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "1 Key (1K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "3 Key (3K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "2 Key (2K) (Applicable only to Database.Enums.Ruleset.ManiaOther)",
-          "Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers (See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK)",
-          "Denotes mods that are available to use during Free Mod settings",
+          "9 Key (9K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "Co-op (CO)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "1 Key (1K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "3 Key (3K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "2 Key (2K)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
           "Score v2 (SV2)",
-          "Mirror (MR) (Applicable only to Database.Enums.Ruleset.ManiaOther)"
-        ],
-        "x-bitwiseFlag": true
+          "Mirror (MR)\n\nApplicable only to Database.Enums.Ruleset.ManiaOther",
+          "Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers\n\nSee https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK",
+          "Denotes mods that are available to use during Free Mod settings",
+          "Denotes mods that directly impose a modifier on score",
+          "Denotes mods that are ineligible for ratings"
+        ]
       },
       "OAuthClientCreatedDTO": {
+        "required": [
+          "clientSecret"
+        ],
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OAuthClientDTO"
+          }
+        ],
         "properties": {
-          "clientId": {
-            "type": "integer",
-            "description": "Client id of the client",
-            "format": "int32"
-          },
-          "scopes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of permissions granted to the client"
-          },
-          "rateLimitOverrides": {
-            "$ref": "#/components/schemas/RateLimitOverrides"
-          },
           "clientSecret": {
             "type": "string",
             "description": "Client secret of the client"
@@ -6650,6 +7334,10 @@
         "description": "Represents a created OAuth client (The only time the client secret is available is when a new client is created)"
       },
       "OAuthClientDTO": {
+        "required": [
+          "clientId",
+          "scopes"
+        ],
         "type": "object",
         "properties": {
           "clientId": {
@@ -6664,8 +7352,11 @@
             },
             "description": "List of permissions granted to the client"
           },
-          "rateLimitOverrides": {
-            "$ref": "#/components/schemas/RateLimitOverrides"
+          "rateLimitOverride": {
+            "type": "integer",
+            "description": "Possible rate limit override for the client",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -6673,9 +7364,31 @@
       },
       "Operation": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OperationBase"
+          }
+        ],
+        "properties": {
+          "value": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationBase": {
+        "required": [
+          "operationType"
+        ],
+        "type": "object",
         "properties": {
           "operationType": {
-            "$ref": "#/components/schemas/OperationType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OperationType"
+              }
+            ],
+            "readOnly": true
           },
           "path": {
             "type": "string",
@@ -6687,9 +7400,6 @@
           },
           "from": {
             "type": "string",
-            "nullable": true
-          },
-          "value": {
             "nullable": true
           }
         },
@@ -6726,7 +7436,23 @@
           ""
         ]
       },
+      "Operation`1": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Operation"
+          }
+        ],
+        "additionalProperties": false
+      },
       "PlayerCompactDTO": {
+        "required": [
+          "country",
+          "id",
+          "osuId",
+          "ruleset",
+          "username"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -6748,7 +7474,12 @@
             "description": "osu! country code"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "userId": {
             "type": "integer",
@@ -6761,6 +7492,11 @@
         "description": "Represents player information"
       },
       "PlayerFilteringResultDTO": {
+        "required": [
+          "filteringResult",
+          "filteringResultMessage",
+          "osuId"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -6780,10 +7516,21 @@
             "format": "int64"
           },
           "filteringResult": {
-            "$ref": "#/components/schemas/FilteringResult"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilteringResult"
+              }
+            ],
+            "description": "Indicates whether a player passed or failed filtering"
           },
           "filteringFailReason": {
-            "$ref": "#/components/schemas/FilteringFailReason"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilteringFailReason"
+              }
+            ],
+            "description": "If the user failed filtering, the fail reason",
+            "nullable": true
           },
           "filteringResultMessage": {
             "type": "string",
@@ -6801,6 +7548,11 @@
         "description": "Represents one player's filtering result"
       },
       "PlayerFrequencyDTO": {
+        "required": [
+          "frequency",
+          "osuId",
+          "playerId"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -6831,40 +7583,103 @@
         "type": "object",
         "properties": {
           "playedNM": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with no mods",
+            "nullable": true
           },
           "playedEZ": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with easy",
+            "nullable": true
           },
           "playedHT": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with half time",
+            "nullable": true
           },
           "playedHD": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with hidden",
+            "nullable": true
           },
           "playedHR": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with hard rock",
+            "nullable": true
           },
           "playedDT": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with double time",
+            "nullable": true
           },
           "playedFL": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with flashlight",
+            "nullable": true
           },
           "playedHDHR": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with both hidden and hard rock",
+            "nullable": true
           },
           "playedHDDT": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with both hidden and double time",
+            "nullable": true
           },
           "playedHDEZ": {
-            "$ref": "#/components/schemas/ModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ModStatsDTO"
+              }
+            ],
+            "description": "Number of games played with both hidden and easy",
+            "nullable": true
           }
         },
         "additionalProperties": false,
         "description": "Represents counts of participation in games of differing mod combinations"
       },
       "PlayerRatingChartDTO": {
+        "required": [
+          "chartData"
+        ],
         "type": "object",
         "properties": {
           "chartData": {
@@ -6882,6 +7697,16 @@
         "description": "Represents data used to construct a rating delta chart for a player"
       },
       "PlayerRatingChartDataPointDTO": {
+        "required": [
+          "isAdjustment",
+          "name",
+          "ratingAfter",
+          "ratingBefore",
+          "ratingChange",
+          "volatilityAfter",
+          "volatilityBefore",
+          "volatilityChange"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -6952,11 +7777,26 @@
         "additionalProperties": false,
         "description": "Represents a data point used to construct a rating chart for a player"
       },
-      "PlayerRatingStatsDTO": {
+      "PlayerRatingDTO": {
+        "required": [
+          "adjustments",
+          "countryRank",
+          "globalRank",
+          "percentile",
+          "playerId",
+          "rating",
+          "ruleset",
+          "volatility"
+        ],
         "type": "object",
         "properties": {
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "rating": {
             "type": "number",
@@ -6994,7 +7834,26 @@
               "$ref": "#/components/schemas/RatingAdjustmentDTO"
             },
             "description": "A collection of adjustments that describe the changes resulting in the final rating"
-          },
+          }
+        },
+        "additionalProperties": false,
+        "description": "Describes tournament rating based information for a player in a ruleset that are current and not time specific"
+      },
+      "PlayerRatingStatsDTO": {
+        "required": [
+          "isProvisional",
+          "matchesPlayed",
+          "rankProgress",
+          "tournamentsPlayed",
+          "winRate"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PlayerRatingDTO"
+          }
+        ],
+        "properties": {
           "tournamentsPlayed": {
             "type": "integer",
             "description": "Total number of tournaments played",
@@ -7011,7 +7870,12 @@
             "format": "double"
           },
           "rankProgress": {
-            "$ref": "#/components/schemas/RankProgressDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RankProgressDTO"
+              }
+            ],
+            "description": "Rating tier progress information"
           },
           "isProvisional": {
             "type": "boolean",
@@ -7022,6 +7886,11 @@
         "description": "Describes tournament rating based information for a player in a ruleset with additional statistics"
       },
       "PlayerSearchResultDTO": {
+        "required": [
+          "id",
+          "osuId",
+          "thumbnail"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -7066,25 +7935,63 @@
         "description": "Represents a search result for a player for a given ruleset"
       },
       "PlayerStatsDTO": {
+        "required": [
+          "playerInfo",
+          "ruleset"
+        ],
         "type": "object",
         "properties": {
           "playerInfo": {
-            "$ref": "#/components/schemas/PlayerCompactDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerCompactDTO"
+              }
+            ],
+            "description": "Player info"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "rating": {
-            "$ref": "#/components/schemas/PlayerRatingStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerRatingStatsDTO"
+              }
+            ],
+            "description": "Base stats for the player",
+            "nullable": true
           },
           "matchStats": {
-            "$ref": "#/components/schemas/AggregatePlayerMatchStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AggregatePlayerMatchStatsDTO"
+              }
+            ],
+            "description": "Match stats for the player",
+            "nullable": true
           },
           "modStats": {
-            "$ref": "#/components/schemas/PlayerModStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerModStatsDTO"
+              }
+            ],
+            "description": "Mod stats for the player",
+            "nullable": true
           },
           "tournamentStats": {
-            "$ref": "#/components/schemas/PlayerTournamentStatsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerTournamentStatsDTO"
+              }
+            ],
+            "description": "Tournament participation and performance stats for the player",
+            "nullable": true
           },
           "frequentTeammates": {
             "type": "array",
@@ -7103,7 +8010,13 @@
             "nullable": true
           },
           "ratingChart": {
-            "$ref": "#/components/schemas/PlayerRatingChartDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerRatingChartDTO"
+              }
+            ],
+            "description": "Rating chart for the player",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -7147,6 +8060,14 @@
         "description": "Represents counts of participation in tournaments of differing team sizes"
       },
       "PlayerTournamentMatchCostDTO": {
+        "required": [
+          "matchCost",
+          "playerId",
+          "ruleset",
+          "tournamentAcronym",
+          "tournamentId",
+          "tournamentName"
+        ],
         "type": "object",
         "properties": {
           "playerId": {
@@ -7168,7 +8089,12 @@
             "description": "Abbreviated name of the tournament"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "matchCost": {
             "type": "number",
@@ -7180,10 +8106,20 @@
         "description": "Represents match cost data across an entire tournament for a player"
       },
       "PlayerTournamentStatsDTO": {
+        "required": [
+          "bestPerformances",
+          "lobbySizeCounts",
+          "recentPerformances"
+        ],
         "type": "object",
         "properties": {
           "lobbySizeCounts": {
-            "$ref": "#/components/schemas/PlayerTournamentLobbySizeCountDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerTournamentLobbySizeCountDTO"
+              }
+            ],
+            "description": "Counts of participation in tournaments of differing team sizes for the player"
           },
           "bestPerformances": {
             "type": "array",
@@ -7231,6 +8167,11 @@
         "additionalProperties": { }
       },
       "RankProgressDTO": {
+        "required": [
+          "currentTier",
+          "ratingForNextMajorTier",
+          "ratingForNextTier"
+        ],
         "type": "object",
         "properties": {
           "currentTier": {
@@ -7274,30 +8215,26 @@
         "additionalProperties": false,
         "description": "Represents rating tier progress data"
       },
-      "RateLimitOverrides": {
-        "type": "object",
-        "properties": {
-          "permitLimit": {
-            "type": "integer",
-            "description": "The number of requests granted per window",
-            "format": "int32",
-            "nullable": true
-          },
-          "window": {
-            "type": "integer",
-            "description": "The length of the window in seconds",
-            "format": "int32",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Represents values used to override the default rate limit configuration"
-      },
       "RatingAdjustmentDTO": {
+        "required": [
+          "adjustmentType",
+          "ratingAfter",
+          "ratingBefore",
+          "ratingDelta",
+          "timestamp",
+          "volatilityAfter",
+          "volatilityBefore",
+          "volatilityDelta"
+        ],
         "type": "object",
         "properties": {
           "adjustmentType": {
-            "$ref": "#/components/schemas/RatingAdjustmentType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RatingAdjustmentType"
+              }
+            ],
+            "description": "Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment"
           },
           "timestamp": {
             "type": "string",
@@ -7388,7 +8325,7 @@
           "osu! (standard)",
           "osu! Taiko",
           "osu! Catch (aka Fruits)",
-          "osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k)",
+          "osu! Mania\n\nEncompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k",
           "osu! Mania 4k variant",
           "osu! Mania 7k variant"
         ]
@@ -7424,6 +8361,7 @@
         "type": "integer",
         "description": "The reason why a Database.Entities.GameScore is rejected",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "ScoreBelowMinimum",
@@ -7437,8 +8375,7 @@
           "The Database.Entities.GameScore was set with any Database.Enums.Mods.InvalidMods",
           "The Database.Entities.GameScore's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament",
           "The Database.Entities.Game the Database.Entities.GameScore was set in was rejected"
-        ],
-        "x-bitwiseFlag": true
+        ]
       },
       "ScoringType": {
         "enum": [
@@ -7464,6 +8401,11 @@
         ]
       },
       "SearchResponseCollectionDTO": {
+        "required": [
+          "matches",
+          "players",
+          "tournaments"
+        ],
         "type": "object",
         "properties": {
           "tournaments": {
@@ -7529,22 +8471,42 @@
         ],
         "x-enumDescriptions": [
           "Free for all",
-          "Free for all (Tag format) (All players play tag on the same beatmap)",
+          "Free for all (Tag format)\n\nAll players play tag on the same beatmap",
           "Team red vs team blue",
           "Team red vs team blue (Tag format)"
         ]
       },
       "TournamentCompactDTO": {
+        "required": [
+          "abbreviation",
+          "created",
+          "endTime",
+          "forumUrl",
+          "id",
+          "lobbySize",
+          "name",
+          "processingStatus",
+          "rankRangeLowerBound",
+          "rejectionReason",
+          "ruleset",
+          "startTime",
+          "verificationStatus"
+        ],
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
-            "description": "The tournament id",
+            "description": "Id",
             "format": "int32"
+          },
+          "created": {
+            "type": "string",
+            "description": "The timestamp of submission",
+            "format": "date-time"
           },
           "name": {
             "type": "string",
-            "description": "The tournament name"
+            "description": "Full name"
           },
           "abbreviation": {
             "type": "string"
@@ -7559,26 +8521,17 @@
             "format": "int32"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "lobbySize": {
             "type": "integer",
             "description": "Expected in-match team size",
             "format": "int32"
-          },
-          "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
-          },
-          "processingStatus": {
-            "$ref": "#/components/schemas/TournamentProcessingStatus"
-          },
-          "rejectionReason": {
-            "$ref": "#/components/schemas/TournamentRejectionReason"
-          },
-          "created": {
-            "type": "string",
-            "description": "The timestamp of submission",
-            "format": "date-time"
           },
           "startTime": {
             "type": "string",
@@ -7589,24 +8542,75 @@
             "type": "string",
             "description": "The end date of the last match",
             "format": "date-time"
+          },
+          "verificationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "The verification status of a Database.Entities.Tournament,\r\nDatabase.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore"
+          },
+          "processingStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentProcessingStatus"
+              }
+            ],
+            "description": "The status of a Database.Entities.Tournament in the processing flow"
+          },
+          "rejectionReason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentRejectionReason"
+              }
+            ],
+            "description": "The reason why a Database.Entities.Tournament is rejected"
+          },
+          "submittedByUser": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserCompactDTO"
+              }
+            ],
+            "description": "The user that submitted the tournament",
+            "nullable": true
+          },
+          "verifiedByUser": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserCompactDTO"
+              }
+            ],
+            "description": "The user that verified the tournament",
+            "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Represents a tournament with minimal data"
       },
       "TournamentCreatedResultDTO": {
+        "required": [
+          "abbreviation",
+          "createdAtRouteValues",
+          "matches",
+          "name"
+        ],
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CreatedResultBaseDTO"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Id of the resource",
-            "format": "int32"
-          },
-          "location": {
-            "type": "string",
-            "description": "URL of where the new resource can be accessed"
-          },
           "createdAtRouteValues": {
-            "$ref": "#/components/schemas/CreatedAtRouteValues"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreatedAtRouteValues"
+              }
+            ],
+            "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult",
+            "readOnly": true
           },
           "name": {
             "type": "string",
@@ -7628,61 +8632,17 @@
         "description": "Represents a created tournament"
       },
       "TournamentDTO": {
+        "required": [
+          "adminNotes",
+          "matches"
+        ],
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TournamentCompactDTO"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "The tournament id",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string",
-            "description": "The tournament name"
-          },
-          "abbreviation": {
-            "type": "string"
-          },
-          "forumUrl": {
-            "type": "string",
-            "description": "The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used)"
-          },
-          "rankRangeLowerBound": {
-            "type": "integer",
-            "description": "Lowest rank a player can be to participate",
-            "format": "int32"
-          },
-          "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
-          },
-          "lobbySize": {
-            "type": "integer",
-            "description": "Expected in-match team size",
-            "format": "int32"
-          },
-          "verificationStatus": {
-            "$ref": "#/components/schemas/VerificationStatus"
-          },
-          "processingStatus": {
-            "$ref": "#/components/schemas/TournamentProcessingStatus"
-          },
-          "rejectionReason": {
-            "$ref": "#/components/schemas/TournamentRejectionReason"
-          },
-          "created": {
-            "type": "string",
-            "description": "The timestamp of submission",
-            "format": "date-time"
-          },
-          "startTime": {
-            "type": "string",
-            "description": "The start date of the first match",
-            "format": "date-time"
-          },
-          "endTime": {
-            "type": "string",
-            "description": "The end date of the last match",
-            "format": "date-time"
-          },
           "matches": {
             "type": "array",
             "items": {
@@ -7699,7 +8659,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Represents a tournament"
+        "description": "Represents a tournament including optional data"
       },
       "TournamentProcessingStatus": {
         "enum": [
@@ -7722,12 +8682,35 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "The Database.Entities.Tournament is awaiting approval from a\r\nDatabase.Entities.User with verifier permission (Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament\r\nwill advance through the processing flow until approved.)",
+          "The Database.Entities.Tournament is awaiting approval from a\r\nDatabase.Entities.User with verifier permission\n\nFunctions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament\r\nwill advance through the processing flow until approved.",
           "The Database.Entities.Tournament has Database.Entities.Matches with a\r\nDatabase.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData",
           "The Database.Entities.Tournament needs automation checks",
           "The Database.Entities.Tournament is awaiting verification from a\r\nDatabase.Entities.User with verifier permission",
           "The Database.Entities.Tournament needs stat calculation",
           "The tournament has completed all processing steps"
+        ]
+      },
+      "TournamentQuerySortType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "description": "Defines how to sort the results of fetching all tournaments",
+        "format": "int32",
+        "x-enumNames": [
+          "Id",
+          "StartTime",
+          "Name",
+          "Created"
+        ],
+        "x-enumDescriptions": [
+          "Sort by primary key",
+          "Sort by start date",
+          "Sort by name",
+          "Sort by created date"
         ]
       },
       "TournamentRejectionReason": {
@@ -7743,6 +8726,7 @@
         "type": "integer",
         "description": "The reason why a Database.Entities.Tournament is rejected",
         "format": "int32",
+        "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
           "NoVerifiedMatches",
@@ -7756,14 +8740,19 @@
           "The Database.Entities.Tournament is not rejected",
           "The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified",
           "The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or\r\nDatabase.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total",
-          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2 (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc)",
-          "The Database.Entities.Tournament's format is not suitable for ratings (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc)",
-          "The Database.Entities.Tournament's lobby sizes are not consistent. (Only assigned via a \"rejected submission\". <br />\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc)",
-          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc. (Only assigned via a \"rejected submission\". <br />\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc)"
-        ],
-        "x-bitwiseFlag": true
+          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
+          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
+          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
+          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
+        ]
       },
       "TournamentSearchResultDTO": {
+        "required": [
+          "id",
+          "lobbySize",
+          "name",
+          "ruleset"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -7772,7 +8761,12 @@
             "format": "int32"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "lobbySize": {
             "type": "integer",
@@ -7788,6 +8782,16 @@
         "description": "Represents a search result for a tournament"
       },
       "TournamentSubmissionDTO": {
+        "required": [
+          "abbreviation",
+          "beatmapIds",
+          "forumUrl",
+          "ids",
+          "lobbySize",
+          "name",
+          "rankRangeLowerBound",
+          "ruleset"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -7817,10 +8821,21 @@
             "format": "int32"
           },
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "rejectionReason": {
-            "$ref": "#/components/schemas/TournamentRejectionReason"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentRejectionReason"
+              }
+            ],
+            "description": "Optional rejection reason. If set, the created tournament and all matches will be rejected\r\nfor this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users)",
+            "nullable": true
           },
           "ids": {
             "type": "array",
@@ -7843,6 +8858,10 @@
         "description": "An incoming tournament submission"
       },
       "UserCompactDTO": {
+        "required": [
+          "id",
+          "player"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -7857,29 +8876,29 @@
             "nullable": true
           },
           "player": {
-            "$ref": "#/components/schemas/PlayerCompactDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerCompactDTO"
+              }
+            ],
+            "description": "The associated player"
           }
         },
         "additionalProperties": false,
         "description": "Represents user information"
       },
       "UserDTO": {
+        "required": [
+          "scopes",
+          "settings"
+        ],
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserCompactDTO"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Id",
-            "format": "int32"
-          },
-          "lastLogin": {
-            "type": "string",
-            "description": "Timestamp of the user's last login to the o!TR website",
-            "format": "date-time",
-            "nullable": true
-          },
-          "player": {
-            "$ref": "#/components/schemas/PlayerCompactDTO"
-          },
           "scopes": {
             "type": "array",
             "items": {
@@ -7888,17 +8907,31 @@
             "description": "List of permissions granted to the user"
           },
           "settings": {
-            "$ref": "#/components/schemas/UserSettingsDTO"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserSettingsDTO"
+              }
+            ],
+            "description": "Settings of the user"
           }
         },
         "additionalProperties": false,
         "description": "Represents user information including optional data"
       },
       "UserSettingsDTO": {
+        "required": [
+          "ruleset",
+          "rulesetIsControlled"
+        ],
         "type": "object",
         "properties": {
           "ruleset": {
-            "$ref": "#/components/schemas/Ruleset"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "rulesetIsControlled": {
             "type": "boolean",

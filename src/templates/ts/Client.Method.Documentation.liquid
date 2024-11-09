@@ -9,11 +9,9 @@
 *
 * {{ operation.Description | replace: "\n", "\n* " }}
 {% endif -%}
-{% for parameter in operation.Parameters -%}
-{% if parameter.HasDescriptionOrIsOptional -%}
-* @param {{ parameter.VariableName }}{% if parameter.IsOptional %} (optional){% endif %} {{ parameter.Description }}
+{% if operation.Parameters.size > 0 -%}
+* @param params Request parameters (see {@link {{ Class | remove: 'Wrapper' }}{{ operation.ActualOperationName | capitalize }}RequestParams})
 {% endif -%}
-{% endfor -%}
 {% if operation.HasResultDescription -%}
 * @return {{ operation.ResultDescription }}
 {% endif -%}

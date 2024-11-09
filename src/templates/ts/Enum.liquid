@@ -1,18 +1,24 @@
 {%- if HasDescription -%}
 {%- if ExtensionData.x-bitwiseFlag -%}
 /**
-* {{ Description }}
+* {{ Description | replace: "\n", "\n* " }}
 *
 * Bitwise flag
 */
 {%- else -%}
-/** {{ Description }} */
+/** {{ Description | replace: "\n", "\n* " }} */
 {%- endif -%}
 {%- endif -%}
 {% if ExportTypes %}export {% endif %}enum {{ Name }} {
 {%- for enumeration in Enums -%}
     {%- if ExtensionData.x-enumDescriptions[forloop.index0] != "" -%}
+    {%- if ExtensionData.x-enumDescriptions[forloop.index0] contains "\n" -%}
+    /**
+    * {{ ExtensionData.x-enumDescriptions[forloop.index0] | replace: "\n", "\n\t* " }}
+    */
+    {%- else -%}
     /** {{ ExtensionData.x-enumDescriptions[forloop.index0] }} */
+    {%- endif -%}
     {%- endif -%}
     {{ enumeration.Name }} = {{ enumeration.Value }},
 {%- endfor -%}

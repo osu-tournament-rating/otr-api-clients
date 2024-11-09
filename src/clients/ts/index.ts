@@ -8,67 +8,44 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-export class OtrApiWrapperConfiguration implements IOtrApiWrapperConfiguration {
-  public baseUrl: string;
-
-  public headers: HeadersInit;
-
-  constructor(baseUrl: string, headers?: HeadersInit) {
-    this.baseUrl = baseUrl;
-    this.headers = headers ?? {};
-  }
-}
+import { CreateAxiosDefaults } from "axios";import axios, { AxiosError } from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelToken } from 'axios';
 
 export abstract class OtrApiWrapperBase {
   protected configuration: IOtrApiWrapperConfiguration;
-  protected accessToken?: string;
 
   constructor(configuration: IOtrApiWrapperConfiguration) {
     this.configuration = configuration;
   }
 
-  protected transformOptions = (options: RequestInit): Promise<RequestInit> => {
-    options.redirect = "follow";
-
-    options.headers = {
-      ...options.headers,
-      ...this.configuration.headers
-    };
-    
-    if (this.accessToken) {
-      options.headers = {
-        ...options.headers,
-        Authorization: `Bearer ${this.accessToken}`
-      };
-    }
-
-    return Promise.resolve(options);
-  }
-
   protected getBaseUrl(..._: any[]): string { return this.configuration.baseUrl }
+}
 
-  /**
-   * Set's the wrapper's current access token
-   * @param accessToken Access token to set
-   */
-  public setAccessToken(accessToken: string): void {
-    this.accessToken = accessToken;
-  }
+/**
+* Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
+*/
+export type BeatmapsGetRequestParams = {
+    /**
+    * (required) Search key
+    */
+    key: number;
 }
 
 export class BeatmapsWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -79,31 +56,46 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     * Claim(s): admin
     * @return Returns all beatmaps
     */
-    list(): Promise<OtrApiResponse<BeatmapDTO[]>> {
+    public list( cancelToken?: CancelToken): Promise<OtrApiResponse<BeatmapDTO[]>> {
+
         let url_ = this.baseUrl + "/api/v1/beatmaps";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processList(_response);
         });
     }
 
-    protected processList(response: Response): Promise<OtrApiResponse<BeatmapDTO[]>> {
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<BeatmapDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -112,12 +104,11 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -130,133 +121,207 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param key Search key
+    * @param params Request parameters (see {@link BeatmapsGetRequestParams})
     * @return Returns a beatmap
     */
-    get(key: number): Promise<OtrApiResponse<BeatmapDTO>> {
+    public get(params: BeatmapsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<BeatmapDTO>> {
+        const {
+            key
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/beatmaps/{key}";
         if (key === undefined || key === null)
             throw new Error("The parameter 'key' must be defined.");
         url_ = url_.replace("{key}", encodeURIComponent("" + key));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<BeatmapDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<BeatmapDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a beatmap for the search key does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = BeatmapDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<BeatmapDTO>>(new OtrApiResponse<BeatmapDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<BeatmapDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link ClientsWrapper.prototype.patchRateLimit | api/v1/clients/[id]/ratelimit}
+*/
+export type ClientsPatchRateLimitRequestParams = {
+    /**
+    * (required) The client id
+    */
+    id: number;
+    /**
+    * (optional) The new rate limit for the client
+    */
+    rateLimitOverride?: number | undefined;
+}
+
 export class ClientsWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
-    * Undocumented
+    * Set the rate limit for a client
     *
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param body (optional) 
-    * @return Success
+    * @param params Request parameters (see {@link ClientsPatchRateLimitRequestParams})
+    * @return Returns the patched client
     */
-    patchRatelimit(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<void>> {
-        let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit";
+    public patchRateLimit(params: ClientsPatchRateLimitRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientDTO>> {
+        const {
+            id, 
+            rateLimitOverride
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit?";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (rateLimitOverride === null)
+            throw new Error("The parameter 'rateLimitOverride' cannot be null.");
+        else if (rateLimitOverride !== undefined)
+            url_ += "rateLimitOverride=" + encodeURIComponent("" + rateLimitOverride) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "PATCH",
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
             headers: {
-                "Content-Type": "application/json-patch+json",
-            }
+                "Accept": "text/plain"
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.processPatchRatelimit(_response);
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processPatchRateLimit(_response);
         });
     }
 
-    protected processPatchRatelimit(response: Response): Promise<OtrApiResponse<void>> {
+    protected processPatchRateLimit(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("If the provided id does not belong to a client", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = OAuthClientDTO.fromJS(resultData200);
+            return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse<OAuthClientDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link FilteringWrapper.prototype.filter | api/v1/filtering}
+*/
+export type FilteringFilterRequestParams = {
+    /**
+    * (optional) The filtering request
+    */
+    body?: FilteringRequestDTO | undefined;
+}
+
 export class FilteringWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -266,71 +331,170 @@ export class FilteringWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param body (optional) The filtering request
+    * @param params Request parameters (see {@link FilteringFilterRequestParams})
     * @return The filtering result
     */
-    filter(body?: FilteringRequestDTO | undefined): Promise<OtrApiResponse<FilteringResultDTO>> {
+    public filter(params: FilteringFilterRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<FilteringResultDTO>> {
+        const {
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/filtering";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processFilter(_response);
         });
     }
 
-    protected processFilter(response: Response): Promise<OtrApiResponse<FilteringResultDTO>> {
+    protected processFilter(response: AxiosResponse): Promise<OtrApiResponse<FilteringResultDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
                 result400 = resultData400 !== undefined ? resultData400 : <any>null;
     
             return throwException("Errors encountered during validation", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = FilteringResultDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(new OtrApiResponse<FilteringResultDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.createAdminNote | api/v1/games/[id]/notes}
+*/
+export type GamesCreateAdminNoteRequestParams = {
+    /**
+    * (required) Game id
+    */
+    id: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.listAdminNotes | api/v1/games/[id]/notes}
+*/
+export type GamesListAdminNotesRequestParams = {
+    /**
+    * (required) Game id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.updateAdminNote | api/v1/games/[id]/notes/[noteId]}
+*/
+export type GamesUpdateAdminNoteRequestParams = {
+    /**
+    * (required) Game id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.deleteAdminNote | api/v1/games/[id]/notes/[noteId]}
+*/
+export type GamesDeleteAdminNoteRequestParams = {
+    /**
+    * (required) Game id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.update | api/v1/games/[id]}
+*/
+export type GamesUpdateRequestParams = {
+    /**
+    * (required) The game id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.delete | api/v1/games/[id]}
+*/
+export type GamesDeleteRequestParams = {
+    /**
+    * (required) Game id
+    */
+    id: number;
+}
+
 export class GamesWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -339,11 +503,15 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Game id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link GamesCreateAdminNoteRequestParams})
     * @return Returns the created admin note
     */
-    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public createAdminNote(params: GamesCreateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -352,50 +520,63 @@ export class GamesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processCreateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -406,44 +587,62 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Game id
+    * @param params Request parameters (see {@link GamesListAdminNotesRequestParams})
     * @return Returns all admin notes from a game
     */
-    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    public listAdminNotes(params: GamesListAdminNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListAdminNotes(_response);
         });
     }
 
-    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    protected processListAdminNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -452,12 +651,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -468,12 +666,16 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Game id
-    * @param noteId Admin note id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link GamesUpdateAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public updateAdminNote(params: GamesUpdateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -485,50 +687,63 @@ export class GamesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateAdminNote(_response);
         });
     }
 
-    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processUpdateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -539,11 +754,15 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Game id
-    * @param noteId Admin note id
+    * @param params Request parameters (see {@link GamesDeleteAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public deleteAdminNote(params: GamesDeleteAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -553,48 +772,61 @@ export class GamesWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteAdminNote(_response);
         });
     }
 
-    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processDeleteAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -605,11 +837,15 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id The game id
-    * @param body (optional) JsonPatch data
+    * @param params Request parameters (see {@link GamesUpdateRequestParams})
     * @return Returns the patched game
     */
-    update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameDTO>> {
+    public update(params: GamesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/games/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -618,69 +854,229 @@ export class GamesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdate(_response);
         });
     }
 
-    protected processUpdate(response: Response): Promise<OtrApiResponse<GameDTO>> {
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<GameDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If the provided id does not belong to a game", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
                 result400 = resultData400 !== undefined ? resultData400 : <any>null;
     
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = GameDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse<GameDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
+
+    /**
+    * Delete a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GamesDeleteRequestParams})
+    * @return The game was deleted successfully
+    */
+    public delete(params: GamesDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/games/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            return throwException("The game does not exist", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.createAdminNote | api/v1/gamescores/[id]/notes}
+*/
+export type GameScoresCreateAdminNoteRequestParams = {
+    /**
+    * (required) Score id
+    */
+    id: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.listAdminNotes | api/v1/gamescores/[id]/notes}
+*/
+export type GameScoresListAdminNotesRequestParams = {
+    /**
+    * (required) Score id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.updateAdminNote | api/v1/gamescores/[id]/notes/[noteId]}
+*/
+export type GameScoresUpdateAdminNoteRequestParams = {
+    /**
+    * (required) Score id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.deleteAdminNote | api/v1/gamescores/[id]/notes/[noteId]}
+*/
+export type GameScoresDeleteAdminNoteRequestParams = {
+    /**
+    * (required) Score id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.update | api/v1/gamescores/[id]}
+*/
+export type GameScoresUpdateRequestParams = {
+    /**
+    * (required) The score id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.delete | api/v1/gamescores/[id]}
+*/
+export type GameScoresDeleteRequestParams = {
+    /**
+    * (required) Score id
+    */
+    id: number;
 }
 
 export class GameScoresWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -689,11 +1085,15 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Score id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link GameScoresCreateAdminNoteRequestParams})
     * @return Returns the created admin note
     */
-    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public createAdminNote(params: GameScoresCreateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -702,50 +1102,63 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processCreateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -756,44 +1169,62 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Score id
+    * @param params Request parameters (see {@link GameScoresListAdminNotesRequestParams})
     * @return Returns all admin notes from a score
     */
-    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    public listAdminNotes(params: GameScoresListAdminNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListAdminNotes(_response);
         });
     }
 
-    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    protected processListAdminNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -802,12 +1233,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -818,12 +1248,16 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Score id
-    * @param noteId Admin note id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link GameScoresUpdateAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public updateAdminNote(params: GameScoresUpdateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -835,50 +1269,63 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateAdminNote(_response);
         });
     }
 
-    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processUpdateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -889,11 +1336,15 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Score id
-    * @param noteId Admin note id
+    * @param params Request parameters (see {@link GameScoresDeleteAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public deleteAdminNote(params: GameScoresDeleteAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -903,48 +1354,61 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteAdminNote(_response);
         });
     }
 
-    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processDeleteAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -955,11 +1419,15 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id The score id
-    * @param body (optional) JsonPatch data
+    * @param params Request parameters (see {@link GameScoresUpdateRequestParams})
     * @return Returns the patched score
     */
-    update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<GameScoreDTO>> {
+    public update(params: GameScoresUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameScoreDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -968,69 +1436,175 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdate(_response);
         });
     }
 
-    protected processUpdate(response: Response): Promise<OtrApiResponse<GameScoreDTO>> {
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<GameScoreDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If the provided id does not belong to a score", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
                 result400 = resultData400 !== undefined ? resultData400 : <any>null;
     
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = GameScoreDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse<GameScoreDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
+
+    /**
+    * Delete a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GameScoresDeleteRequestParams})
+    * @return The score was deleted successfully
+    */
+    public delete(params: GameScoresDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            return throwException("The score does not exist", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+}
+
+/**
+* Request parameters available for use when requesting {@link LeaderboardsWrapper.prototype.get | api/v1/leaderboards}
+*/
+export type LeaderboardsGetRequestParams = {
+    /**
+    * (optional) 
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) The zero-indexed page offset. Page 0 returns the first PageSize results.
+    */
+    page?: number | undefined;
+    /**
+    * (optional) The number of elements to return per page
+    */
+    pageSize?: number | undefined;
+    /**
+    * (optional) Defines whether the leaderboard should be global or filtered by country
+    */
+    chartType?: LeaderboardChartType | undefined;
+    /**
+    * (optional) 
+    */
+    filter?: LeaderboardFilterDTO | undefined;
 }
 
 export class LeaderboardsWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -1039,14 +1613,18 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @param ruleset (optional) 
-    * @param page (optional) The zero-indexed page offset. Page 0 returns the first PageSize results.
-    * @param pageSize (optional) The number of elements to return per page
-    * @param chartType (optional) Defines whether the leaderboard should be global or filtered by country
-    * @param filter (optional) 
+    * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
     * @return Success
     */
-    get(ruleset?: Ruleset | undefined, page?: number | undefined, pageSize?: number | undefined, chartType?: LeaderboardChartType | undefined, filter?: LeaderboardFilterDTO | undefined): Promise<OtrApiResponse<LeaderboardDTO>> {
+    public get(params: LeaderboardsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<LeaderboardDTO>> {
+        const {
+            ruleset, 
+            page, 
+            pageSize, 
+            chartType, 
+            filter
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/leaderboards?";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
@@ -1070,52 +1648,235 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
             url_ += "Filter=" + encodeURIComponent("" + filter) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<LeaderboardDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<LeaderboardDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = LeaderboardDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(new OtrApiResponse<LeaderboardDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.createAdminNote | api/v1/matches/[id]/notes}
+*/
+export type MatchesCreateAdminNoteRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.listAdminNotes | api/v1/matches/[id]/notes}
+*/
+export type MatchesListAdminNotesRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.updateAdminNote | api/v1/matches/[id]/notes/[noteId]}
+*/
+export type MatchesUpdateAdminNoteRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.deleteAdminNote | api/v1/matches/[id]/notes/[noteId]}
+*/
+export type MatchesDeleteAdminNoteRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.list | api/v1/matches}
+*/
+export type MatchesListRequestParams = {
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a
+	* matching Database.Enums.Ruleset
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a partially
+	* matching Database.Entities.Match.Name
+    */
+    name?: string | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a
+	* Database.Entities.Match.StartTime greater than this value
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with an
+	* Database.Entities.Match.EndTime less than this value
+    */
+    dateMax?: Date | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a
+	* matching Database.Enums.Verification.VerificationStatus
+    */
+    verificationStatus?: VerificationStatus | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
+    */
+    rejectionReason?: MatchRejectionReason | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
+    */
+    processingStatus?: MatchProcessingStatus | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches where the id of the
+	* Database.Entities.User that submitted it matches this value
+    */
+    submittedBy?: number | undefined;
+    /**
+    * (optional) Filters results for Database.Entities.Matches where the id of the
+	* Database.Entities.User that verified it matches this value
+    */
+    verifiedBy?: number | undefined;
+    /**
+    * (optional) Controls the manner in which results are sorted
+    */
+    sort?: MatchQuerySortType | undefined;
+    /**
+    * (optional) Denotes whether to sort results in ascending or descending order
+    */
+    sortDescending?: boolean | undefined;
+    /**
+    * (optional) Controls the number of matches to return. Functions as a "page size".
+	* Default: 100 Constraints: Minimum 1, Maximum 5000
+    */
+    limit?: number | undefined;
+    /**
+    * (optional) Controls which block of size limit to return.
+	* Default: 1, Constraints: Minimum 1
+    */
+    page?: number | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.get | api/v1/matches/[id]}
+*/
+export type MatchesGetRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.update | api/v1/matches/[id]}
+*/
+export type MatchesUpdateRequestParams = {
+    /**
+    * (required) The match id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.delete | api/v1/matches/[id]}
+*/
+export type MatchesDeleteRequestParams = {
+    /**
+    * (required) Match id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.getMatches | api/v1/matches/player/[osuId]}
+*/
+export type MatchesGetMatchesRequestParams = {
+    osuId: number;
+    /**
+    * (optional) 
+    */
+    ruleset?: Ruleset | undefined;
+}
+
 export class MatchesWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -1124,11 +1885,15 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Match id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link MatchesCreateAdminNoteRequestParams})
     * @return Returns the created admin note
     */
-    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public createAdminNote(params: MatchesCreateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -1137,50 +1902,63 @@ export class MatchesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processCreateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1191,44 +1969,62 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Match id
+    * @param params Request parameters (see {@link MatchesListAdminNotesRequestParams})
     * @return Returns all admin notes from a match
     */
-    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    public listAdminNotes(params: MatchesListAdminNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListAdminNotes(_response);
         });
     }
 
-    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    protected processListAdminNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -1237,12 +2033,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1253,12 +2048,16 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Match id
-    * @param noteId Admin note id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link MatchesUpdateAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public updateAdminNote(params: MatchesUpdateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -1270,50 +2069,63 @@ export class MatchesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateAdminNote(_response);
         });
     }
 
-    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processUpdateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1324,11 +2136,15 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Match id
-    * @param noteId Admin note id
+    * @param params Request parameters (see {@link MatchesDeleteAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public deleteAdminNote(params: MatchesDeleteAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -1338,48 +2154,61 @@ export class MatchesWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteAdminNote(_response);
         });
     }
 
-    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processDeleteAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1392,31 +2221,26 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param ruleset (optional) Filters results for Database.Entities.Matches with a
-    matching Database.Enums.Ruleset
-    * @param name (optional) Filters results for Database.Entities.Matches with a partially
-    matching Database.Entities.Match.Name
-    * @param dateMin (optional) Filters results for Database.Entities.Matches with a
-    Database.Entities.Match.StartTime greater than this value
-    * @param dateMax (optional) Filters results for Database.Entities.Matches with an
-    Database.Entities.Match.EndTime less than this value
-    * @param verificationStatus (optional) Filters results for Database.Entities.Matches with a
-    matching Database.Enums.Verification.VerificationStatus
-    * @param rejectionReason (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
-    * @param processingStatus (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
-    * @param submittedBy (optional) Filters results for Database.Entities.Matches where the id of the
-    Database.Entities.User that submitted it matches this value
-    * @param verifiedBy (optional) Filters results for Database.Entities.Matches where the id of the
-    Database.Entities.User that verified it matches this value
-    * @param sort (optional) Controls the manner in which results are sorted
-    * @param sortDescending (optional) Denotes whether to sort results in ascending or descending order
-    * @param limit (optional) Controls the number of matches to return. Functions as a "page size".
-    Default: 100 Constraints: Minimum 1, Maximum 5000
-    * @param page (optional) Controls which block of size limit to return.
-    Default: 1, Constraints: Minimum 1
+    * @param params Request parameters (see {@link MatchesListRequestParams})
     * @return Returns the desired page of matches
     */
-    list(ruleset?: Ruleset | undefined, name?: string | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined, verificationStatus?: VerificationStatus | undefined, rejectionReason?: MatchRejectionReason | undefined, processingStatus?: MatchProcessingStatus | undefined, submittedBy?: number | undefined, verifiedBy?: number | undefined, sort?: MatchesQuerySortType | undefined, sortDescending?: boolean | undefined, limit?: number | undefined, page?: number | undefined): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
+    public list(params: MatchesListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
+        const {
+            ruleset, 
+            name, 
+            dateMin, 
+            dateMax, 
+            verificationStatus, 
+            rejectionReason, 
+            processingStatus, 
+            submittedBy, 
+            verifiedBy, 
+            sort, 
+            sortDescending, 
+            limit, 
+            page
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches?";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
@@ -1472,34 +2296,47 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             url_ += "page=" + encodeURIComponent("" + page) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processList(_response);
         });
     }
 
-    protected processList(response: Response): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = MatchDTOPagedResultDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<MatchDTOPagedResultDTO>>(new OtrApiResponse<MatchDTOPagedResultDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<MatchDTOPagedResultDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1510,51 +2347,68 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param id Match id
+    * @param params Request parameters (see {@link MatchesGetRequestParams})
     * @return Returns a match
     */
-    get(id: number): Promise<OtrApiResponse<MatchDTO>> {
+    public get(params: MatchesGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<MatchDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a match does not exist for the given id", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = MatchDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1565,11 +2419,15 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id The match id
-    * @param body (optional) JsonPatch data
+    * @param params Request parameters (see {@link MatchesUpdateRequestParams})
     * @return Returns the patched match
     */
-    update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<MatchDTO>> {
+    public update(params: MatchesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -1578,53 +2436,131 @@ export class MatchesWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdate(_response);
         });
     }
 
-    protected processUpdate(response: Response): Promise<OtrApiResponse<MatchDTO>> {
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If the provided id does not belong to a match", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
                 result400 = resultData400 !== undefined ? resultData400 : <any>null;
     
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = MatchDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Delete a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link MatchesDeleteRequestParams})
+    * @return The match was deleted successfully
+    */
+    public delete(params: MatchesDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/matches/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            return throwException("The match does not exist", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -1633,10 +2569,15 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param ruleset (optional) 
+    * @param params Request parameters (see {@link MatchesGetMatchesRequestParams})
     * @return Success
     */
-    getMatches(osuId: number, ruleset?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
+    public getMatches(params: MatchesGetMatchesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            osuId, 
+            ruleset
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/matches/player/{osuId}?";
         if (osuId === undefined || osuId === null)
             throw new Error("The parameter 'osuId' must be defined.");
@@ -1647,48 +2588,91 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGetMatches(_response);
         });
     }
 
-    protected processGetMatches(response: Response): Promise<OtrApiResponse<void>> {
+    protected processGetMatches(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link MeWrapper.prototype.getStats | api/v1/me/stats}
+*/
+export type MeGetStatsRequestParams = {
+    /**
+    * (optional) Ruleset to filter for
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filter from earliest date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filter to latest date
+    */
+    dateMax?: Date | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link MeWrapper.prototype.updateRuleset | api/v1/me/settings/ruleset}
+*/
+export type MeUpdateRulesetRequestParams = {
+    /**
+    * (optional) 
+    */
+    body?: Ruleset | undefined;
+}
+
 export class MeWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -1699,42 +2683,56 @@ export class MeWrapper extends OtrApiWrapperBase {
     * Claim(s): user
     * @return Returns the currently logged in user
     */
-    get(): Promise<OtrApiResponse<UserDTO>> {
+    public get( cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+
         let url_ = this.baseUrl + "/api/v1/me";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<UserDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 302) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("Redirects to `GET` `/users/{id}`", status, _responseText, _headers);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = UserDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1750,12 +2748,16 @@ export class MeWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @param ruleset (optional) Ruleset to filter for
-    * @param dateMin (optional) Filter from earliest date
-    * @param dateMax (optional) Filter to latest date
+    * @param params Request parameters (see {@link MeGetStatsRequestParams})
     * @return Returns the currently logged in user's player stats
     */
-    getStats(ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
+    public getStats(params: MeGetStatsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerStatsDTO>> {
+        const {
+            ruleset, 
+            dateMin, 
+            dateMax
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/me/stats?";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
@@ -1771,38 +2773,51 @@ export class MeWrapper extends OtrApiWrapperBase {
             url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGetStats(_response);
         });
     }
 
-    protected processGetStats(response: Response): Promise<OtrApiResponse<PlayerStatsDTO>> {
+    protected processGetStats(response: AxiosResponse): Promise<OtrApiResponse<PlayerStatsDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 302) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("Redirects to `GET` `/stats/{key}`", status, _responseText, _headers);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = PlayerStatsDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1813,52 +2828,69 @@ export class MeWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @param body (optional) 
+    * @param params Request parameters (see {@link MeUpdateRulesetRequestParams})
     * @return If the operation was successful
     */
-    updateRuleset(body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
+    public updateRuleset(params: MeUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/me/settings/ruleset";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateRuleset(_response);
         });
     }
 
-    protected processUpdateRuleset(response: Response): Promise<OtrApiResponse<void>> {
+    protected processUpdateRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 308) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("Redirects to `POST` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -1871,75 +2903,129 @@ export class MeWrapper extends OtrApiWrapperBase {
     * Claim(s): user
     * @return If the operation was successful
     */
-    syncRuleset(): Promise<OtrApiResponse<void>> {
+    public syncRuleset( cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+
         let url_ = this.baseUrl + "/api/v1/me/settings/ruleset:sync";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processSyncRuleset(_response);
         });
     }
 
-    protected processSyncRuleset(response: Response): Promise<OtrApiResponse<void>> {
+    protected processSyncRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 308) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("Redirect", status, _responseText, _headers);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status === 307) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("Redirects to `POST` `/users/{id}/settings/ruleset:sync`", status, _responseText, _headers);
-            });
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorize | api/v1/oauth/authorize}
+*/
+export type OAuthAuthorizeRequestParams = {
+    /**
+    * (optional) The osu! authorization code
+    */
+    code?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorizeClient | api/v1/oauth/token}
+*/
+export type OAuthAuthorizeClientRequestParams = {
+    /**
+    * (optional) The id of the client
+    */
+    clientId?: number | undefined;
+    /**
+    * (optional) The secret of the client
+    */
+    clientSecret?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.refresh | api/v1/oauth/refresh}
+*/
+export type OAuthRefreshRequestParams = {
+    /**
+    * (optional) 
+    */
+    refreshToken?: string | undefined;
+}
+
 export class OAuthWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
     * Authorize using an osu! authorization code
-    * @param code (optional) The osu! authorization code
+    * @param params Request parameters (see {@link OAuthAuthorizeRequestParams})
     * @return Returns user access credentials
     */
-    authorize(code?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    public authorize(params: OAuthAuthorizeRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            code
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/oauth/authorize?";
         if (code === null)
             throw new Error("The parameter 'code' cannot be null.");
@@ -1947,52 +3033,69 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             url_ += "code=" + encodeURIComponent("" + code) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = false
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processAuthorize(_response);
         });
     }
 
-    protected processAuthorize(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    protected processAuthorize(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 401) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData401  = _responseText;
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If there was an error during authorization", status, _responseText, _headers, result401);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AccessCredentialsDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
     * Authorize using client credentials
-    * @param clientId (optional) The id of the client
-    * @param clientSecret (optional) The secret of the client
+    * @param params Request parameters (see {@link OAuthAuthorizeClientRequestParams})
     * @return Returns client access credentials
     */
-    authorizeClient(clientId?: number | undefined, clientSecret?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    public authorizeClient(params: OAuthAuthorizeClientRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            clientId, 
+            clientSecret
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/oauth/token?";
         if (clientId === null)
             throw new Error("The parameter 'clientId' cannot be null.");
@@ -2004,41 +3107,54 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             url_ += "clientSecret=" + encodeURIComponent("" + clientSecret) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = false
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processAuthorizeClient(_response);
         });
     }
 
-    protected processAuthorizeClient(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    protected processAuthorizeClient(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If there was an error during authorization", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AccessCredentialsDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2054,38 +3170,52 @@ export class OAuthWrapper extends OtrApiWrapperBase {
     * Claim(s): user
     * @return Returns created client credentials
     */
-    createClient(): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    public createClient( cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+
         let url_ = this.baseUrl + "/api/v1/oauth/client";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateClient(_response);
         });
     }
 
-    protected processCreateClient(response: Response): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    protected processCreateClient(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = OAuthClientCreatedDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2095,10 +3225,14 @@ export class OAuthWrapper extends OtrApiWrapperBase {
     *
     * Generated access credentials will contain only a new access token,
     * and the given refresh token is returned with it
-    * @param refreshToken (optional) 
+    * @param params Request parameters (see {@link OAuthRefreshRequestParams})
     * @return Returns access credentials containing a new access token
     */
-    refresh(refreshToken?: string | undefined): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    public refresh(params: OAuthRefreshRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            refreshToken
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
         if (refreshToken === null)
             throw new Error("The parameter 'refreshToken' cannot be null.");
@@ -2106,59 +3240,137 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             url_ += "refreshToken=" + encodeURIComponent("" + refreshToken) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = false
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processRefresh(_response);
         });
     }
 
-    protected processRefresh(response: Response): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    protected processRefresh(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the given refresh token is invalid, or there was an error during authorization", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AccessCredentialsDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.createAdminNote | api/v1/players/[id]/notes}
+*/
+export type PlayersCreateAdminNoteRequestParams = {
+    /**
+    * (required) Player id
+    */
+    id: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.listAdminNotes | api/v1/players/[id]/notes}
+*/
+export type PlayersListAdminNotesRequestParams = {
+    /**
+    * (required) Player id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.updateAdminNote | api/v1/players/[id]/notes/[noteId]}
+*/
+export type PlayersUpdateAdminNoteRequestParams = {
+    /**
+    * (required) Player id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.deleteAdminNote | api/v1/players/[id]/notes/[noteId]}
+*/
+export type PlayersDeleteAdminNoteRequestParams = {
+    /**
+    * (required) Player id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.get | api/v1/players/[key]}
+*/
+export type PlayersGetRequestParams = {
+    key: string;
+}
+
 export class PlayersWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -2167,11 +3379,15 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Player id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link PlayersCreateAdminNoteRequestParams})
     * @return Returns the created admin note
     */
-    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public createAdminNote(params: PlayersCreateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2180,50 +3396,63 @@ export class PlayersWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processCreateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2234,44 +3463,62 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Player id
+    * @param params Request parameters (see {@link PlayersListAdminNotesRequestParams})
     * @return Returns all admin notes from a player
     */
-    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    public listAdminNotes(params: PlayersListAdminNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListAdminNotes(_response);
         });
     }
 
-    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    protected processListAdminNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -2280,12 +3527,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2296,12 +3542,16 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Player id
-    * @param noteId Admin note id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link PlayersUpdateAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public updateAdminNote(params: PlayersUpdateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2313,50 +3563,63 @@ export class PlayersWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateAdminNote(_response);
         });
     }
 
-    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processUpdateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2367,11 +3630,15 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Player id
-    * @param noteId Admin note id
+    * @param params Request parameters (see {@link PlayersDeleteAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public deleteAdminNote(params: PlayersDeleteAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2381,48 +3648,61 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteAdminNote(_response);
         });
     }
 
-    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processDeleteAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2433,61 +3713,91 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
+    * @param params Request parameters (see {@link PlayersGetRequestParams})
     * @return Success
     */
-    get(key: string): Promise<OtrApiResponse<PlayerCompactDTO>> {
+    public get(params: PlayersGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerCompactDTO>> {
+        const {
+            key
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/players/{key}";
         if (key === undefined || key === null)
             throw new Error("The parameter 'key' must be defined.");
         url_ = url_.replace("{key}", encodeURIComponent("" + key));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<PlayerCompactDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<PlayerCompactDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = PlayerCompactDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link SearchWrapper.prototype.search | api/v1/search}
+*/
+export type SearchSearchRequestParams = {
+    /**
+    * (optional) The string to match against names of tournaments, matches, and usernames
+    */
+    searchKey?: string | undefined;
+}
+
 export class SearchWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -2498,10 +3808,14 @@ export class SearchWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @param searchKey (optional) The string to match against names of tournaments, matches, and usernames
+    * @param params Request parameters (see {@link SearchSearchRequestParams})
     * @return Returns a list of all possible tournaments, matches, and usernames for the given search key
     */
-    search(searchKey?: string | undefined): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
+    public search(params: SearchSearchRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
+        const {
+            searchKey
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/search?";
         if (searchKey === null)
             throw new Error("The parameter 'searchKey' cannot be null.");
@@ -2509,52 +3823,99 @@ export class SearchWrapper extends OtrApiWrapperBase {
             url_ += "searchKey=" + encodeURIComponent("" + searchKey) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processSearch(_response);
         });
     }
 
-    protected processSearch(response: Response): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
+    protected processSearch(response: AxiosResponse): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = SearchResponseCollectionDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(new OtrApiResponse<SearchResponseCollectionDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link StatsWrapper.prototype.get | api/v1/stats/[key]}
+*/
+export type StatsGetRequestParams = {
+    /**
+    * (required) Key used in versatile search
+    */
+    key: string;
+    /**
+    * (optional) Ruleset to filter for
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filter from earliest date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filter to latest date
+    */
+    dateMax?: Date | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link StatsWrapper.prototype.getRatingHistogram | api/v1/stats/histogram}
+*/
+export type StatsGetRatingHistogramRequestParams = {
+    /**
+    * (optional) 
+    */
+    ruleset?: Ruleset | undefined;
+}
+
 export class StatsWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -2569,13 +3930,17 @@ export class StatsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param key Key used in versatile search
-    * @param ruleset (optional) Ruleset to filter for
-    * @param dateMin (optional) Filter from earliest date
-    * @param dateMax (optional) Filter to latest date
+    * @param params Request parameters (see {@link StatsGetRequestParams})
     * @return Returns a player's stats
     */
-    get(key: string, ruleset?: Ruleset | undefined, dateMin?: Date | undefined, dateMax?: Date | undefined): Promise<OtrApiResponse<PlayerStatsDTO>> {
+    public get(params: StatsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerStatsDTO>> {
+        const {
+            key, 
+            ruleset, 
+            dateMin, 
+            dateMax
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/stats/{key}?";
         if (key === undefined || key === null)
             throw new Error("The parameter 'key' must be defined.");
@@ -2594,41 +3959,54 @@ export class StatsWrapper extends OtrApiWrapperBase {
             url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<PlayerStatsDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<PlayerStatsDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a player does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = PlayerStatsDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2639,10 +4017,14 @@ export class StatsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param ruleset (optional) 
+    * @param params Request parameters (see {@link StatsGetRatingHistogramRequestParams})
     * @return Success
     */
-    getRatingHistogram(ruleset?: Ruleset | undefined): Promise<OtrApiResponse<{ [key: string]: number; }>> {
+    public getRatingHistogram(params: StatsGetRatingHistogramRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<{ [key: string]: number; }>> {
+        const {
+            ruleset
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/stats/histogram?";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
@@ -2650,27 +4032,41 @@ export class StatsWrapper extends OtrApiWrapperBase {
             url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGetRatingHistogram(_response);
         });
     }
 
-    protected processGetRatingHistogram(response: Response): Promise<OtrApiResponse<{ [key: string]: number; }>> {
+    protected processGetRatingHistogram(response: AxiosResponse): Promise<OtrApiResponse<{ [key: string]: number; }>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (resultData200) {
                 result200 = {} as any;
                 for (let key in resultData200) {
@@ -2681,30 +4077,178 @@ export class StatsWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<{ [key: string]: number; }>>(new OtrApiResponse<{ [key: string]: number; }>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<{ [key: string]: number; }>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.createAdminNote | api/v1/tournaments/[id]/notes}
+*/
+export type TournamentsCreateAdminNoteRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listAdminNotes | api/v1/tournaments/[id]/notes}
+*/
+export type TournamentsListAdminNotesRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.updateAdminNote | api/v1/tournaments/[id]/notes/[noteId]}
+*/
+export type TournamentsUpdateAdminNoteRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (optional) 
+    */
+    body?: string | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.deleteAdminNote | api/v1/tournaments/[id]/notes/[noteId]}
+*/
+export type TournamentsDeleteAdminNoteRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.list | api/v1/tournaments}
+*/
+export type TournamentsListRequestParams = {
+    /**
+    * (required) The page number
+    */
+    page: number;
+    /**
+    * (required) The size of the page
+    */
+    pageSize: number;
+    /**
+    * (optional) Whether the tournaments must be verified
+    */
+    verified?: boolean | undefined;
+    /**
+    * (optional) An optional ruleset to filter by
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) The key used to sort results by
+    */
+    querySortType?: TournamentQuerySortType | undefined;
+    /**
+    * (optional) Whether the tournaments are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.QuerySortType
+    */
+    descending?: boolean | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.create | api/v1/tournaments}
+*/
+export type TournamentsCreateRequestParams = {
+    /**
+    * (optional) Tournament submission data
+    */
+    body?: TournamentSubmissionDTO | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.get | api/v1/tournaments/[id]}
+*/
+export type TournamentsGetRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) If true, specifically includes verified match data. If false,
+	* includes all data, regardless of verification status.
+	* Also includes all child navigations if false.
+	* Default true (strictly verified data with limited navigation properties)
+    */
+    verified?: boolean | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.update | api/v1/tournaments/[id]}
+*/
+export type TournamentsUpdateRequestParams = {
+    /**
+    * (required) The tournament id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.delete | api/v1/tournaments/[id]}
+*/
+export type TournamentsDeleteRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listMatches | api/v1/tournaments/[id]/matches}
+*/
+export type TournamentsListMatchesRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
+
 export class TournamentsWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -2713,11 +4257,15 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Tournament id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link TournamentsCreateAdminNoteRequestParams})
     * @return Returns the created admin note
     */
-    createAdminNote(id: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public createAdminNote(params: TournamentsCreateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2726,57 +4274,70 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreateAdminNote(_response);
         });
     }
 
-    protected processCreateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processCreateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 401) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData401  = _responseText;
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-            });
+
         } else if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2787,44 +4348,62 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Tournament id
+    * @param params Request parameters (see {@link TournamentsListAdminNotesRequestParams})
     * @return Returns all admin notes from a tournament
     */
-    listAdminNotes(id: number): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    public listAdminNotes(params: TournamentsListAdminNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListAdminNotes(_response);
         });
     }
 
-    protected processListAdminNotes(response: Response): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    protected processListAdminNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -2833,12 +4412,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2849,12 +4427,16 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Tournament id
-    * @param noteId Admin note id
-    * @param body (optional) 
+    * @param params Request parameters (see {@link TournamentsUpdateAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    updateAdminNote(id: number, noteId: number, body?: string | undefined): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public updateAdminNote(params: TournamentsUpdateAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2866,57 +4448,70 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateAdminNote(_response);
         });
     }
 
-    protected processUpdateAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processUpdateAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 401) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData401  = _responseText;
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-            });
+
         } else if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2927,11 +4522,15 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Tournament id
-    * @param noteId Admin note id
+    * @param params Request parameters (see {@link TournamentsDeleteAdminNoteRequestParams})
     * @return Returns the updated admin note
     */
-    deleteAdminNote(id: number, noteId: number): Promise<OtrApiResponse<AdminNoteDTO>> {
+    public deleteAdminNote(params: TournamentsDeleteAdminNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            id, 
+            noteId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2941,55 +4540,68 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteAdminNote(_response);
         });
     }
 
-    protected processDeleteAdminNote(response: Response): Promise<OtrApiResponse<AdminNoteDTO>> {
+    protected processDeleteAdminNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 401) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData401  = _responseText;
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-            });
+
         } else if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 403) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData403  = _responseText;
             result403 = ProblemDetails.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = AdminNoteDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -2998,13 +4610,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Get all tournaments which fit an optional request query
     *
     * Will not include match data
-    * @param page The page number
-    * @param pageSize The size of the page
-    * @param verified (optional) Whether the tournaments must be verified
-    * @param ruleset (optional) An optional ruleset to filter by
+    * @param params Request parameters (see {@link TournamentsListRequestParams})
     * @return Returns all tournaments which fit the request query
     */
-    list(page: number, pageSize: number, verified?: boolean | undefined, ruleset?: Ruleset | undefined): Promise<OtrApiResponse<TournamentDTO[]>> {
+    public list(params: TournamentsListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO[]>> {
+        const {
+            page, 
+            pageSize, 
+            verified, 
+            ruleset, 
+            querySortType, 
+            descending
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments?";
         if (page === undefined || page === null)
             throw new Error("The parameter 'page' must be defined and cannot be null.");
@@ -3022,29 +4640,51 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             throw new Error("The parameter 'ruleset' cannot be null.");
         else if (ruleset !== undefined)
             url_ += "Ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (querySortType === null)
+            throw new Error("The parameter 'querySortType' cannot be null.");
+        else if (querySortType !== undefined)
+            url_ += "QuerySortType=" + encodeURIComponent("" + querySortType) + "&";
+        if (descending === null)
+            throw new Error("The parameter 'descending' cannot be null.");
+        else if (descending !== undefined)
+            url_ += "Descending=" + encodeURIComponent("" + descending) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = false
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processList(_response);
         });
     }
 
-    protected processList(response: Response): Promise<OtrApiResponse<TournamentDTO[]>> {
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -3053,19 +4693,18 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse<TournamentDTO[]>(status, _headers, result200));
+
         } else if (status === 401) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result401: any = null;
-            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData401  = _responseText;
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("Unauthorized", status, _responseText, _headers, result401);
-            });
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3076,52 +4715,69 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @param body (optional) Tournament submission data
+    * @param params Request parameters (see {@link TournamentsCreateRequestParams})
     * @return Returns location information for the created tournament
     */
-    create(body?: TournamentSubmissionDTO | undefined): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
+    public create(params: TournamentsCreateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
+        const {
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processCreate(_response);
         });
     }
 
-    protected processCreate(response: Response): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
+    protected processCreate(response: AxiosResponse): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 201) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData201  = _responseText;
             result201 = TournamentCreatedResultDTO.fromJS(resultData201);
-            return new OtrApiResponse(status, _headers, result201);
-            });
+            return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(new OtrApiResponse<TournamentCreatedResultDTO>(status, _headers, result201));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3132,14 +4788,15 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param id Tournament id
-    * @param verified (optional) If true, specifically includes verified match data. If false,
-                includes all data, regardless of verification status.
-                Also includes all child navigations if false.
-                Default true (strictly verified data with limited navigation properties)
+    * @param params Request parameters (see {@link TournamentsGetRequestParams})
     * @return Returns the tournament
     */
-    get(id: number, verified?: boolean | undefined): Promise<OtrApiResponse<TournamentDTO>> {
+    public get(params: TournamentsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
+        const {
+            id, 
+            verified
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}?";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3150,41 +4807,54 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             url_ += "verified=" + encodeURIComponent("" + verified) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<TournamentDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = TournamentDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3195,11 +4865,15 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id The tournament id
-    * @param body (optional) JsonPatch data
+    * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
     * @return Returns the patched tournament
     */
-    update(id: number, body?: Operation[] | undefined): Promise<OtrApiResponse<TournamentDTO>> {
+    public update(params: TournamentsUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3208,51 +4882,64 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdate(_response);
         });
     }
 
-    protected processUpdate(response: Response): Promise<OtrApiResponse<TournamentDTO>> {
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If the provided id does not belong to a tournament", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
                 result400 = resultData400 !== undefined ? resultData400 : <any>null;
     
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = TournamentDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3263,44 +4950,61 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Tournament id
+    * @param params Request parameters (see {@link TournamentsDeleteRequestParams})
     * @return The tournament was deleted successfully
     */
-    delete(id: number): Promise<OtrApiResponse<void>> {
+    public delete(params: TournamentsDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDelete(_response);
         });
     }
 
-    protected processDelete(response: Response): Promise<OtrApiResponse<void>> {
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 204) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("The tournament does not exist", status, _responseText, _headers);
-            });
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3311,44 +5015,62 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user, client
-    * @param id Tournament id
+    * @param params Request parameters (see {@link TournamentsListMatchesRequestParams})
     * @return Returns all matches from a tournament
     */
-    listMatches(id: number): Promise<OtrApiResponse<MatchDTO[]>> {
+    public listMatches(params: TournamentsListMatchesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/tournaments/{id}/matches";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processListMatches(_response);
         });
     }
 
-    protected processListMatches(response: Response): Promise<OtrApiResponse<MatchDTO[]>> {
+    protected processListMatches(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -3357,30 +5079,137 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse<MatchDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.get | api/v1/users/[id]}
+*/
+export type UsersGetRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.updateScopes | api/v1/users/[id]/scopes}
+*/
+export type UsersUpdateScopesRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+    /**
+    * (optional) List of scopes to assign to the user
+    */
+    body?: string[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.getSubmissions | api/v1/users/[id]/submissions}
+*/
+export type UsersGetSubmissionsRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.rejectSubmissions | api/v1/users/[id]/submissions:reject}
+*/
+export type UsersRejectSubmissionsRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.getClients | api/v1/users/[id]/clients}
+*/
+export type UsersGetClientsRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.deleteClient | api/v1/users/[id]/clients/[clientId]}
+*/
+export type UsersDeleteClientRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+    /**
+    * (required) Id of the OAuth client
+    */
+    clientId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.resetClientSecret | api/v1/users/[id]/clients/[clientId]/secret:reset}
+*/
+export type UsersResetClientSecretRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+    /**
+    * (required) Id of the OAuth client
+    */
+    clientId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.updateRuleset | api/v1/users/[id]/settings/ruleset}
+*/
+export type UsersUpdateRulesetRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+    /**
+    * (optional) The new ruleset
+    */
+    body?: Ruleset | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.syncRuleset | api/v1/users/[id]/settings/ruleset:sync}
+*/
+export type UsersSyncRulesetRequestParams = {
+    /**
+    * (required) Id of the user
+    */
+    id: number;
+}
+
 export class UsersWrapper extends OtrApiWrapperBase {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-    constructor(configuration: OtrApiWrapperConfiguration, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
         super(configuration);
-        if (http) {
-          this.http = http;
-        } else {
-          this.http = typeof window !== "undefined" ? window as any : { fetch(url: RequestInfo, init?: RequestInit) { return fetch(url, init); } };
-        }
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
         this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
     }
 
     /**
@@ -3389,51 +5218,68 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param id Id of the user
+    * @param params Request parameters (see {@link UsersGetRequestParams})
     * @return Returns a user
     */
-    get(id: number): Promise<OtrApiResponse<UserDTO>> {
+    public get(params: UsersGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGet(_response);
         });
     }
 
-    protected processGet(response: Response): Promise<OtrApiResponse<UserDTO>> {
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = UserDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3444,11 +5290,15 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Id of the user
-    * @param body (optional) List of scopes to assign to the user
+    * @param params Request parameters (see {@link UsersUpdateScopesRequestParams})
     * @return Returns an updated user
     */
-    updateScopes(id: number, body?: string[] | undefined): Promise<OtrApiResponse<UserDTO>> {
+    public updateScopes(params: UsersUpdateScopesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/scopes";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3457,50 +5307,63 @@ export class UsersWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "PATCH",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateScopes(_response);
         });
     }
 
-    protected processUpdateScopes(response: Response): Promise<OtrApiResponse<UserDTO>> {
+    protected processUpdateScopes(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If any of the given scopes are invalid, or the update was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = UserDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3511,44 +5374,62 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param id Id of the user
+    * @param params Request parameters (see {@link UsersGetSubmissionsRequestParams})
     * @return Returns a list of submissions
     */
-    getSubmissions(id: number): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
+    public getSubmissions(params: UsersGetSubmissionsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/submissions";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGetSubmissions(_response);
         });
     }
 
-    protected processGetSubmissions(response: Response): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
+    protected processGetSubmissions(response: AxiosResponse): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -3557,12 +5438,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(new OtrApiResponse<MatchSubmissionStatusDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3573,51 +5453,68 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): admin
-    * @param id Id of the user
+    * @param params Request parameters (see {@link UsersRejectSubmissionsRequestParams})
     * @return Denotes the operation was successful
     */
-    rejectSubmissions(id: number): Promise<OtrApiResponse<void>> {
+    public rejectSubmissions(params: UsersRejectSubmissionsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/submissions:reject";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processRejectSubmissions(_response);
         });
     }
 
-    protected processRejectSubmissions(response: Response): Promise<OtrApiResponse<void>> {
+    protected processRejectSubmissions(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("If the operation was not successful", status, _responseText, _headers);
-            });
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3625,49 +5522,68 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Get a user's OAuth clients
     *
-    * All users have access to clients that they own. Admin users have access to clients from any user.
+    * All users have access to clients that they own.
+    * Admin users have access to clients from any user.
     * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param id Id of the user
+    * @param params Request parameters (see {@link UsersGetClientsRequestParams})
     * @return Returns a list of OAuth clients
     */
-    getClients(id: number): Promise<OtrApiResponse<OAuthClientDTO[]>> {
+    public getClients(params: UsersGetClientsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientDTO[]>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "GET",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processGetClients(_response);
         });
     }
 
-    protected processGetClients(response: Response): Promise<OtrApiResponse<OAuthClientDTO[]>> {
+    protected processGetClients(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientDTO[]>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
@@ -3676,12 +5592,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
             else {
                 result200 = <any>null;
             }
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3695,11 +5610,15 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param id Id of the user
-    * @param clientId Id of the OAuth client
+    * @param params Request parameters (see {@link UsersDeleteClientRequestParams})
     * @return If the deletion was successful
     */
-    deleteClient(id: number, clientId: number): Promise<OtrApiResponse<void>> {
+    public deleteClient(params: UsersDeleteClientRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            clientId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3709,44 +5628,57 @@ export class UsersWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "DELETE",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processDeleteClient(_response);
         });
     }
 
-    protected processDeleteClient(response: Response): Promise<OtrApiResponse<void>> {
+    protected processDeleteClient(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the deletion was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3760,11 +5692,15 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param id Id of the user
-    * @param clientId Id of the OAuth client
+    * @param params Request parameters (see {@link UsersResetClientSecretRequestParams})
     * @return Returns new client credentials if the secret reset was successful
     */
-    resetClientSecret(id: number, clientId: number): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    public resetClientSecret(params: UsersResetClientSecretRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+        const {
+            id, 
+            clientId
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}/secret:reset";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3774,48 +5710,61 @@ export class UsersWrapper extends OtrApiWrapperBase {
         url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
                 "Accept": "text/plain"
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processResetClientSecret(_response);
         });
     }
 
-    protected processResetClientSecret(response: Response): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    protected processResetClientSecret(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the secret reset was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData200  = _responseText;
             result200 = OAuthClientCreatedDTO.fromJS(resultData200);
-            return new OtrApiResponse(status, _headers, result200);
-            });
+            return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3826,10 +5775,15 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
-    * @param body (optional) 
+    * @param params Request parameters (see {@link UsersUpdateRulesetRequestParams})
     * @return If the operation was successful
     */
-    updateRuleset(id: number, body?: Ruleset | undefined): Promise<OtrApiResponse<void>> {
+    public updateRuleset(params: UsersUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3838,46 +5792,59 @@ export class UsersWrapper extends OtrApiWrapperBase {
 
         const content_ = JSON.stringify(body);
 
-        let options_: RequestInit = {
-            body: content_,
+        let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
+            url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processUpdateRuleset(_response);
         });
     }
 
-    protected processUpdateRuleset(response: Response): Promise<OtrApiResponse<void>> {
+    protected processUpdateRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -3888,53 +5855,71 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersSyncRulesetRequestParams})
     * @return If the operation was successful
     */
-    syncRuleset(id: number): Promise<OtrApiResponse<void>> {
+    public syncRuleset(params: UsersSyncRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
         let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset:sync";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        let options_: AxiosRequestConfig = {
             method: "POST",
+            url: url_,
             headers: {
-            }
+            },
+            cancelToken
         };
+        (options_ as any).requiresAuth = true
 
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
             return this.processSyncRuleset(_response);
         });
     }
 
-    protected processSyncRuleset(response: Response): Promise<OtrApiResponse<void>> {
+    protected processSyncRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
         if (status === 404) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result404: any = null;
-            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
-            });
+
         } else if (status === 400) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            let resultData400  = _responseText;
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
-            });
+
         } else if (status === 200) {
-            return response.text().then((_responseText) => {
-            return new OtrApiResponse(status, _headers, null as any);
-            });
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
@@ -4001,16 +5986,17 @@ export interface IAccessCredentialsDTO {
 /** Represents a note for an entity created by an admin */
 export class AdminNoteDTO implements IAdminNoteDTO {
     /** The id of the admin note */
-    id?: number;
+    id!: number;
     /** Timestamp of creation */
-    created?: Date;
+    created!: Date;
     /** Timestamp of the last update, if available */
     updated?: Date | undefined;
     /** Id of the parent entity */
-    referenceId?: number;
-    adminUser?: UserCompactDTO;
+    referenceId!: number;
+    /** The admin user that created the note */
+    adminUser!: UserCompactDTO;
     /** Content of the note */
-    note?: string;
+    note!: string;
 
     constructor(data?: IAdminNoteDTO) {
         if (data) {
@@ -4018,6 +6004,9 @@ export class AdminNoteDTO implements IAdminNoteDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.adminUser = new UserCompactDTO();
         }
     }
 
@@ -4027,7 +6016,7 @@ export class AdminNoteDTO implements IAdminNoteDTO {
             this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
             this.updated = _data["updated"] ? new Date(_data["updated"].toString()) : <any>undefined;
             this.referenceId = _data["referenceId"];
-            this.adminUser = _data["adminUser"] ? UserCompactDTO.fromJS(_data["adminUser"]) : <any>undefined;
+            this.adminUser = _data["adminUser"] ? UserCompactDTO.fromJS(_data["adminUser"]) : new UserCompactDTO();
             this.note = _data["note"];
         }
     }
@@ -4054,64 +6043,65 @@ export class AdminNoteDTO implements IAdminNoteDTO {
 /** Represents a note for an entity created by an admin */
 export interface IAdminNoteDTO {
     /** The id of the admin note */
-    id?: number;
+    id: number;
     /** Timestamp of creation */
-    created?: Date;
+    created: Date;
     /** Timestamp of the last update, if available */
     updated?: Date | undefined;
     /** Id of the parent entity */
-    referenceId?: number;
-    adminUser?: UserCompactDTO;
+    referenceId: number;
+    /** The admin user that created the note */
+    adminUser: UserCompactDTO;
     /** Content of the note */
-    note?: string;
+    note: string;
 }
 
 /** Represents an aggregate of match statistics for a player during a period of time */
 export class AggregatePlayerMatchStatsDTO implements IAggregatePlayerMatchStatsDTO {
     /** The player's average match cost during the period */
-    averageMatchCostAggregate?: number;
+    averageMatchCostAggregate!: number;
     /** The peak rating achieved by the player during the period */
-    highestRating?: number;
+    highestRating!: number;
     /** The amount of rating gained from the start of the period to the end of the period */
-    ratingGained?: number;
+    ratingGained!: number;
     /** The amount of games won during the period */
-    gamesWon?: number;
+    gamesWon!: number;
     /** The amount of games lost during the period */
-    gamesLost?: number;
+    gamesLost!: number;
     /** The amount of games played during the period */
-    gamesPlayed?: number;
+    gamesPlayed!: number;
     /** The amount of matches won during the period */
-    matchesWon?: number;
+    matchesWon!: number;
     /** The amount of matches lost during the period */
-    matchesLost?: number;
+    matchesLost!: number;
     /** The amount of matches played during the period */
-    readonly matchesPlayed?: number;
+    readonly matchesPlayed!: number;
     /** A value between 0 and 1 representing the player's game win rate during the period */
-    readonly gameWinRate?: number;
+    readonly gameWinRate!: number;
     /** A value between 0 and 1 representing the player's match win rate during the period */
-    readonly matchWinRate?: number;
+    readonly matchWinRate!: number;
     /** The average rating of the player's teammates during the period. This average does not include the player's own rating */
     averageTeammateRating?: number | undefined;
     /** The average rating of the player's opponents during the period */
     averageOpponentRating?: number | undefined;
     /** The most amount of matches won in a row during the period */
-    bestWinStreak?: number;
+    bestWinStreak!: number;
     /** Across all matches the player has played in, the average score across the entire lobby. This average includes
 scores for games the player may have not been in for */
-    matchAverageScoreAggregate?: number;
+    matchAverageScoreAggregate!: number;
     /** Across all matches the player has played in, the average miss count of the lobby, across all games in that match */
-    matchAverageMissesAggregate?: number;
+    matchAverageMissesAggregate!: number;
     /** Across all matches the player has played in, the average accuracy of the lobby, across all games in that match */
-    matchAverageAccuracyAggregate?: number;
+    matchAverageAccuracyAggregate!: number;
     /** The amount of maps the player participates in, on average. */
-    averageGamesPlayedAggregate?: number;
+    averageGamesPlayedAggregate!: number;
     /** The average lobby ranking the player has on maps they participate in.
 A top-score is 1, bottom score would be team size * 2 */
-    averagePlacingAggregate?: number;
+    averagePlacingAggregate!: number;
     /** The beginning of the period for which the statistics are calculated. */
-    periodStart?: Date;
+    periodStart!: Date;
     /** The end of the period for which the statistics are calculated. */
-    periodEnd?: Date;
+    periodEnd!: Date;
 
     constructor(data?: IAggregatePlayerMatchStatsDTO) {
         if (data) {
@@ -4185,79 +6175,79 @@ A top-score is 1, bottom score would be team size * 2 */
 /** Represents an aggregate of match statistics for a player during a period of time */
 export interface IAggregatePlayerMatchStatsDTO {
     /** The player's average match cost during the period */
-    averageMatchCostAggregate?: number;
+    averageMatchCostAggregate: number;
     /** The peak rating achieved by the player during the period */
-    highestRating?: number;
+    highestRating: number;
     /** The amount of rating gained from the start of the period to the end of the period */
-    ratingGained?: number;
+    ratingGained: number;
     /** The amount of games won during the period */
-    gamesWon?: number;
+    gamesWon: number;
     /** The amount of games lost during the period */
-    gamesLost?: number;
+    gamesLost: number;
     /** The amount of games played during the period */
-    gamesPlayed?: number;
+    gamesPlayed: number;
     /** The amount of matches won during the period */
-    matchesWon?: number;
+    matchesWon: number;
     /** The amount of matches lost during the period */
-    matchesLost?: number;
+    matchesLost: number;
     /** The amount of matches played during the period */
-    matchesPlayed?: number;
+    matchesPlayed: number;
     /** A value between 0 and 1 representing the player's game win rate during the period */
-    gameWinRate?: number;
+    gameWinRate: number;
     /** A value between 0 and 1 representing the player's match win rate during the period */
-    matchWinRate?: number;
+    matchWinRate: number;
     /** The average rating of the player's teammates during the period. This average does not include the player's own rating */
     averageTeammateRating?: number | undefined;
     /** The average rating of the player's opponents during the period */
     averageOpponentRating?: number | undefined;
     /** The most amount of matches won in a row during the period */
-    bestWinStreak?: number;
+    bestWinStreak: number;
     /** Across all matches the player has played in, the average score across the entire lobby. This average includes
 scores for games the player may have not been in for */
-    matchAverageScoreAggregate?: number;
+    matchAverageScoreAggregate: number;
     /** Across all matches the player has played in, the average miss count of the lobby, across all games in that match */
-    matchAverageMissesAggregate?: number;
+    matchAverageMissesAggregate: number;
     /** Across all matches the player has played in, the average accuracy of the lobby, across all games in that match */
-    matchAverageAccuracyAggregate?: number;
+    matchAverageAccuracyAggregate: number;
     /** The amount of maps the player participates in, on average. */
-    averageGamesPlayedAggregate?: number;
+    averageGamesPlayedAggregate: number;
     /** The average lobby ranking the player has on maps they participate in.
 A top-score is 1, bottom score would be team size * 2 */
-    averagePlacingAggregate?: number;
+    averagePlacingAggregate: number;
     /** The beginning of the period for which the statistics are calculated. */
-    periodStart?: Date;
+    periodStart: Date;
     /** The end of the period for which the statistics are calculated. */
-    periodEnd?: Date;
+    periodEnd: Date;
 }
 
 /** Represents a beatmap */
 export class BeatmapDTO implements IBeatmapDTO {
     /** Id of the beatmap */
-    id?: number;
+    id!: number;
     /** Artist of the song */
-    artist?: string;
+    artist!: string;
     /** osu! id of the beatmap */
-    osuId?: number;
+    osuId!: number;
     /** Beats per minute */
     bpm?: number | undefined;
     /** osu! id of the mapper */
-    mapperId?: number;
+    mapperId!: number;
     /** osu! username of the mapper */
-    mapperName?: string;
+    mapperName!: string;
     /** Star rating */
-    sr?: number;
+    sr!: number;
     /** Circle size */
-    cs?: number;
+    cs!: number;
     /** Approach rate */
-    ar?: number;
+    ar!: number;
     /** Hp */
-    hp?: number;
+    hp!: number;
     /** Overall difficulty */
-    od?: number;
+    od!: number;
     /** Song length */
-    length?: number;
+    length!: number;
     /** Title of the beatmap / song */
-    title?: string;
+    title!: string;
     /** Name of the difficulty */
     diffName?: string | undefined;
 
@@ -4319,31 +6309,31 @@ export class BeatmapDTO implements IBeatmapDTO {
 /** Represents a beatmap */
 export interface IBeatmapDTO {
     /** Id of the beatmap */
-    id?: number;
+    id: number;
     /** Artist of the song */
-    artist?: string;
+    artist: string;
     /** osu! id of the beatmap */
-    osuId?: number;
+    osuId: number;
     /** Beats per minute */
     bpm?: number | undefined;
     /** osu! id of the mapper */
-    mapperId?: number;
+    mapperId: number;
     /** osu! username of the mapper */
-    mapperName?: string;
+    mapperName: string;
     /** Star rating */
-    sr?: number;
+    sr: number;
     /** Circle size */
-    cs?: number;
+    cs: number;
     /** Approach rate */
-    ar?: number;
+    ar: number;
     /** Hp */
-    hp?: number;
+    hp: number;
     /** Overall difficulty */
-    od?: number;
+    od: number;
     /** Song length */
-    length?: number;
+    length: number;
     /** Title of the beatmap / song */
-    title?: string;
+    title: string;
     /** Name of the difficulty */
     diffName?: string | undefined;
 }
@@ -4400,6 +6390,52 @@ export interface ICreatedAtRouteValues {
     controller?: string | undefined;
 }
 
+/** Represents a newly created resource */
+export class CreatedResultBaseDTO implements ICreatedResultBaseDTO {
+    /** Id of the resource */
+    id!: number;
+    /** URL of where the new resource can be accessed */
+    location!: string;
+
+    constructor(data?: ICreatedResultBaseDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.location = _data["location"];
+        }
+    }
+
+    static fromJS(data: any): CreatedResultBaseDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreatedResultBaseDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["location"] = this.location;
+        return data;
+    }
+}
+
+/** Represents a newly created resource */
+export interface ICreatedResultBaseDTO {
+    /** Id of the resource */
+    id: number;
+    /** URL of where the new resource can be accessed */
+    location: string;
+}
+
 /**
 * Explains why the player failed filtering
 *
@@ -4414,11 +6450,15 @@ export enum FilteringFailReason {
     MinRating = 2,
     /** The player's rating is above the maximum threshold */
     MaxRating = 4,
-    /** The player is provisional and the filtering criteria specifies
-exclusion of provisional players */
+    /**
+    * The player is provisional and the filtering criteria specifies
+	* exclusion of provisional players
+    */
     IsProvisional = 8,
-    /** The player has not played in the minimum specified
-amount of tournaments */
+    /**
+    * The player has not played in the minimum specified
+	* amount of tournaments
+    */
     NotEnoughTournaments = 16,
     /** The player's all-time peak rating is above the maximum allowed */
     PeakRatingTooHigh = 32,
@@ -4428,13 +6468,14 @@ amount of tournaments */
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
 export class FilteringRequestDTO implements IFilteringRequestDTO {
-    ruleset?: Ruleset;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Players with a current rating below this value will be filtered */
     minRating?: number | undefined;
     /** Players with a current rating above this value will be filtered */
     maxRating?: number | undefined;
     /** Whether to filter players that currently have a provisional rating */
-    allowProvisional?: boolean;
+    allowProvisional!: boolean;
     /** If set, requires players to have participated in at least
 this many distinct tournaments */
     tournamentsPlayed?: number | undefined;
@@ -4445,7 +6486,7 @@ this value */
 this many matches */
     matchesPlayed?: number | undefined;
     /** A list of osu! player ids that will be filtered */
-    osuPlayerIds?: number[];
+    osuPlayerIds!: number[];
 
     constructor(data?: IFilteringRequestDTO) {
         if (data) {
@@ -4453,6 +6494,9 @@ this many matches */
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.osuPlayerIds = [];
         }
     }
 
@@ -4500,13 +6544,14 @@ this many matches */
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
 export interface IFilteringRequestDTO {
-    ruleset?: Ruleset;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Players with a current rating below this value will be filtered */
     minRating?: number | undefined;
     /** Players with a current rating above this value will be filtered */
     maxRating?: number | undefined;
     /** Whether to filter players that currently have a provisional rating */
-    allowProvisional?: boolean;
+    allowProvisional: boolean;
     /** If set, requires players to have participated in at least
 this many distinct tournaments */
     tournamentsPlayed?: number | undefined;
@@ -4517,7 +6562,7 @@ this value */
 this many matches */
     matchesPlayed?: number | undefined;
     /** A list of osu! player ids that will be filtered */
-    osuPlayerIds?: number[];
+    osuPlayerIds: number[];
 }
 
 /** Indicates whether a player passed or failed filtering */
@@ -4531,12 +6576,12 @@ export enum FilteringResult {
 /** Represents a filterings result for a collection of players */
 export class FilteringResultDTO implements IFilteringResultDTO {
     /** The number of players who passed filtering */
-    playersPassed?: number;
+    playersPassed!: number;
     /** The number of players who failed filtering */
-    playersFailed?: number;
+    playersFailed!: number;
     /** A collection of filtering results, one per submitted player,
 in the same order as submitted in the API.DTOs.FilteringRequestDTO */
-    filteringResults?: PlayerFilteringResultDTO[];
+    filteringResults!: PlayerFilteringResultDTO[];
 
     constructor(data?: IFilteringResultDTO) {
         if (data) {
@@ -4544,6 +6589,9 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.filteringResults = [];
         }
     }
 
@@ -4582,37 +6630,49 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
 /** Represents a filterings result for a collection of players */
 export interface IFilteringResultDTO {
     /** The number of players who passed filtering */
-    playersPassed?: number;
+    playersPassed: number;
     /** The number of players who failed filtering */
-    playersFailed?: number;
+    playersFailed: number;
     /** A collection of filtering results, one per submitted player,
 in the same order as submitted in the API.DTOs.FilteringRequestDTO */
-    filteringResults?: PlayerFilteringResultDTO[];
+    filteringResults: PlayerFilteringResultDTO[];
 }
 
 /** Represents a single game (osu! beatmap) played in a match */
 export class GameDTO implements IGameDTO {
     /** Primary key */
-    id?: number;
-    ruleset?: Ruleset;
-    scoringType?: ScoringType;
-    teamType?: TeamType;
-    mods?: Mods;
+    id!: number;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
+    /** Represents the scoring method (win condition) for a Database.Entities.Game */
+    scoringType!: ScoringType;
+    /** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
+    teamType!: TeamType;
+    /** Represents mod values */
+    mods!: Mods;
     /** osu! id */
-    osuId?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: GameProcessingStatus;
-    warningFlags?: GameWarningFlags;
-    rejectionReason?: GameRejectionReason;
+    osuId!: number;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus!: VerificationStatus;
+    /** The status of a Database.Entities.Game in the processing flow */
+    processingStatus!: GameProcessingStatus;
+    /** Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic
+Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
+but should have attention drawn to them during manual review */
+    warningFlags!: GameWarningFlags;
+    /** The reason why a Database.Entities.Game is rejected */
+    rejectionReason!: GameRejectionReason;
     /** Timestamp of the beginning of the game */
-    startTime?: Date;
+    startTime!: Date;
     /** Timestamp of the end of the game */
     endTime?: Date | undefined;
-    beatmap?: BeatmapDTO;
+    /** The beatmap played */
+    beatmap?: BeatmapDTO | undefined;
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes!: AdminNoteDTO[];
     /** All match scores */
-    scores?: GameScoreDTO[];
+    scores!: GameScoreDTO[];
 
     constructor(data?: IGameDTO) {
         if (data) {
@@ -4620,6 +6680,10 @@ export class GameDTO implements IGameDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.adminNotes = [];
+            this.scores = [];
         }
     }
 
@@ -4690,36 +6754,54 @@ export class GameDTO implements IGameDTO {
 /** Represents a single game (osu! beatmap) played in a match */
 export interface IGameDTO {
     /** Primary key */
-    id?: number;
-    ruleset?: Ruleset;
-    scoringType?: ScoringType;
-    teamType?: TeamType;
-    mods?: Mods;
+    id: number;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    /** Represents the scoring method (win condition) for a Database.Entities.Game */
+    scoringType: ScoringType;
+    /** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
+    teamType: TeamType;
+    /** Represents mod values */
+    mods: Mods;
     /** osu! id */
-    osuId?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: GameProcessingStatus;
-    warningFlags?: GameWarningFlags;
-    rejectionReason?: GameRejectionReason;
+    osuId: number;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus: VerificationStatus;
+    /** The status of a Database.Entities.Game in the processing flow */
+    processingStatus: GameProcessingStatus;
+    /** Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic
+Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
+but should have attention drawn to them during manual review */
+    warningFlags: GameWarningFlags;
+    /** The reason why a Database.Entities.Game is rejected */
+    rejectionReason: GameRejectionReason;
     /** Timestamp of the beginning of the game */
-    startTime?: Date;
+    startTime: Date;
     /** Timestamp of the end of the game */
     endTime?: Date | undefined;
-    beatmap?: BeatmapDTO;
+    /** The beatmap played */
+    beatmap?: BeatmapDTO | undefined;
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes: AdminNoteDTO[];
     /** All match scores */
-    scores?: GameScoreDTO[];
+    scores: GameScoreDTO[];
 }
 
 /** The status of a Database.Entities.Game in the processing flow */
 export enum GameProcessingStatus {
     /** The Database.Entities.Game needs automation checks */
     NeedsAutomationChecks = 0,
-    /** The Database.Entities.Game is awaiting verification from a
-Database.Entities.User with verifier permission */
+    /**
+    * The Database.Entities.Game is awaiting verification from a
+	* Database.Entities.User with verifier permission
+    */
     NeedsVerification = 1,
-    /** The Database.Entities.Game needs stat calculation (Generates the Database.Entities.GameWinRecord) */
+    /**
+    * The Database.Entities.Game needs stat calculation
+	* 
+	* Generates the Database.Entities.GameWinRecord
+    */
     NeedsStatCalculation = 2,
     /** The Database.Entities.Game has completed all processing steps */
     Done = 3,
@@ -4743,15 +6825,21 @@ export enum GameRejectionReason {
     InvalidScoringType = 8,
     /** The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs */
     InvalidTeamType = 16,
-    /** The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs
-and attempting Database.Enums.TeamType.TeamVs conversion was not successful */
+    /**
+    * The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs
+	* and attempting Database.Enums.TeamType.TeamVs conversion was not successful
+    */
     FailedTeamVsConversion = 32,
-    /** The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
-of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2 */
+    /**
+    * The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
+	* of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2
+    */
     NoValidScores = 64,
-    /** The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
-of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
-not equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament */
+    /**
+    * The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
+	* of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
+	* not equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament
+    */
     LobbySizeMismatch = 128,
     /** The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined */
     NoEndTime = 256,
@@ -4761,20 +6849,26 @@ not equal to the Database.Entities.Tournament.LobbySize of the parent Database.E
 
 export class GameScoreDTO implements IGameScoreDTO {
     /** The id of the Player this score belongs to */
-    playerId?: number;
-    team?: Team;
+    playerId!: number;
+    /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
+    team!: Team;
     /** The points earned */
-    score?: number;
-    mods?: Mods;
+    score!: number;
+    /** Represents mod values */
+    mods!: Mods;
     /** The number of missed notes */
-    misses?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: ScoreProcessingStatus;
-    rejectionReason?: ScoreRejectionReason;
+    misses!: number;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus!: VerificationStatus;
+    /** The status of a Database.Entities.GameScore in the processing flow */
+    processingStatus!: ScoreProcessingStatus;
+    /** The reason why a Database.Entities.GameScore is rejected */
+    rejectionReason!: ScoreRejectionReason;
     /** The accuracy of the score */
-    accuracy?: number;
+    accuracy!: number;
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes!: AdminNoteDTO[];
 
     constructor(data?: IGameScoreDTO) {
         if (data) {
@@ -4782,6 +6876,9 @@ export class GameScoreDTO implements IGameScoreDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.adminNotes = [];
         }
     }
 
@@ -4833,20 +6930,26 @@ export class GameScoreDTO implements IGameScoreDTO {
 
 export interface IGameScoreDTO {
     /** The id of the Player this score belongs to */
-    playerId?: number;
-    team?: Team;
+    playerId: number;
+    /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
+    team: Team;
     /** The points earned */
-    score?: number;
-    mods?: Mods;
+    score: number;
+    /** Represents mod values */
+    mods: Mods;
     /** The number of missed notes */
-    misses?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: ScoreProcessingStatus;
-    rejectionReason?: ScoreRejectionReason;
+    misses: number;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus: VerificationStatus;
+    /** The status of a Database.Entities.GameScore in the processing flow */
+    processingStatus: ScoreProcessingStatus;
+    /** The reason why a Database.Entities.GameScore is rejected */
+    rejectionReason: ScoreRejectionReason;
     /** The accuracy of the score */
-    accuracy?: number;
+    accuracy: number;
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes: AdminNoteDTO[];
 }
 
 /**
@@ -4857,28 +6960,30 @@ export interface IGameScoreDTO {
 export enum GameWarningFlags {
     /** The Database.Entities.Game has no warnings */
     None = 0,
-    /** If the parent Database.Entities.Tournament does not have a submitted pool of
-Database.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap
-is played only once throughout the entire Database.Entities.Tournament */
+    /**
+    * If the parent Database.Entities.Tournament does not have a submitted pool of
+	* Database.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap
+	* is played only once throughout the entire Database.Entities.Tournament
+    */
     BeatmapUsedOnce = 1,
-    /** If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,
-the Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,
-and the Database.Entities.Game is not one of the first two in the Database.Entities.Match */
+    /**
+    * If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,
+	* the Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,
+	* and the Database.Entities.Game is not one of the first two in the Database.Entities.Match
+    */
     BeatmapNotInMappool = 2,
 }
 
-export enum LeaderboardChartType {
-    Global = 0,
-    Country = 1,
-}
+export class ProblemDetails implements IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
 
-export class LeaderboardDTO implements ILeaderboardDTO {
-    ruleset?: Ruleset;
-    totalPlayerCount?: number;
-    filterDefaults?: LeaderboardFilterDefaultsDTO;
-    leaderboard?: LeaderboardPlayerInfoDTO[];
+    [key: string]: any;
 
-    constructor(data?: ILeaderboardDTO) {
+    constructor(data?: IProblemDetails) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4889,9 +6994,140 @@ export class LeaderboardDTO implements ILeaderboardDTO {
 
     init(_data?: any) {
         if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+        }
+    }
+
+    static fromJS(data: any): ProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        return data;
+    }
+}
+
+export interface IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class HttpValidationProblemDetails extends ProblemDetails implements IHttpValidationProblemDetails {
+    errors!: { [key: string]: string[]; };
+
+    [key: string]: any;
+
+    constructor(data?: IHttpValidationProblemDetails) {
+        super(data);
+        if (!data) {
+            this.errors = {};
+        }
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["errors"]) {
+                this.errors = {} as any;
+                for (let key in _data["errors"]) {
+                    if (_data["errors"].hasOwnProperty(key))
+                        (<any>this.errors)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static override fromJS(data: any): HttpValidationProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new HttpValidationProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.errors) {
+            data["errors"] = {};
+            for (let key in this.errors) {
+                if (this.errors.hasOwnProperty(key))
+                    (<any>data["errors"])[key] = (<any>this.errors)[key];
+            }
+        }
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IHttpValidationProblemDetails extends IProblemDetails {
+    errors: { [key: string]: string[]; };
+
+    [key: string]: any;
+}
+
+export enum LeaderboardChartType {
+    Global = 0,
+    Country = 1,
+}
+
+export class LeaderboardDTO implements ILeaderboardDTO {
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
+    totalPlayerCount!: number;
+    filterDefaults!: LeaderboardFilterDefaultsDTO;
+    leaderboard!: LeaderboardPlayerInfoDTO[];
+
+    constructor(data?: ILeaderboardDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.filterDefaults = new LeaderboardFilterDefaultsDTO();
+            this.leaderboard = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
             this.ruleset = _data["ruleset"];
             this.totalPlayerCount = _data["totalPlayerCount"];
-            this.filterDefaults = _data["filterDefaults"] ? LeaderboardFilterDefaultsDTO.fromJS(_data["filterDefaults"]) : <any>undefined;
+            this.filterDefaults = _data["filterDefaults"] ? LeaderboardFilterDefaultsDTO.fromJS(_data["filterDefaults"]) : new LeaderboardFilterDefaultsDTO();
             if (Array.isArray(_data["leaderboard"])) {
                 this.leaderboard = [] as any;
                 for (let item of _data["leaderboard"])
@@ -4922,10 +7158,11 @@ export class LeaderboardDTO implements ILeaderboardDTO {
 }
 
 export interface ILeaderboardDTO {
-    ruleset?: Ruleset;
-    totalPlayerCount?: number;
-    filterDefaults?: LeaderboardFilterDefaultsDTO;
-    leaderboard?: LeaderboardPlayerInfoDTO[];
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    totalPlayerCount: number;
+    filterDefaults: LeaderboardFilterDefaultsDTO;
+    leaderboard: LeaderboardPlayerInfoDTO[];
 }
 
 /** Filters for the leaderboard */
@@ -4946,7 +7183,8 @@ export class LeaderboardFilterDTO implements ILeaderboardFilterDTO {
     minWinRate?: number | undefined;
     /** Ranges from 0.00-1.00 */
     maxWinRate?: number | undefined;
-    tierFilters?: LeaderboardTierFilterDTO;
+    /** A collection of optional filters for tiers */
+    tierFilters?: LeaderboardTierFilterDTO | undefined;
 
     constructor(data?: ILeaderboardFilterDTO) {
         if (data) {
@@ -5011,13 +7249,14 @@ export interface ILeaderboardFilterDTO {
     minWinRate?: number | undefined;
     /** Ranges from 0.00-1.00 */
     maxWinRate?: number | undefined;
-    tierFilters?: LeaderboardTierFilterDTO;
+    /** A collection of optional filters for tiers */
+    tierFilters?: LeaderboardTierFilterDTO | undefined;
 }
 
 export class LeaderboardFilterDefaultsDTO implements ILeaderboardFilterDefaultsDTO {
-    maxRank?: number;
-    maxRating?: number;
-    maxMatches?: number;
+    maxRank!: number;
+    maxRating!: number;
+    maxMatches!: number;
 
     constructor(data?: ILeaderboardFilterDefaultsDTO) {
         if (data) {
@@ -5053,22 +7292,23 @@ export class LeaderboardFilterDefaultsDTO implements ILeaderboardFilterDefaultsD
 }
 
 export interface ILeaderboardFilterDefaultsDTO {
-    maxRank?: number;
-    maxRating?: number;
-    maxMatches?: number;
+    maxRank: number;
+    maxRating: number;
+    maxMatches: number;
 }
 
 /** Individual line items in the leaderboard */
 export class LeaderboardPlayerInfoDTO implements ILeaderboardPlayerInfoDTO {
-    playerId?: number;
-    osuId?: number;
-    globalRank?: number;
-    name?: string;
-    tier?: string;
-    rating?: number;
-    matchesPlayed?: number;
-    winRate?: number;
-    ruleset?: Ruleset;
+    playerId!: number;
+    osuId!: number;
+    globalRank!: number;
+    name!: string;
+    tier!: string;
+    rating!: number;
+    matchesPlayed!: number;
+    winRate!: number;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     country?: string | undefined;
 
     constructor(data?: ILeaderboardPlayerInfoDTO) {
@@ -5120,29 +7360,30 @@ export class LeaderboardPlayerInfoDTO implements ILeaderboardPlayerInfoDTO {
 
 /** Individual line items in the leaderboard */
 export interface ILeaderboardPlayerInfoDTO {
-    playerId?: number;
-    osuId?: number;
-    globalRank?: number;
-    name?: string;
-    tier?: string;
-    rating?: number;
-    matchesPlayed?: number;
-    winRate?: number;
-    ruleset?: Ruleset;
+    playerId: number;
+    osuId: number;
+    globalRank: number;
+    name: string;
+    tier: string;
+    rating: number;
+    matchesPlayed: number;
+    winRate: number;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     country?: string | undefined;
 }
 
 /** A collection of booleans representing which tiers to filter.            False = Default, no behavioral change True = Explicitly included in leaderboard results            If *all* tiers are set to false, or all tiers are set to true, the leaderboard will return as if no tier filters were applied.            For example, if Bronze and Emerald are true and everything else is false, then only Bronze and Emerald players will show up in the leaderboard (specifically, Bronze III-I and Emerald III-I) */
 export class LeaderboardTierFilterDTO implements ILeaderboardTierFilterDTO {
-    filterBronze?: boolean;
-    filterSilver?: boolean;
-    filterGold?: boolean;
-    filterPlatinum?: boolean;
-    filterEmerald?: boolean;
-    filterDiamond?: boolean;
-    filterMaster?: boolean;
-    filterGrandmaster?: boolean;
-    filterEliteGrandmaster?: boolean;
+    filterBronze!: boolean;
+    filterSilver!: boolean;
+    filterGold!: boolean;
+    filterPlatinum!: boolean;
+    filterEmerald!: boolean;
+    filterDiamond!: boolean;
+    filterMaster!: boolean;
+    filterGrandmaster!: boolean;
+    filterEliteGrandmaster!: boolean;
 
     constructor(data?: ILeaderboardTierFilterDTO) {
         if (data) {
@@ -5191,97 +7432,96 @@ export class LeaderboardTierFilterDTO implements ILeaderboardTierFilterDTO {
 
 /** A collection of booleans representing which tiers to filter.            False = Default, no behavioral change True = Explicitly included in leaderboard results            If *all* tiers are set to false, or all tiers are set to true, the leaderboard will return as if no tier filters were applied.            For example, if Bronze and Emerald are true and everything else is false, then only Bronze and Emerald players will show up in the leaderboard (specifically, Bronze III-I and Emerald III-I) */
 export interface ILeaderboardTierFilterDTO {
-    filterBronze?: boolean;
-    filterSilver?: boolean;
-    filterGold?: boolean;
-    filterPlatinum?: boolean;
-    filterEmerald?: boolean;
-    filterDiamond?: boolean;
-    filterMaster?: boolean;
-    filterGrandmaster?: boolean;
-    filterEliteGrandmaster?: boolean;
+    filterBronze: boolean;
+    filterSilver: boolean;
+    filterGold: boolean;
+    filterPlatinum: boolean;
+    filterEmerald: boolean;
+    filterDiamond: boolean;
+    filterMaster: boolean;
+    filterGrandmaster: boolean;
+    filterEliteGrandmaster: boolean;
 }
 
 /** Represents a created match */
-export class MatchCreatedResultDTO implements IMatchCreatedResultDTO {
-    /** Id of the resource */
-    id?: number;
-    /** URL of where the new resource can be accessed */
-    location?: string;
-    createdAtRouteValues?: CreatedAtRouteValues;
+export class MatchCreatedResultDTO extends CreatedResultBaseDTO implements IMatchCreatedResultDTO {
+    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
+    readonly createdAtRouteValues!: CreatedAtRouteValues;
     /** osu! match id */
-    osuId?: number;
+    osuId!: number;
 
     constructor(data?: IMatchCreatedResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
+        super(data);
+        if (!data) {
+            this.createdAtRouteValues = new CreatedAtRouteValues();
         }
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.id = _data["id"];
-            this.location = _data["location"];
-            this.createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : <any>undefined;
+            (<any>this).createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : new CreatedAtRouteValues();
             this.osuId = _data["osuId"];
         }
     }
 
-    static fromJS(data: any): MatchCreatedResultDTO {
+    static override fromJS(data: any): MatchCreatedResultDTO {
         data = typeof data === 'object' ? data : {};
         let result = new MatchCreatedResultDTO();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["location"] = this.location;
         data["createdAtRouteValues"] = this.createdAtRouteValues ? this.createdAtRouteValues.toJSON() : <any>undefined;
         data["osuId"] = this.osuId;
+        super.toJSON(data);
         return data;
     }
 }
 
 /** Represents a created match */
-export interface IMatchCreatedResultDTO {
-    /** Id of the resource */
-    id?: number;
-    /** URL of where the new resource can be accessed */
-    location?: string;
-    createdAtRouteValues?: CreatedAtRouteValues;
+export interface IMatchCreatedResultDTO extends ICreatedResultBaseDTO {
+    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
+    createdAtRouteValues: CreatedAtRouteValues;
     /** osu! match id */
-    osuId?: number;
+    osuId: number;
 }
 
 /** Represents a played match */
 export class MatchDTO implements IMatchDTO {
     /** Id */
-    id?: number;
+    id!: number;
     /** osu! id */
-    osuId?: number;
+    osuId!: number;
     /** Title of the lobby */
-    name?: string;
-    ruleset?: Ruleset;
+    name!: string;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Start time */
     startTime?: Date | undefined;
     /** End time */
     endTime?: Date | undefined;
-    verificationStatus?: VerificationStatus;
-    rejectionReason?: MatchRejectionReason;
-    warningFlags?: MatchWarningFlags;
-    processingStatus?: MatchProcessingStatus;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus!: VerificationStatus;
+    /** The reason why a Database.Entities.Match is rejected */
+    rejectionReason!: MatchRejectionReason;
+    /** Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic
+Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
+but should have attention drawn to them during manual review */
+    warningFlags!: MatchWarningFlags;
+    /** The status of a Database.Entities.Match in the processing flow */
+    processingStatus!: MatchProcessingStatus;
     /** Timestamp of the last time the match was processed */
-    lastProcessingDate?: Date;
-    tournament?: TournamentCompactDTO;
+    lastProcessingDate!: Date;
+    /** The API.DTOs.TournamentCompactDTO this match was played in */
+    tournament!: TournamentCompactDTO;
     /** List of games played during the match */
-    games?: GameDTO[];
+    games!: GameDTO[];
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes!: AdminNoteDTO[];
 
     constructor(data?: IMatchDTO) {
         if (data) {
@@ -5289,6 +7529,11 @@ export class MatchDTO implements IMatchDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.tournament = new TournamentCompactDTO();
+            this.games = [];
+            this.adminNotes = [];
         }
     }
 
@@ -5305,7 +7550,7 @@ export class MatchDTO implements IMatchDTO {
             this.warningFlags = _data["warningFlags"];
             this.processingStatus = _data["processingStatus"];
             this.lastProcessingDate = _data["lastProcessingDate"] ? new Date(_data["lastProcessingDate"].toString()) : <any>undefined;
-            this.tournament = _data["tournament"] ? TournamentCompactDTO.fromJS(_data["tournament"]) : <any>undefined;
+            this.tournament = _data["tournament"] ? TournamentCompactDTO.fromJS(_data["tournament"]) : new TournamentCompactDTO();
             if (Array.isArray(_data["games"])) {
                 this.games = [] as any;
                 for (let item of _data["games"])
@@ -5357,27 +7602,36 @@ export class MatchDTO implements IMatchDTO {
 /** Represents a played match */
 export interface IMatchDTO {
     /** Id */
-    id?: number;
+    id: number;
     /** osu! id */
-    osuId?: number;
+    osuId: number;
     /** Title of the lobby */
-    name?: string;
-    ruleset?: Ruleset;
+    name: string;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Start time */
     startTime?: Date | undefined;
     /** End time */
     endTime?: Date | undefined;
-    verificationStatus?: VerificationStatus;
-    rejectionReason?: MatchRejectionReason;
-    warningFlags?: MatchWarningFlags;
-    processingStatus?: MatchProcessingStatus;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus: VerificationStatus;
+    /** The reason why a Database.Entities.Match is rejected */
+    rejectionReason: MatchRejectionReason;
+    /** Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic
+Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
+but should have attention drawn to them during manual review */
+    warningFlags: MatchWarningFlags;
+    /** The status of a Database.Entities.Match in the processing flow */
+    processingStatus: MatchProcessingStatus;
     /** Timestamp of the last time the match was processed */
-    lastProcessingDate?: Date;
-    tournament?: TournamentCompactDTO;
+    lastProcessingDate: Date;
+    /** The API.DTOs.TournamentCompactDTO this match was played in */
+    tournament: TournamentCompactDTO;
     /** List of games played during the match */
-    games?: GameDTO[];
+    games: GameDTO[];
     /** All associated admin notes */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes: AdminNoteDTO[];
 }
 
 /** Represents a paged list of results */
@@ -5387,9 +7641,9 @@ export class MatchDTOPagedResultDTO implements IMatchDTOPagedResultDTO {
     /** Link to the previous potential page of results */
     previous?: string | undefined;
     /** Number of results included */
-    count?: number;
+    count!: number;
     /** List of resulting data */
-    results?: MatchDTO[];
+    results!: MatchDTO[];
 
     constructor(data?: IMatchDTOPagedResultDTO) {
         if (data) {
@@ -5397,6 +7651,9 @@ export class MatchDTOPagedResultDTO implements IMatchDTOPagedResultDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.results = [];
         }
     }
 
@@ -5441,9 +7698,9 @@ export interface IMatchDTOPagedResultDTO {
     /** Link to the previous potential page of results */
     previous?: string | undefined;
     /** Number of results included */
-    count?: number;
+    count: number;
     /** List of resulting data */
-    results?: MatchDTO[];
+    results: MatchDTO[];
 }
 
 /** The status of a Database.Entities.Match in the processing flow */
@@ -5452,15 +7709,39 @@ export enum MatchProcessingStatus {
     NeedsData = 0,
     /** The Database.Entities.Match needs automation checks */
     NeedsAutomationChecks = 1,
-    /** The Database.Entities.Match is awaiting verification from a
-Database.Entities.User with verifier permission */
+    /**
+    * The Database.Entities.Match is awaiting verification from a
+	* Database.Entities.User with verifier permission
+    */
     NeedsVerification = 2,
-    /** The Database.Entities.Match needs stat calculation (Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats) */
+    /**
+    * The Database.Entities.Match needs stat calculation
+	* 
+	* Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats
+    */
     NeedsStatCalculation = 3,
-    /** The Database.Entities.Match is awaiting rating processor data (Generates all Database.Entities.Processor.RatingAdjustments) */
+    /**
+    * The Database.Entities.Match is awaiting rating processor data
+	* 
+	* Generates all Database.Entities.Processor.RatingAdjustments
+    */
     NeedsRatingProcessorData = 4,
     /** The Database.Entities.Match has completed all processing steps */
     Done = 5,
+}
+
+/** Denotes which property a query for !:Database.Entities.Matches will be sorted by */
+export enum MatchQuerySortType {
+    /** Sort by primary key */
+    Id = 0,
+    /** Sort by osu! id */
+    OsuId = 1,
+    /** Sort by start time */
+    StartTime = 2,
+    /** Sort by end time */
+    EndTime = 3,
+    /** Sort by creation date */
+    Created = 4,
 }
 
 /**
@@ -5475,17 +7756,26 @@ export enum MatchRejectionReason {
     NoData = 1,
     /** The osu! API returned no Database.Entities.Games for the Database.Entities.Match */
     NoGames = 2,
-    /** The Database.Entities.Match's Database.Entities.Match.Name does not follow tournament lobby title conventions */
-    InvalidName = 4,
-    /** The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs
-conversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful */
+    /**
+    * The Database.Entities.Match's Database.Entities.Match.Name does not start with the
+	* parent Database.Entities.Tournament's Database.Entities.Tournament.Abbreviation
+    */
+    NamePrefixMismatch = 4,
+    /**
+    * The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs
+	* conversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful
+    */
     FailedTeamVsConversion = 8,
-    /** The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified */
+    /**
+    * The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
+	* of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified
+    */
     NoValidGames = 16,
-    /** The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number
-(does not satisfy "best of X") */
+    /**
+    * The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
+	* of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number
+	* (does not satisfy "best of X")
+    */
     UnexpectedGameCount = 32,
     /** The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined */
     NoEndTime = 64,
@@ -5496,9 +7786,9 @@ of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Ver
 /** Represents a search result for a match */
 export class MatchSearchResultDTO implements IMatchSearchResultDTO {
     /** Id of the match */
-    id?: number;
+    id!: number;
     /** osu! match id of the match */
-    osuId?: number;
+    osuId!: number;
     /** Name of the match */
     name?: string | undefined;
 
@@ -5538,9 +7828,9 @@ export class MatchSearchResultDTO implements IMatchSearchResultDTO {
 /** Represents a search result for a match */
 export interface IMatchSearchResultDTO {
     /** Id of the match */
-    id?: number;
+    id: number;
     /** osu! match id of the match */
-    osuId?: number;
+    osuId: number;
     /** Name of the match */
     name?: string | undefined;
 }
@@ -5548,14 +7838,15 @@ export interface IMatchSearchResultDTO {
 /** Represents the status of a submitted match */
 export class MatchSubmissionStatusDTO implements IMatchSubmissionStatusDTO {
     /** Id of the match */
-    id?: number;
+    id!: number;
     /** osu! match id of the match */
-    osuId?: number;
+    osuId!: number;
     /** Lobby title of the match */
     name?: string | undefined;
-    verificationStatus?: VerificationStatus;
+    /** Current verification status of the match */
+    verificationStatus?: VerificationStatus | undefined;
     /** Date that the match was submitted */
-    created?: Date;
+    created!: Date;
     /** Date that the match was last updated */
     updated?: Date | undefined;
 
@@ -5601,14 +7892,15 @@ export class MatchSubmissionStatusDTO implements IMatchSubmissionStatusDTO {
 /** Represents the status of a submitted match */
 export interface IMatchSubmissionStatusDTO {
     /** Id of the match */
-    id?: number;
+    id: number;
     /** osu! match id of the match */
-    osuId?: number;
+    osuId: number;
     /** Lobby title of the match */
     name?: string | undefined;
-    verificationStatus?: VerificationStatus;
+    /** Current verification status of the match */
+    verificationStatus?: VerificationStatus | undefined;
     /** Date that the match was submitted */
-    created?: Date;
+    created: Date;
     /** Date that the match was last updated */
     updated?: Date | undefined;
 }
@@ -5621,31 +7913,21 @@ export interface IMatchSubmissionStatusDTO {
 export enum MatchWarningFlags {
     /** The Database.Entities.Match has no warnings */
     None = 0,
-    /** The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament
-lobby title conventions */
-    UnexpectedTitleFormat = 1,
+    /**
+    * The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament
+	* lobby title conventions
+    */
+    UnexpectedNameFormat = 1,
     /** The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4 */
     LowGameCount = 2,
 }
 
-/** Denotes which property a query for !:Database.Entities.Matches will be sorted by */
-export enum MatchesQuerySortType {
-    /** Sort by primary key */
-    Id = 0,
-    /** Sort by osu! id */
-    OsuId = 1,
-    /** Sort by start start time */
-    StartTime = 2,
-    /** Sort by end time */
-    EndTime = 3,
-}
-
 /** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
 export class ModStatsDTO implements IModStatsDTO {
-    gamesPlayed?: number;
-    gamesWon?: number;
-    winRate?: number;
-    normalizedAverageScore?: number;
+    gamesPlayed!: number;
+    gamesWon!: number;
+    winRate!: number;
+    normalizedAverageScore!: number;
 
     constructor(data?: IModStatsDTO) {
         if (data) {
@@ -5684,10 +7966,10 @@ export class ModStatsDTO implements IModStatsDTO {
 
 /** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
 export interface IModStatsDTO {
-    gamesPlayed?: number;
-    gamesWon?: number;
-    winRate?: number;
-    normalizedAverageScore?: number;
+    gamesPlayed: number;
+    gamesWon: number;
+    winRate: number;
+    normalizedAverageScore: number;
 }
 
 /**
@@ -5716,7 +7998,11 @@ export enum Mods {
     Relax = 128,
     /** Half Time (HT) */
     HalfTime = 256,
-    /** Nightcore (NC) (Only set along with DoubleTime. i.e: NC only gives 576) */
+    /**
+    * Nightcore (NC)
+	* 
+	* Only set along with DoubleTime. i.e: NC only gives 576
+    */
     Nightcore = 512,
     /** Flashlight (FL) */
     Flashlight = 1024,
@@ -5724,123 +8010,124 @@ export enum Mods {
     Autoplay = 2048,
     /** Spun Out (SO) */
     SpunOut = 4096,
-    /** Autopilot (AP) (Autopilot) */
+    /**
+    * Autopilot (AP)
+	* 
+	* Autopilot
+    */
     Relax2 = 8192,
-    /** Perfect (PF) (Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416) */
+    /**
+    * Perfect (PF)
+	* 
+	* Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
+    */
     Perfect = 16384,
-    /** Denotes mods that are ineligible for ratings */
+    /**
+    * 4 key (4K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     InvalidMods = 22688,
-    /** 4 key (4K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 5 key (5K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key4 = 32768,
-    /** 5 key (5K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 6 key (6K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key5 = 65536,
-    /** 6 key (6K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 7 key (7K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key6 = 131072,
-    /** 7 key (7K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 8 key (8K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key7 = 262144,
-    /** 8 key (8K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * Fade In (FI)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key8 = 524288,
-    /** Fade In (FI) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * Random (RD)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     FadeIn = 1048576,
-    /** Denotes mods that directly impose a modifier on score */
-    ScoreIncreaseMods = 1049688,
-    /** Random (RD) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
-    Random = 2097152,
     /** Cinema (CM) */
-    Cinema = 4194304,
+    ScoreIncreaseMods = 1049688,
     /** Target Practice (TP) */
+    Random = 2097152,
+    /**
+    * 9 Key (9K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
+    Cinema = 4194304,
+    /**
+    * Co-op (CO)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Target = 8388608,
-    /** 9 Key (9K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 1 Key (1K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key9 = 16777216,
-    /** Co-op (CO) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 3 Key (3K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     KeyCoop = 33554432,
-    /** 1 Key (1K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * 2 Key (2K)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key1 = 67108864,
-    /** 3 Key (3K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /** Score v2 (SV2) */
     Key3 = 134217728,
-    /** 2 Key (2K) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /**
+    * Mirror (MR)
+	* 
+	* Applicable only to Database.Enums.Ruleset.ManiaOther
+    */
     Key2 = 268435456,
-    /** Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers (See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK) */
+    /**
+    * Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers
+	* 
+	* See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
+    */
     KeyMod = 521109504,
     /** Denotes mods that are available to use during Free Mod settings */
     FreeModAllowed = 522171579,
-    /** Score v2 (SV2) */
+    /** Denotes mods that directly impose a modifier on score */
     ScoreV2 = 536870912,
-    /** Mirror (MR) (Applicable only to Database.Enums.Ruleset.ManiaOther) */
+    /** Denotes mods that are ineligible for ratings */
     Mirror = 1073741824,
-}
-
-/** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
-export class OAuthClientCreatedDTO implements IOAuthClientCreatedDTO {
-    /** Client id of the client */
-    clientId?: number;
-    /** List of permissions granted to the client */
-    scopes?: string[];
-    rateLimitOverrides?: RateLimitOverrides;
-    /** Client secret of the client */
-    clientSecret?: string;
-
-    constructor(data?: IOAuthClientCreatedDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.clientId = _data["clientId"];
-            if (Array.isArray(_data["scopes"])) {
-                this.scopes = [] as any;
-                for (let item of _data["scopes"])
-                    this.scopes!.push(item);
-            }
-            this.rateLimitOverrides = _data["rateLimitOverrides"] ? RateLimitOverrides.fromJS(_data["rateLimitOverrides"]) : <any>undefined;
-            this.clientSecret = _data["clientSecret"];
-        }
-    }
-
-    static fromJS(data: any): OAuthClientCreatedDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new OAuthClientCreatedDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["clientId"] = this.clientId;
-        if (Array.isArray(this.scopes)) {
-            data["scopes"] = [];
-            for (let item of this.scopes)
-                data["scopes"].push(item);
-        }
-        data["rateLimitOverrides"] = this.rateLimitOverrides ? this.rateLimitOverrides.toJSON() : <any>undefined;
-        data["clientSecret"] = this.clientSecret;
-        return data;
-    }
-}
-
-/** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
-export interface IOAuthClientCreatedDTO {
-    /** Client id of the client */
-    clientId?: number;
-    /** List of permissions granted to the client */
-    scopes?: string[];
-    rateLimitOverrides?: RateLimitOverrides;
-    /** Client secret of the client */
-    clientSecret?: string;
 }
 
 /** Represents an OAuth client */
 export class OAuthClientDTO implements IOAuthClientDTO {
     /** Client id of the client */
-    clientId?: number;
+    clientId!: number;
     /** List of permissions granted to the client */
-    scopes?: string[];
-    rateLimitOverrides?: RateLimitOverrides;
+    scopes!: string[];
+    /** Possible rate limit override for the client */
+    rateLimitOverride?: number | undefined;
 
     constructor(data?: IOAuthClientDTO) {
         if (data) {
@@ -5849,6 +8136,9 @@ export class OAuthClientDTO implements IOAuthClientDTO {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.scopes = [];
+        }
     }
 
     init(_data?: any) {
@@ -5859,7 +8149,7 @@ export class OAuthClientDTO implements IOAuthClientDTO {
                 for (let item of _data["scopes"])
                     this.scopes!.push(item);
             }
-            this.rateLimitOverrides = _data["rateLimitOverrides"] ? RateLimitOverrides.fromJS(_data["rateLimitOverrides"]) : <any>undefined;
+            this.rateLimitOverride = _data["rateLimitOverride"];
         }
     }
 
@@ -5878,7 +8168,7 @@ export class OAuthClientDTO implements IOAuthClientDTO {
             for (let item of this.scopes)
                 data["scopes"].push(item);
         }
-        data["rateLimitOverrides"] = this.rateLimitOverrides ? this.rateLimitOverrides.toJSON() : <any>undefined;
+        data["rateLimitOverride"] = this.rateLimitOverride;
         return data;
     }
 }
@@ -5886,20 +8176,57 @@ export class OAuthClientDTO implements IOAuthClientDTO {
 /** Represents an OAuth client */
 export interface IOAuthClientDTO {
     /** Client id of the client */
-    clientId?: number;
+    clientId: number;
     /** List of permissions granted to the client */
-    scopes?: string[];
-    rateLimitOverrides?: RateLimitOverrides;
+    scopes: string[];
+    /** Possible rate limit override for the client */
+    rateLimitOverride?: number | undefined;
 }
 
-export class Operation implements IOperation {
-    operationType?: OperationType;
+/** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
+export class OAuthClientCreatedDTO extends OAuthClientDTO implements IOAuthClientCreatedDTO {
+    /** Client secret of the client */
+    clientSecret!: string;
+
+    constructor(data?: IOAuthClientCreatedDTO) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.clientSecret = _data["clientSecret"];
+        }
+    }
+
+    static override fromJS(data: any): OAuthClientCreatedDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new OAuthClientCreatedDTO();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["clientSecret"] = this.clientSecret;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+/** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
+export interface IOAuthClientCreatedDTO extends IOAuthClientDTO {
+    /** Client secret of the client */
+    clientSecret: string;
+}
+
+export class OperationBase implements IOperationBase {
+    readonly operationType!: OperationType;
     path?: string | undefined;
     op?: string | undefined;
     from?: string | undefined;
-    value?: any | undefined;
 
-    constructor(data?: IOperation) {
+    constructor(data?: IOperationBase) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -5910,17 +8237,16 @@ export class Operation implements IOperation {
 
     init(_data?: any) {
         if (_data) {
-            this.operationType = _data["operationType"];
+            (<any>this).operationType = _data["operationType"];
             this.path = _data["path"];
             this.op = _data["op"];
             this.from = _data["from"];
-            this.value = _data["value"];
         }
     }
 
-    static fromJS(data: any): Operation {
+    static fromJS(data: any): OperationBase {
         data = typeof data === 'object' ? data : {};
-        let result = new Operation();
+        let result = new OperationBase();
         result.init(data);
         return result;
     }
@@ -5931,16 +8257,47 @@ export class Operation implements IOperation {
         data["path"] = this.path;
         data["op"] = this.op;
         data["from"] = this.from;
-        data["value"] = this.value;
         return data;
     }
 }
 
-export interface IOperation {
-    operationType?: OperationType;
+export interface IOperationBase {
+    operationType: OperationType;
     path?: string | undefined;
     op?: string | undefined;
     from?: string | undefined;
+}
+
+export class Operation extends OperationBase implements IOperation {
+    value?: any | undefined;
+
+    constructor(data?: IOperation) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.value = _data["value"];
+        }
+    }
+
+    static override fromJS(data: any): Operation {
+        data = typeof data === 'object' ? data : {};
+        let result = new Operation();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["value"] = this.value;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IOperation extends IOperationBase {
     value?: any | undefined;
 }
 
@@ -5954,17 +8311,45 @@ export enum OperationType {
     Invalid = 6,
 }
 
+export class Operation_1 extends Operation implements IOperation_1 {
+
+    constructor(data?: IOperation_1) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+    }
+
+    static override fromJS(data: any): Operation_1 {
+        data = typeof data === 'object' ? data : {};
+        let result = new Operation_1();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IOperation_1 extends IOperation {
+}
+
 /** Represents player information */
 export class PlayerCompactDTO implements IPlayerCompactDTO {
     /** Id */
-    id?: number;
+    id!: number;
     /** osu! id */
-    osuId?: number;
+    osuId!: number;
     /** osu! username */
-    username?: string;
+    username!: string;
     /** osu! country code */
-    country?: string;
-    ruleset?: Ruleset;
+    country!: string;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Id of the associated user, if available */
     userId?: number | undefined;
 
@@ -6010,14 +8395,15 @@ export class PlayerCompactDTO implements IPlayerCompactDTO {
 /** Represents player information */
 export interface IPlayerCompactDTO {
     /** Id */
-    id?: number;
+    id: number;
     /** osu! id */
-    osuId?: number;
+    osuId: number;
     /** osu! username */
-    username?: string;
+    username: string;
     /** osu! country code */
-    country?: string;
-    ruleset?: Ruleset;
+    country: string;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Id of the associated user, if available */
     userId?: number | undefined;
 }
@@ -6029,11 +8415,13 @@ export class PlayerFilteringResultDTO implements IPlayerFilteringResultDTO {
     /** The username of the player, if found */
     username?: string | undefined;
     /** The osu! id of the player */
-    osuId?: number;
-    filteringResult?: FilteringResult;
-    filteringFailReason?: FilteringFailReason;
+    osuId!: number;
+    /** Indicates whether a player passed or failed filtering */
+    filteringResult!: FilteringResult;
+    /** If the user failed filtering, the fail reason */
+    filteringFailReason?: FilteringFailReason | undefined;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    readonly filteringResultMessage?: string;
+    readonly filteringResultMessage!: string;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
     readonly filteringFailReasonMessage?: string | undefined;
 
@@ -6085,11 +8473,13 @@ export interface IPlayerFilteringResultDTO {
     /** The username of the player, if found */
     username?: string | undefined;
     /** The osu! id of the player */
-    osuId?: number;
-    filteringResult?: FilteringResult;
-    filteringFailReason?: FilteringFailReason;
+    osuId: number;
+    /** Indicates whether a player passed or failed filtering */
+    filteringResult: FilteringResult;
+    /** If the user failed filtering, the fail reason */
+    filteringFailReason?: FilteringFailReason | undefined;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    filteringResultMessage?: string;
+    filteringResultMessage: string;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
     filteringFailReasonMessage?: string | undefined;
 }
@@ -6097,13 +8487,13 @@ export interface IPlayerFilteringResultDTO {
 /** Represents a player in the context of a teammate or opponent of another player */
 export class PlayerFrequencyDTO implements IPlayerFrequencyDTO {
     /** Id of the teammate or opponent */
-    playerId?: number;
+    playerId!: number;
     /** osu! id of the teammate or opponent */
-    osuId?: number;
+    osuId!: number;
     /** osu! username of the teammate or opponent */
     username?: string | undefined;
     /** Number of times this teammate or opponent has played with the player */
-    frequency?: number;
+    frequency!: number;
 
     constructor(data?: IPlayerFrequencyDTO) {
         if (data) {
@@ -6143,27 +8533,37 @@ export class PlayerFrequencyDTO implements IPlayerFrequencyDTO {
 /** Represents a player in the context of a teammate or opponent of another player */
 export interface IPlayerFrequencyDTO {
     /** Id of the teammate or opponent */
-    playerId?: number;
+    playerId: number;
     /** osu! id of the teammate or opponent */
-    osuId?: number;
+    osuId: number;
     /** osu! username of the teammate or opponent */
     username?: string | undefined;
     /** Number of times this teammate or opponent has played with the player */
-    frequency?: number;
+    frequency: number;
 }
 
 /** Represents counts of participation in games of differing mod combinations */
 export class PlayerModStatsDTO implements IPlayerModStatsDTO {
-    playedNM?: ModStatsDTO;
-    playedEZ?: ModStatsDTO;
-    playedHT?: ModStatsDTO;
-    playedHD?: ModStatsDTO;
-    playedHR?: ModStatsDTO;
-    playedDT?: ModStatsDTO;
-    playedFL?: ModStatsDTO;
-    playedHDHR?: ModStatsDTO;
-    playedHDDT?: ModStatsDTO;
-    playedHDEZ?: ModStatsDTO;
+    /** Number of games played with no mods */
+    playedNM?: ModStatsDTO | undefined;
+    /** Number of games played with easy */
+    playedEZ?: ModStatsDTO | undefined;
+    /** Number of games played with half time */
+    playedHT?: ModStatsDTO | undefined;
+    /** Number of games played with hidden */
+    playedHD?: ModStatsDTO | undefined;
+    /** Number of games played with hard rock */
+    playedHR?: ModStatsDTO | undefined;
+    /** Number of games played with double time */
+    playedDT?: ModStatsDTO | undefined;
+    /** Number of games played with flashlight */
+    playedFL?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and hard rock */
+    playedHDHR?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and double time */
+    playedHDDT?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and easy */
+    playedHDEZ?: ModStatsDTO | undefined;
 
     constructor(data?: IPlayerModStatsDTO) {
         if (data) {
@@ -6214,22 +8614,32 @@ export class PlayerModStatsDTO implements IPlayerModStatsDTO {
 
 /** Represents counts of participation in games of differing mod combinations */
 export interface IPlayerModStatsDTO {
-    playedNM?: ModStatsDTO;
-    playedEZ?: ModStatsDTO;
-    playedHT?: ModStatsDTO;
-    playedHD?: ModStatsDTO;
-    playedHR?: ModStatsDTO;
-    playedDT?: ModStatsDTO;
-    playedFL?: ModStatsDTO;
-    playedHDHR?: ModStatsDTO;
-    playedHDDT?: ModStatsDTO;
-    playedHDEZ?: ModStatsDTO;
+    /** Number of games played with no mods */
+    playedNM?: ModStatsDTO | undefined;
+    /** Number of games played with easy */
+    playedEZ?: ModStatsDTO | undefined;
+    /** Number of games played with half time */
+    playedHT?: ModStatsDTO | undefined;
+    /** Number of games played with hidden */
+    playedHD?: ModStatsDTO | undefined;
+    /** Number of games played with hard rock */
+    playedHR?: ModStatsDTO | undefined;
+    /** Number of games played with double time */
+    playedDT?: ModStatsDTO | undefined;
+    /** Number of games played with flashlight */
+    playedFL?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and hard rock */
+    playedHDHR?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and double time */
+    playedHDDT?: ModStatsDTO | undefined;
+    /** Number of games played with both hidden and easy */
+    playedHDEZ?: ModStatsDTO | undefined;
 }
 
 /** Represents data used to construct a rating delta chart for a player */
 export class PlayerRatingChartDTO implements IPlayerRatingChartDTO {
     /** List of data points used to construct the chart */
-    chartData?: PlayerRatingChartDataPointDTO[][];
+    chartData!: PlayerRatingChartDataPointDTO[][];
 
     constructor(data?: IPlayerRatingChartDTO) {
         if (data) {
@@ -6237,6 +8647,9 @@ export class PlayerRatingChartDTO implements IPlayerRatingChartDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.chartData = [];
         }
     }
 
@@ -6271,13 +8684,13 @@ export class PlayerRatingChartDTO implements IPlayerRatingChartDTO {
 /** Represents data used to construct a rating delta chart for a player */
 export interface IPlayerRatingChartDTO {
     /** List of data points used to construct the chart */
-    chartData?: PlayerRatingChartDataPointDTO[][];
+    chartData: PlayerRatingChartDataPointDTO[][];
 }
 
 /** Represents a data point used to construct a rating chart for a player */
 export class PlayerRatingChartDataPointDTO implements IPlayerRatingChartDataPointDTO {
     /** Match name */
-    name?: string;
+    name!: string;
     /** Match id */
     matchId?: number | undefined;
     /** osu! match id */
@@ -6285,19 +8698,19 @@ export class PlayerRatingChartDataPointDTO implements IPlayerRatingChartDataPoin
     /** Match cost of the player */
     matchCost?: number | undefined;
     /** Rating of the player before this match occurred */
-    ratingBefore?: number;
+    ratingBefore!: number;
     /** Rating of the player after this match occurred */
-    ratingAfter?: number;
+    ratingAfter!: number;
     /** Volatility of the player before this match occurred */
-    volatilityBefore?: number;
+    volatilityBefore!: number;
     /** Volatility of the player after this match occurred */
-    volatilityAfter?: number;
+    volatilityAfter!: number;
     /** Difference in rating for the player after this match occurred */
-    readonly ratingChange?: number;
+    readonly ratingChange!: number;
     /** Difference in volatility for the player after this match occurred */
-    readonly volatilityChange?: number;
+    readonly volatilityChange!: number;
     /** Indicates whether this data point is from a rating change that occurred outside of a match (i.e. decay) */
-    isAdjustment?: boolean;
+    isAdjustment!: boolean;
     /** Match start time */
     timestamp?: Date | undefined;
 
@@ -6355,7 +8768,7 @@ export class PlayerRatingChartDataPointDTO implements IPlayerRatingChartDataPoin
 /** Represents a data point used to construct a rating chart for a player */
 export interface IPlayerRatingChartDataPointDTO {
     /** Match name */
-    name?: string;
+    name: string;
     /** Match id */
     matchId?: number | undefined;
     /** osu! match id */
@@ -6363,56 +8776,51 @@ export interface IPlayerRatingChartDataPointDTO {
     /** Match cost of the player */
     matchCost?: number | undefined;
     /** Rating of the player before this match occurred */
-    ratingBefore?: number;
+    ratingBefore: number;
     /** Rating of the player after this match occurred */
-    ratingAfter?: number;
+    ratingAfter: number;
     /** Volatility of the player before this match occurred */
-    volatilityBefore?: number;
+    volatilityBefore: number;
     /** Volatility of the player after this match occurred */
-    volatilityAfter?: number;
+    volatilityAfter: number;
     /** Difference in rating for the player after this match occurred */
-    ratingChange?: number;
+    ratingChange: number;
     /** Difference in volatility for the player after this match occurred */
-    volatilityChange?: number;
+    volatilityChange: number;
     /** Indicates whether this data point is from a rating change that occurred outside of a match (i.e. decay) */
-    isAdjustment?: boolean;
+    isAdjustment: boolean;
     /** Match start time */
     timestamp?: Date | undefined;
 }
 
-/** Describes tournament rating based information for a player in a ruleset with additional statistics */
-export class PlayerRatingStatsDTO implements IPlayerRatingStatsDTO {
-    ruleset?: Ruleset;
+/** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
+export class PlayerRatingDTO implements IPlayerRatingDTO {
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Rating */
-    rating?: number;
+    rating!: number;
     /** Rating volatility */
-    volatility?: number;
+    volatility!: number;
     /** Global rating percentile */
-    percentile?: number;
+    percentile!: number;
     /** Global rank */
-    globalRank?: number;
+    globalRank!: number;
     /** Country rank */
-    countryRank?: number;
+    countryRank!: number;
     /** Player id */
-    playerId?: number;
+    playerId!: number;
     /** A collection of adjustments that describe the changes resulting in the final rating */
-    adjustments?: RatingAdjustmentDTO[];
-    /** Total number of tournaments played */
-    tournamentsPlayed?: number;
-    /** Total number of matches played */
-    matchesPlayed?: number;
-    /** Match win rate */
-    winRate?: number;
-    rankProgress?: RankProgressDTO;
-    /** Denotes the current rating as being provisional */
-    isProvisional?: boolean;
+    adjustments!: RatingAdjustmentDTO[];
 
-    constructor(data?: IPlayerRatingStatsDTO) {
+    constructor(data?: IPlayerRatingDTO) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.adjustments = [];
         }
     }
 
@@ -6430,17 +8838,12 @@ export class PlayerRatingStatsDTO implements IPlayerRatingStatsDTO {
                 for (let item of _data["adjustments"])
                     this.adjustments!.push(RatingAdjustmentDTO.fromJS(item));
             }
-            this.tournamentsPlayed = _data["tournamentsPlayed"];
-            this.matchesPlayed = _data["matchesPlayed"];
-            this.winRate = _data["winRate"];
-            this.rankProgress = _data["rankProgress"] ? RankProgressDTO.fromJS(_data["rankProgress"]) : <any>undefined;
-            this.isProvisional = _data["isProvisional"];
         }
     }
 
-    static fromJS(data: any): PlayerRatingStatsDTO {
+    static fromJS(data: any): PlayerRatingDTO {
         data = typeof data === 'object' ? data : {};
-        let result = new PlayerRatingStatsDTO();
+        let result = new PlayerRatingDTO();
         result.init(data);
         return result;
     }
@@ -6459,49 +8862,100 @@ export class PlayerRatingStatsDTO implements IPlayerRatingStatsDTO {
             for (let item of this.adjustments)
                 data["adjustments"].push(item.toJSON());
         }
+        return data;
+    }
+}
+
+/** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
+export interface IPlayerRatingDTO {
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    /** Rating */
+    rating: number;
+    /** Rating volatility */
+    volatility: number;
+    /** Global rating percentile */
+    percentile: number;
+    /** Global rank */
+    globalRank: number;
+    /** Country rank */
+    countryRank: number;
+    /** Player id */
+    playerId: number;
+    /** A collection of adjustments that describe the changes resulting in the final rating */
+    adjustments: RatingAdjustmentDTO[];
+}
+
+/** Describes tournament rating based information for a player in a ruleset with additional statistics */
+export class PlayerRatingStatsDTO extends PlayerRatingDTO implements IPlayerRatingStatsDTO {
+    /** Total number of tournaments played */
+    tournamentsPlayed!: number;
+    /** Total number of matches played */
+    matchesPlayed!: number;
+    /** Match win rate */
+    winRate!: number;
+    /** Rating tier progress information */
+    rankProgress!: RankProgressDTO;
+    /** Denotes the current rating as being provisional */
+    isProvisional!: boolean;
+
+    constructor(data?: IPlayerRatingStatsDTO) {
+        super(data);
+        if (!data) {
+            this.rankProgress = new RankProgressDTO();
+        }
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.tournamentsPlayed = _data["tournamentsPlayed"];
+            this.matchesPlayed = _data["matchesPlayed"];
+            this.winRate = _data["winRate"];
+            this.rankProgress = _data["rankProgress"] ? RankProgressDTO.fromJS(_data["rankProgress"]) : new RankProgressDTO();
+            this.isProvisional = _data["isProvisional"];
+        }
+    }
+
+    static override fromJS(data: any): PlayerRatingStatsDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlayerRatingStatsDTO();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
         data["tournamentsPlayed"] = this.tournamentsPlayed;
         data["matchesPlayed"] = this.matchesPlayed;
         data["winRate"] = this.winRate;
         data["rankProgress"] = this.rankProgress ? this.rankProgress.toJSON() : <any>undefined;
         data["isProvisional"] = this.isProvisional;
+        super.toJSON(data);
         return data;
     }
 }
 
 /** Describes tournament rating based information for a player in a ruleset with additional statistics */
-export interface IPlayerRatingStatsDTO {
-    ruleset?: Ruleset;
-    /** Rating */
-    rating?: number;
-    /** Rating volatility */
-    volatility?: number;
-    /** Global rating percentile */
-    percentile?: number;
-    /** Global rank */
-    globalRank?: number;
-    /** Country rank */
-    countryRank?: number;
-    /** Player id */
-    playerId?: number;
-    /** A collection of adjustments that describe the changes resulting in the final rating */
-    adjustments?: RatingAdjustmentDTO[];
+export interface IPlayerRatingStatsDTO extends IPlayerRatingDTO {
     /** Total number of tournaments played */
-    tournamentsPlayed?: number;
+    tournamentsPlayed: number;
     /** Total number of matches played */
-    matchesPlayed?: number;
+    matchesPlayed: number;
     /** Match win rate */
-    winRate?: number;
-    rankProgress?: RankProgressDTO;
+    winRate: number;
+    /** Rating tier progress information */
+    rankProgress: RankProgressDTO;
     /** Denotes the current rating as being provisional */
-    isProvisional?: boolean;
+    isProvisional: boolean;
 }
 
 /** Represents a search result for a player for a given ruleset */
 export class PlayerSearchResultDTO implements IPlayerSearchResultDTO {
     /** Id of the player */
-    id?: number;
+    id!: number;
     /** osu! id of the player */
-    osuId?: number;
+    osuId!: number;
     /** Rating of the player for the given ruleset */
     rating?: number | undefined;
     /** Current global rank of the player for the given ruleset */
@@ -6511,7 +8965,7 @@ export class PlayerSearchResultDTO implements IPlayerSearchResultDTO {
     /** osu! username of the player */
     username?: string | undefined;
     /** Link to an osu! thumbnail for the player */
-    thumbnail?: string;
+    thumbnail!: string;
 
     constructor(data?: IPlayerSearchResultDTO) {
         if (data) {
@@ -6557,9 +9011,9 @@ export class PlayerSearchResultDTO implements IPlayerSearchResultDTO {
 /** Represents a search result for a player for a given ruleset */
 export interface IPlayerSearchResultDTO {
     /** Id of the player */
-    id?: number;
+    id: number;
     /** osu! id of the player */
-    osuId?: number;
+    osuId: number;
     /** Rating of the player for the given ruleset */
     rating?: number | undefined;
     /** Current global rank of the player for the given ruleset */
@@ -6569,22 +9023,29 @@ export interface IPlayerSearchResultDTO {
     /** osu! username of the player */
     username?: string | undefined;
     /** Link to an osu! thumbnail for the player */
-    thumbnail?: string;
+    thumbnail: string;
 }
 
 /** Represents a collection of statistics for a player in a ruleset */
 export class PlayerStatsDTO implements IPlayerStatsDTO {
-    playerInfo?: PlayerCompactDTO;
-    ruleset?: Ruleset;
-    rating?: PlayerRatingStatsDTO;
-    matchStats?: AggregatePlayerMatchStatsDTO;
-    modStats?: PlayerModStatsDTO;
-    tournamentStats?: PlayerTournamentStatsDTO;
+    /** Player info */
+    playerInfo!: PlayerCompactDTO;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
+    /** Base stats for the player */
+    rating?: PlayerRatingStatsDTO | undefined;
+    /** Match stats for the player */
+    matchStats?: AggregatePlayerMatchStatsDTO | undefined;
+    /** Mod stats for the player */
+    modStats?: PlayerModStatsDTO | undefined;
+    /** Tournament participation and performance stats for the player */
+    tournamentStats?: PlayerTournamentStatsDTO | undefined;
     /** List of frequencies of the player's teammates */
     frequentTeammates?: PlayerFrequencyDTO[] | undefined;
     /** List of frequencies of the player's opponents */
     frequentOpponents?: PlayerFrequencyDTO[] | undefined;
-    ratingChart?: PlayerRatingChartDTO;
+    /** Rating chart for the player */
+    ratingChart?: PlayerRatingChartDTO | undefined;
 
     constructor(data?: IPlayerStatsDTO) {
         if (data) {
@@ -6593,11 +9054,14 @@ export class PlayerStatsDTO implements IPlayerStatsDTO {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.playerInfo = new PlayerCompactDTO();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
-            this.playerInfo = _data["playerInfo"] ? PlayerCompactDTO.fromJS(_data["playerInfo"]) : <any>undefined;
+            this.playerInfo = _data["playerInfo"] ? PlayerCompactDTO.fromJS(_data["playerInfo"]) : new PlayerCompactDTO();
             this.ruleset = _data["ruleset"];
             this.rating = _data["rating"] ? PlayerRatingStatsDTO.fromJS(_data["rating"]) : <any>undefined;
             this.matchStats = _data["matchStats"] ? AggregatePlayerMatchStatsDTO.fromJS(_data["matchStats"]) : <any>undefined;
@@ -6649,17 +9113,24 @@ export class PlayerStatsDTO implements IPlayerStatsDTO {
 
 /** Represents a collection of statistics for a player in a ruleset */
 export interface IPlayerStatsDTO {
-    playerInfo?: PlayerCompactDTO;
-    ruleset?: Ruleset;
-    rating?: PlayerRatingStatsDTO;
-    matchStats?: AggregatePlayerMatchStatsDTO;
-    modStats?: PlayerModStatsDTO;
-    tournamentStats?: PlayerTournamentStatsDTO;
+    /** Player info */
+    playerInfo: PlayerCompactDTO;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    /** Base stats for the player */
+    rating?: PlayerRatingStatsDTO | undefined;
+    /** Match stats for the player */
+    matchStats?: AggregatePlayerMatchStatsDTO | undefined;
+    /** Mod stats for the player */
+    modStats?: PlayerModStatsDTO | undefined;
+    /** Tournament participation and performance stats for the player */
+    tournamentStats?: PlayerTournamentStatsDTO | undefined;
     /** List of frequencies of the player's teammates */
     frequentTeammates?: PlayerFrequencyDTO[] | undefined;
     /** List of frequencies of the player's opponents */
     frequentOpponents?: PlayerFrequencyDTO[] | undefined;
-    ratingChart?: PlayerRatingChartDTO;
+    /** Rating chart for the player */
+    ratingChart?: PlayerRatingChartDTO | undefined;
 }
 
 /** Represents counts of participation in tournaments of differing team sizes */
@@ -6729,16 +9200,17 @@ export interface IPlayerTournamentLobbySizeCountDTO {
 /** Represents match cost data across an entire tournament for a player */
 export class PlayerTournamentMatchCostDTO implements IPlayerTournamentMatchCostDTO {
     /** Id of the player */
-    playerId?: number;
+    playerId!: number;
     /** Id of the tournament */
-    tournamentId?: number;
+    tournamentId!: number;
     /** Name of the tournament */
-    tournamentName?: string;
+    tournamentName!: string;
     /** Abbreviated name of the tournament */
-    tournamentAcronym?: string;
-    ruleset?: Ruleset;
+    tournamentAcronym!: string;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Average match cost across the tournament for the player */
-    matchCost?: number;
+    matchCost!: number;
 
     constructor(data?: IPlayerTournamentMatchCostDTO) {
         if (data) {
@@ -6782,25 +9254,27 @@ export class PlayerTournamentMatchCostDTO implements IPlayerTournamentMatchCostD
 /** Represents match cost data across an entire tournament for a player */
 export interface IPlayerTournamentMatchCostDTO {
     /** Id of the player */
-    playerId?: number;
+    playerId: number;
     /** Id of the tournament */
-    tournamentId?: number;
+    tournamentId: number;
     /** Name of the tournament */
-    tournamentName?: string;
+    tournamentName: string;
     /** Abbreviated name of the tournament */
-    tournamentAcronym?: string;
-    ruleset?: Ruleset;
+    tournamentAcronym: string;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Average match cost across the tournament for the player */
-    matchCost?: number;
+    matchCost: number;
 }
 
 /** Represents statistics for a player regarding tournament participation and performance */
 export class PlayerTournamentStatsDTO implements IPlayerTournamentStatsDTO {
-    lobbySizeCounts?: PlayerTournamentLobbySizeCountDTO;
+    /** Counts of participation in tournaments of differing team sizes for the player */
+    lobbySizeCounts!: PlayerTournamentLobbySizeCountDTO;
     /** List of best tournament performances for the player */
-    bestPerformances?: PlayerTournamentMatchCostDTO[];
+    bestPerformances!: PlayerTournamentMatchCostDTO[];
     /** List of recent tournament performances for the player */
-    recentPerformances?: PlayerTournamentMatchCostDTO[];
+    recentPerformances!: PlayerTournamentMatchCostDTO[];
 
     constructor(data?: IPlayerTournamentStatsDTO) {
         if (data) {
@@ -6809,11 +9283,16 @@ export class PlayerTournamentStatsDTO implements IPlayerTournamentStatsDTO {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.lobbySizeCounts = new PlayerTournamentLobbySizeCountDTO();
+            this.bestPerformances = [];
+            this.recentPerformances = [];
+        }
     }
 
     init(_data?: any) {
         if (_data) {
-            this.lobbySizeCounts = _data["lobbySizeCounts"] ? PlayerTournamentLobbySizeCountDTO.fromJS(_data["lobbySizeCounts"]) : <any>undefined;
+            this.lobbySizeCounts = _data["lobbySizeCounts"] ? PlayerTournamentLobbySizeCountDTO.fromJS(_data["lobbySizeCounts"]) : new PlayerTournamentLobbySizeCountDTO();
             if (Array.isArray(_data["bestPerformances"])) {
                 this.bestPerformances = [] as any;
                 for (let item of _data["bestPerformances"])
@@ -6853,87 +9332,24 @@ export class PlayerTournamentStatsDTO implements IPlayerTournamentStatsDTO {
 
 /** Represents statistics for a player regarding tournament participation and performance */
 export interface IPlayerTournamentStatsDTO {
-    lobbySizeCounts?: PlayerTournamentLobbySizeCountDTO;
+    /** Counts of participation in tournaments of differing team sizes for the player */
+    lobbySizeCounts: PlayerTournamentLobbySizeCountDTO;
     /** List of best tournament performances for the player */
-    bestPerformances?: PlayerTournamentMatchCostDTO[];
+    bestPerformances: PlayerTournamentMatchCostDTO[];
     /** List of recent tournament performances for the player */
-    recentPerformances?: PlayerTournamentMatchCostDTO[];
-}
-
-export class ProblemDetails implements IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
-
-    constructor(data?: IProblemDetails) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.type = _data["type"];
-            this.title = _data["title"];
-            this.status = _data["status"];
-            this.detail = _data["detail"];
-            this.instance = _data["instance"];
-        }
-    }
-
-    static fromJS(data: any): ProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new ProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["type"] = this.type;
-        data["title"] = this.title;
-        data["status"] = this.status;
-        data["detail"] = this.detail;
-        data["instance"] = this.instance;
-        return data;
-    }
-}
-
-export interface IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
+    recentPerformances: PlayerTournamentMatchCostDTO[];
 }
 
 /** Represents rating tier progress data */
 export class RankProgressDTO implements IRankProgressDTO {
     /** Current tier */
-    currentTier?: string;
+    currentTier!: string;
     /** Current sub tier */
     currentSubTier?: number | undefined;
     /** Rating required to reach next sub tier */
-    ratingForNextTier?: number;
+    ratingForNextTier!: number;
     /** Rating required to reach next major tier */
-    ratingForNextMajorTier?: number;
+    ratingForNextMajorTier!: number;
     /** Next major tier following current tier */
     nextMajorTier?: string | undefined;
     /** Progress to the next sub tier as a percentage */
@@ -6985,13 +9401,13 @@ export class RankProgressDTO implements IRankProgressDTO {
 /** Represents rating tier progress data */
 export interface IRankProgressDTO {
     /** Current tier */
-    currentTier?: string;
+    currentTier: string;
     /** Current sub tier */
     currentSubTier?: number | undefined;
     /** Rating required to reach next sub tier */
-    ratingForNextTier?: number;
+    ratingForNextTier: number;
     /** Rating required to reach next major tier */
-    ratingForNextMajorTier?: number;
+    ratingForNextMajorTier: number;
     /** Next major tier following current tier */
     nextMajorTier?: string | undefined;
     /** Progress to the next sub tier as a percentage */
@@ -7000,69 +9416,24 @@ export interface IRankProgressDTO {
     majorTierFillPercentage?: number | undefined;
 }
 
-/** Represents values used to override the default rate limit configuration */
-export class RateLimitOverrides implements IRateLimitOverrides {
-    /** The number of requests granted per window */
-    permitLimit?: number | undefined;
-    /** The length of the window in seconds */
-    window?: number | undefined;
-
-    constructor(data?: IRateLimitOverrides) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.permitLimit = _data["permitLimit"];
-            this.window = _data["window"];
-        }
-    }
-
-    static fromJS(data: any): RateLimitOverrides {
-        data = typeof data === 'object' ? data : {};
-        let result = new RateLimitOverrides();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["permitLimit"] = this.permitLimit;
-        data["window"] = this.window;
-        return data;
-    }
-}
-
-/** Represents values used to override the default rate limit configuration */
-export interface IRateLimitOverrides {
-    /** The number of requests granted per window */
-    permitLimit?: number | undefined;
-    /** The length of the window in seconds */
-    window?: number | undefined;
-}
-
 /** Describes a single change to a PlayerRating */
 export class RatingAdjustmentDTO implements IRatingAdjustmentDTO {
-    adjustmentType?: RatingAdjustmentType;
+    /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
+    adjustmentType!: RatingAdjustmentType;
     /** Timestamp of when the adjustment was applied */
-    timestamp?: Date;
+    timestamp!: Date;
     /** Rating before the adjustment */
-    ratingBefore?: number;
+    ratingBefore!: number;
     /** Rating after the adjustment */
-    ratingAfter?: number;
+    ratingAfter!: number;
     /** Total change in rating */
-    ratingDelta?: number;
+    ratingDelta!: number;
     /** Rating volatility before the adjustment */
-    volatilityBefore?: number;
+    volatilityBefore!: number;
     /** Rating volatility after the adjustment */
-    volatilityAfter?: number;
+    volatilityAfter!: number;
     /** Total change in rating volatility */
-    volatilityDelta?: number;
+    volatilityDelta!: number;
     /** Id of the match the adjustment was created for if available */
     matchId?: number | undefined;
 
@@ -7113,21 +9484,22 @@ export class RatingAdjustmentDTO implements IRatingAdjustmentDTO {
 
 /** Describes a single change to a PlayerRating */
 export interface IRatingAdjustmentDTO {
-    adjustmentType?: RatingAdjustmentType;
+    /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
+    adjustmentType: RatingAdjustmentType;
     /** Timestamp of when the adjustment was applied */
-    timestamp?: Date;
+    timestamp: Date;
     /** Rating before the adjustment */
-    ratingBefore?: number;
+    ratingBefore: number;
     /** Rating after the adjustment */
-    ratingAfter?: number;
+    ratingAfter: number;
     /** Total change in rating */
-    ratingDelta?: number;
+    ratingDelta: number;
     /** Rating volatility before the adjustment */
-    volatilityBefore?: number;
+    volatilityBefore: number;
     /** Rating volatility after the adjustment */
-    volatilityAfter?: number;
+    volatilityAfter: number;
     /** Total change in rating volatility */
-    volatilityDelta?: number;
+    volatilityDelta: number;
     /** Id of the match the adjustment was created for if available */
     matchId?: number | undefined;
 }
@@ -7150,8 +9522,12 @@ export enum Ruleset {
     Taiko = 1,
     /** osu! Catch (aka Fruits) */
     Catch = 2,
-    /** osu! Mania (Encompasses all of the osu!mania ruleset and represents a ruleset that has
-not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k) */
+    /**
+    * osu! Mania
+	* 
+	* Encompasses all of the osu!mania ruleset and represents a ruleset that has
+	* not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k
+    */
     ManiaOther = 3,
     /** osu! Mania 4k variant */
     Mania4k = 4,
@@ -7163,8 +9539,10 @@ not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enu
 export enum ScoreProcessingStatus {
     /** The Database.Entities.GameScore needs automation checks */
     NeedsAutomationChecks = 0,
-    /** The Database.Entities.GameScore is awaiting verification from a
-Database.Entities.User with verifier permission */
+    /**
+    * The Database.Entities.GameScore is awaiting verification from a
+	* Database.Entities.User with verifier permission
+    */
     NeedsVerification = 1,
     /** The Database.Entities.GameScore has completed all processing steps */
     Done = 2,
@@ -7203,11 +9581,11 @@ export enum ScoringType {
 /** Represents a collection of search results */
 export class SearchResponseCollectionDTO implements ISearchResponseCollectionDTO {
     /** A collection of search results for tournaments matching the search query */
-    tournaments?: TournamentSearchResultDTO[];
+    tournaments!: TournamentSearchResultDTO[];
     /** A collection of search results for matches matching the search query */
-    matches?: MatchSearchResultDTO[];
+    matches!: MatchSearchResultDTO[];
     /** A collection of search results for players matching the search query */
-    players?: PlayerSearchResultDTO[];
+    players!: PlayerSearchResultDTO[];
 
     constructor(data?: ISearchResponseCollectionDTO) {
         if (data) {
@@ -7215,6 +9593,11 @@ export class SearchResponseCollectionDTO implements ISearchResponseCollectionDTO
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.tournaments = [];
+            this.matches = [];
+            this.players = [];
         }
     }
 
@@ -7269,11 +9652,11 @@ export class SearchResponseCollectionDTO implements ISearchResponseCollectionDTO
 /** Represents a collection of search results */
 export interface ISearchResponseCollectionDTO {
     /** A collection of search results for tournaments matching the search query */
-    tournaments?: TournamentSearchResultDTO[];
+    tournaments: TournamentSearchResultDTO[];
     /** A collection of search results for matches matching the search query */
-    matches?: MatchSearchResultDTO[];
+    matches: MatchSearchResultDTO[];
     /** A collection of search results for players matching the search query */
-    players?: PlayerSearchResultDTO[];
+    players: PlayerSearchResultDTO[];
 }
 
 /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
@@ -7290,7 +9673,11 @@ export enum Team {
 export enum TeamType {
     /** Free for all */
     HeadToHead = 0,
-    /** Free for all (Tag format) (All players play tag on the same beatmap) */
+    /**
+    * Free for all (Tag format)
+	* 
+	* All players play tag on the same beatmap
+    */
     TagCoop = 1,
     /** Team red vs team blue */
     TeamVs = 2,
@@ -7298,28 +9685,38 @@ export enum TeamType {
     TagTeamVs = 3,
 }
 
+/** Represents a tournament with minimal data */
 export class TournamentCompactDTO implements ITournamentCompactDTO {
-    /** The tournament id */
-    id?: number;
-    /** The tournament name */
-    name?: string;
-    abbreviation?: string;
-    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-    forumUrl?: string;
-    /** Lowest rank a player can be to participate */
-    rankRangeLowerBound?: number;
-    ruleset?: Ruleset;
-    /** Expected in-match team size */
-    lobbySize?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
+    /** Id */
+    id!: number;
     /** The timestamp of submission */
-    created?: Date;
+    created!: Date;
+    /** Full name */
+    name!: string;
+    abbreviation!: string;
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
+    forumUrl!: string;
+    /** Lowest rank a player can be to participate */
+    rankRangeLowerBound!: number;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
+    /** Expected in-match team size */
+    lobbySize!: number;
     /** The start date of the first match */
-    startTime?: Date;
+    startTime!: Date;
     /** The end date of the last match */
-    endTime?: Date;
+    endTime!: Date;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus!: VerificationStatus;
+    /** The status of a Database.Entities.Tournament in the processing flow */
+    processingStatus!: TournamentProcessingStatus;
+    /** The reason why a Database.Entities.Tournament is rejected */
+    rejectionReason!: TournamentRejectionReason;
+    /** The user that submitted the tournament */
+    submittedByUser?: UserCompactDTO | undefined;
+    /** The user that verified the tournament */
+    verifiedByUser?: UserCompactDTO | undefined;
 
     constructor(data?: ITournamentCompactDTO) {
         if (data) {
@@ -7333,18 +9730,20 @@ export class TournamentCompactDTO implements ITournamentCompactDTO {
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
             this.name = _data["name"];
             this.abbreviation = _data["abbreviation"];
             this.forumUrl = _data["forumUrl"];
             this.rankRangeLowerBound = _data["rankRangeLowerBound"];
             this.ruleset = _data["ruleset"];
             this.lobbySize = _data["lobbySize"];
+            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
+            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
             this.verificationStatus = _data["verificationStatus"];
             this.processingStatus = _data["processingStatus"];
             this.rejectionReason = _data["rejectionReason"];
-            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
-            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
-            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
+            this.submittedByUser = _data["submittedByUser"] ? UserCompactDTO.fromJS(_data["submittedByUser"]) : <any>undefined;
+            this.verifiedByUser = _data["verifiedByUser"] ? UserCompactDTO.fromJS(_data["verifiedByUser"]) : <any>undefined;
         }
     }
 
@@ -7358,75 +9757,82 @@ export class TournamentCompactDTO implements ITournamentCompactDTO {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
+        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
         data["name"] = this.name;
         data["abbreviation"] = this.abbreviation;
         data["forumUrl"] = this.forumUrl;
         data["rankRangeLowerBound"] = this.rankRangeLowerBound;
         data["ruleset"] = this.ruleset;
         data["lobbySize"] = this.lobbySize;
+        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
+        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
         data["verificationStatus"] = this.verificationStatus;
         data["processingStatus"] = this.processingStatus;
         data["rejectionReason"] = this.rejectionReason;
-        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
-        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
-        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
+        data["submittedByUser"] = this.submittedByUser ? this.submittedByUser.toJSON() : <any>undefined;
+        data["verifiedByUser"] = this.verifiedByUser ? this.verifiedByUser.toJSON() : <any>undefined;
         return data;
     }
 }
 
+/** Represents a tournament with minimal data */
 export interface ITournamentCompactDTO {
-    /** The tournament id */
-    id?: number;
-    /** The tournament name */
-    name?: string;
-    abbreviation?: string;
-    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-    forumUrl?: string;
-    /** Lowest rank a player can be to participate */
-    rankRangeLowerBound?: number;
-    ruleset?: Ruleset;
-    /** Expected in-match team size */
-    lobbySize?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
+    /** Id */
+    id: number;
     /** The timestamp of submission */
-    created?: Date;
+    created: Date;
+    /** Full name */
+    name: string;
+    abbreviation: string;
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
+    forumUrl: string;
+    /** Lowest rank a player can be to participate */
+    rankRangeLowerBound: number;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    /** Expected in-match team size */
+    lobbySize: number;
     /** The start date of the first match */
-    startTime?: Date;
+    startTime: Date;
     /** The end date of the last match */
-    endTime?: Date;
+    endTime: Date;
+    /** The verification status of a Database.Entities.Tournament,
+Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+    verificationStatus: VerificationStatus;
+    /** The status of a Database.Entities.Tournament in the processing flow */
+    processingStatus: TournamentProcessingStatus;
+    /** The reason why a Database.Entities.Tournament is rejected */
+    rejectionReason: TournamentRejectionReason;
+    /** The user that submitted the tournament */
+    submittedByUser?: UserCompactDTO | undefined;
+    /** The user that verified the tournament */
+    verifiedByUser?: UserCompactDTO | undefined;
 }
 
 /** Represents a created tournament */
-export class TournamentCreatedResultDTO implements ITournamentCreatedResultDTO {
-    /** Id of the resource */
-    id?: number;
-    /** URL of where the new resource can be accessed */
-    location?: string;
-    createdAtRouteValues?: CreatedAtRouteValues;
+export class TournamentCreatedResultDTO extends CreatedResultBaseDTO implements ITournamentCreatedResultDTO {
+    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
+    readonly createdAtRouteValues!: CreatedAtRouteValues;
     /** The name of the tournament */
-    name?: string;
+    name!: string;
     /** Acronym / shortened name of the tournament
 <example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation?: string;
+    abbreviation!: string;
     /** List of created matches */
-    matches?: MatchCreatedResultDTO[];
+    matches!: MatchCreatedResultDTO[];
 
     constructor(data?: ITournamentCreatedResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
+        super(data);
+        if (!data) {
+            this.createdAtRouteValues = new CreatedAtRouteValues();
+            this.matches = [];
         }
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.id = _data["id"];
-            this.location = _data["location"];
-            this.createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : <any>undefined;
+            (<any>this).createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : new CreatedAtRouteValues();
             this.name = _data["name"];
             this.abbreviation = _data["abbreviation"];
             if (Array.isArray(_data["matches"])) {
@@ -7437,17 +9843,15 @@ export class TournamentCreatedResultDTO implements ITournamentCreatedResultDTO {
         }
     }
 
-    static fromJS(data: any): TournamentCreatedResultDTO {
+    static override fromJS(data: any): TournamentCreatedResultDTO {
         data = typeof data === 'object' ? data : {};
         let result = new TournamentCreatedResultDTO();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["location"] = this.location;
         data["createdAtRouteValues"] = this.createdAtRouteValues ? this.createdAtRouteValues.toJSON() : <any>undefined;
         data["name"] = this.name;
         data["abbreviation"] = this.abbreviation;
@@ -7456,78 +9860,42 @@ export class TournamentCreatedResultDTO implements ITournamentCreatedResultDTO {
             for (let item of this.matches)
                 data["matches"].push(item.toJSON());
         }
+        super.toJSON(data);
         return data;
     }
 }
 
 /** Represents a created tournament */
-export interface ITournamentCreatedResultDTO {
-    /** Id of the resource */
-    id?: number;
-    /** URL of where the new resource can be accessed */
-    location?: string;
-    createdAtRouteValues?: CreatedAtRouteValues;
+export interface ITournamentCreatedResultDTO extends ICreatedResultBaseDTO {
+    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
+    createdAtRouteValues: CreatedAtRouteValues;
     /** The name of the tournament */
-    name?: string;
+    name: string;
     /** Acronym / shortened name of the tournament
 <example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation?: string;
+    abbreviation: string;
     /** List of created matches */
-    matches?: MatchCreatedResultDTO[];
+    matches: MatchCreatedResultDTO[];
 }
 
-/** Represents a tournament */
-export class TournamentDTO implements ITournamentDTO {
-    /** The tournament id */
-    id?: number;
-    /** The tournament name */
-    name?: string;
-    abbreviation?: string;
-    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-    forumUrl?: string;
-    /** Lowest rank a player can be to participate */
-    rankRangeLowerBound?: number;
-    ruleset?: Ruleset;
-    /** Expected in-match team size */
-    lobbySize?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
-    /** The timestamp of submission */
-    created?: Date;
-    /** The start date of the first match */
-    startTime?: Date;
-    /** The end date of the last match */
-    endTime?: Date;
+/** Represents a tournament including optional data */
+export class TournamentDTO extends TournamentCompactDTO implements ITournamentDTO {
     /** All associated match data (Will be empty for bulk requests such as List) */
-    matches?: MatchDTO[];
+    matches!: MatchDTO[];
     /** All admin notes associated with the tournament */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes!: AdminNoteDTO[];
 
     constructor(data?: ITournamentDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
+        super(data);
+        if (!data) {
+            this.matches = [];
+            this.adminNotes = [];
         }
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.abbreviation = _data["abbreviation"];
-            this.forumUrl = _data["forumUrl"];
-            this.rankRangeLowerBound = _data["rankRangeLowerBound"];
-            this.ruleset = _data["ruleset"];
-            this.lobbySize = _data["lobbySize"];
-            this.verificationStatus = _data["verificationStatus"];
-            this.processingStatus = _data["processingStatus"];
-            this.rejectionReason = _data["rejectionReason"];
-            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
-            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
-            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
             if (Array.isArray(_data["matches"])) {
                 this.matches = [] as any;
                 for (let item of _data["matches"])
@@ -7541,28 +9909,15 @@ export class TournamentDTO implements ITournamentDTO {
         }
     }
 
-    static fromJS(data: any): TournamentDTO {
+    static override fromJS(data: any): TournamentDTO {
         data = typeof data === 'object' ? data : {};
         let result = new TournamentDTO();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["abbreviation"] = this.abbreviation;
-        data["forumUrl"] = this.forumUrl;
-        data["rankRangeLowerBound"] = this.rankRangeLowerBound;
-        data["ruleset"] = this.ruleset;
-        data["lobbySize"] = this.lobbySize;
-        data["verificationStatus"] = this.verificationStatus;
-        data["processingStatus"] = this.processingStatus;
-        data["rejectionReason"] = this.rejectionReason;
-        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
-        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
-        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
         if (Array.isArray(this.matches)) {
             data["matches"] = [];
             for (let item of this.matches)
@@ -7573,57 +9928,57 @@ export class TournamentDTO implements ITournamentDTO {
             for (let item of this.adminNotes)
                 data["adminNotes"].push(item.toJSON());
         }
+        super.toJSON(data);
         return data;
     }
 }
 
-/** Represents a tournament */
-export interface ITournamentDTO {
-    /** The tournament id */
-    id?: number;
-    /** The tournament name */
-    name?: string;
-    abbreviation?: string;
-    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-    forumUrl?: string;
-    /** Lowest rank a player can be to participate */
-    rankRangeLowerBound?: number;
-    ruleset?: Ruleset;
-    /** Expected in-match team size */
-    lobbySize?: number;
-    verificationStatus?: VerificationStatus;
-    processingStatus?: TournamentProcessingStatus;
-    rejectionReason?: TournamentRejectionReason;
-    /** The timestamp of submission */
-    created?: Date;
-    /** The start date of the first match */
-    startTime?: Date;
-    /** The end date of the last match */
-    endTime?: Date;
+/** Represents a tournament including optional data */
+export interface ITournamentDTO extends ITournamentCompactDTO {
     /** All associated match data (Will be empty for bulk requests such as List) */
-    matches?: MatchDTO[];
+    matches: MatchDTO[];
     /** All admin notes associated with the tournament */
-    adminNotes?: AdminNoteDTO[];
+    adminNotes: AdminNoteDTO[];
 }
 
 /** The status of a Database.Entities.Tournament in the processing flow */
 export enum TournamentProcessingStatus {
-    /** The Database.Entities.Tournament is awaiting approval from a
-Database.Entities.User with verifier permission (Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament
-will advance through the processing flow until approved.) */
+    /**
+    * The Database.Entities.Tournament is awaiting approval from a
+	* Database.Entities.User with verifier permission
+	* 
+	* Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament
+	* will advance through the processing flow until approved.
+    */
     NeedsApproval = 0,
-    /** The Database.Entities.Tournament has Database.Entities.Matches with a
-Database.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData */
+    /**
+    * The Database.Entities.Tournament has Database.Entities.Matches with a
+	* Database.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData
+    */
     NeedsMatchData = 1,
     /** The Database.Entities.Tournament needs automation checks */
     NeedsAutomationChecks = 2,
-    /** The Database.Entities.Tournament is awaiting verification from a
-Database.Entities.User with verifier permission */
+    /**
+    * The Database.Entities.Tournament is awaiting verification from a
+	* Database.Entities.User with verifier permission
+    */
     NeedsVerification = 3,
     /** The Database.Entities.Tournament needs stat calculation */
     NeedsStatCalculation = 4,
     /** The tournament has completed all processing steps */
     Done = 5,
+}
+
+/** Defines how to sort the results of fetching all tournaments */
+export enum TournamentQuerySortType {
+    /** Sort by primary key */
+    Id = 0,
+    /** Sort by start date */
+    StartTime = 1,
+    /** Sort by name */
+    Name = 2,
+    /** Sort by created date */
+    Created = 3,
 }
 
 /**
@@ -7634,38 +9989,59 @@ Database.Entities.User with verifier permission */
 export enum TournamentRejectionReason {
     /** The Database.Entities.Tournament is not rejected */
     None = 0,
-    /** The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified */
+    /**
+    * The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a
+	* Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified
+    */
     NoVerifiedMatches = 1,
-    /** The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or
-Database.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total */
+    /**
+    * The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a
+	* Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or
+	* Database.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
+    */
     NotEnoughVerifiedMatches = 2,
-    /** The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2 (Only assigned via a "rejected submission". <br />
-Covers cases such as gimmicky win conditions, mixed win conditions, etc) */
+    /**
+    * The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2
+	* 
+	* Only assigned via a "rejected submission". <br />
+	* Covers cases such as gimmicky win conditions, mixed win conditions, etc
+    */
     AbnormalWinCondition = 4,
-    /** The Database.Entities.Tournament's format is not suitable for ratings (Only assigned via a "rejected submission". <br />
-Covers cases such as excessive gimmicks, relax, multiple modes, etc) */
+    /**
+    * The Database.Entities.Tournament's format is not suitable for ratings
+	* 
+	* Only assigned via a "rejected submission". <br />
+	* Covers cases such as excessive gimmicks, relax, multiple modes, etc
+    */
     AbnormalFormat = 8,
-    /** The Database.Entities.Tournament's lobby sizes are not consistent. (Only assigned via a "rejected submission". <br />
-Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc) */
+    /**
+    * The Database.Entities.Tournament's lobby sizes are not consistent.
+	* 
+	* Only assigned via a "rejected submission". <br />
+	* Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc
+    */
     VaryingLobbySize = 16,
-    /** The Database.Entities.Tournament's data is incomplete or not recoverable
-Covers cases where match links are lost to time, private,
-main sheet is deleted, missing rounds, etc. (Only assigned via a "rejected submission". <br />
-Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc) */
+    /**
+    * The Database.Entities.Tournament's data is incomplete or not recoverable
+	* Covers cases where match links are lost to time, private,
+	* main sheet is deleted, missing rounds, etc.
+	* 
+	* Only assigned via a "rejected submission". <br />
+	* Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc
+    */
     IncompleteData = 32,
 }
 
 /** Represents a search result for a tournament */
 export class TournamentSearchResultDTO implements ITournamentSearchResultDTO {
     /** Id of the tournament */
-    id?: number;
-    ruleset?: Ruleset;
+    id!: number;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Expected in-match team size */
-    lobbySize?: number;
+    lobbySize!: number;
     /** Name of the tournament */
-    name?: string;
+    name!: string;
 
     constructor(data?: ITournamentSearchResultDTO) {
         if (data) {
@@ -7705,33 +10081,37 @@ export class TournamentSearchResultDTO implements ITournamentSearchResultDTO {
 /** Represents a search result for a tournament */
 export interface ITournamentSearchResultDTO {
     /** Id of the tournament */
-    id?: number;
-    ruleset?: Ruleset;
+    id: number;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Expected in-match team size */
-    lobbySize?: number;
+    lobbySize: number;
     /** Name of the tournament */
-    name?: string;
+    name: string;
 }
 
 /** An incoming tournament submission */
 export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
     /** The name of the tournament */
-    name?: string;
+    name!: string;
     /** Acronym / shortened name of the tournament
 <example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation?: string;
+    abbreviation!: string;
     /** The osu! forum post advertising this tournament */
-    forumUrl?: string;
+    forumUrl!: string;
     /** Lowest rank a player can be to participate in the tournament */
-    rankRangeLowerBound?: number;
+    rankRangeLowerBound!: number;
     /** Expected in-match team size */
-    lobbySize?: number;
-    ruleset?: Ruleset;
-    rejectionReason?: TournamentRejectionReason;
+    lobbySize!: number;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
+    /** Optional rejection reason. If set, the created tournament and all matches will be rejected
+for this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users) */
+    rejectionReason?: TournamentRejectionReason | undefined;
     /** List of osu! match ids */
-    ids?: number[];
+    ids!: number[];
     /** A collection of pooled osu! beatmap ids */
-    beatmapIds?: number[];
+    beatmapIds!: number[];
 
     constructor(data?: ITournamentSubmissionDTO) {
         if (data) {
@@ -7739,6 +10119,10 @@ export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
                 if (data.hasOwnProperty(property))
                     (<any>this)[property] = (<any>data)[property];
             }
+        }
+        if (!data) {
+            this.ids = [];
+            this.beatmapIds = [];
         }
     }
 
@@ -7797,31 +10181,35 @@ export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
 /** An incoming tournament submission */
 export interface ITournamentSubmissionDTO {
     /** The name of the tournament */
-    name?: string;
+    name: string;
     /** Acronym / shortened name of the tournament
 <example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation?: string;
+    abbreviation: string;
     /** The osu! forum post advertising this tournament */
-    forumUrl?: string;
+    forumUrl: string;
     /** Lowest rank a player can be to participate in the tournament */
-    rankRangeLowerBound?: number;
+    rankRangeLowerBound: number;
     /** Expected in-match team size */
-    lobbySize?: number;
-    ruleset?: Ruleset;
-    rejectionReason?: TournamentRejectionReason;
+    lobbySize: number;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
+    /** Optional rejection reason. If set, the created tournament and all matches will be rejected
+for this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users) */
+    rejectionReason?: TournamentRejectionReason | undefined;
     /** List of osu! match ids */
-    ids?: number[];
+    ids: number[];
     /** A collection of pooled osu! beatmap ids */
-    beatmapIds?: number[];
+    beatmapIds: number[];
 }
 
 /** Represents user information */
 export class UserCompactDTO implements IUserCompactDTO {
     /** Id */
-    id?: number;
+    id!: number;
     /** Timestamp of the user's last login to the o!TR website */
     lastLogin?: Date | undefined;
-    player?: PlayerCompactDTO;
+    /** The associated player */
+    player!: PlayerCompactDTO;
 
     constructor(data?: IUserCompactDTO) {
         if (data) {
@@ -7830,13 +10218,16 @@ export class UserCompactDTO implements IUserCompactDTO {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.player = new PlayerCompactDTO();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
             this.lastLogin = _data["lastLogin"] ? new Date(_data["lastLogin"].toString()) : <any>undefined;
-            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : <any>undefined;
+            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : new PlayerCompactDTO();
         }
     }
 
@@ -7859,85 +10250,74 @@ export class UserCompactDTO implements IUserCompactDTO {
 /** Represents user information */
 export interface IUserCompactDTO {
     /** Id */
-    id?: number;
+    id: number;
     /** Timestamp of the user's last login to the o!TR website */
     lastLogin?: Date | undefined;
-    player?: PlayerCompactDTO;
+    /** The associated player */
+    player: PlayerCompactDTO;
 }
 
 /** Represents user information including optional data */
-export class UserDTO implements IUserDTO {
-    /** Id */
-    id?: number;
-    /** Timestamp of the user's last login to the o!TR website */
-    lastLogin?: Date | undefined;
-    player?: PlayerCompactDTO;
+export class UserDTO extends UserCompactDTO implements IUserDTO {
     /** List of permissions granted to the user */
-    scopes?: string[];
-    settings?: UserSettingsDTO;
+    scopes!: string[];
+    /** Settings of the user */
+    settings!: UserSettingsDTO;
 
     constructor(data?: IUserDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
+        super(data);
+        if (!data) {
+            this.scopes = [];
+            this.settings = new UserSettingsDTO();
         }
     }
 
-    init(_data?: any) {
+    override init(_data?: any) {
+        super.init(_data);
         if (_data) {
-            this.id = _data["id"];
-            this.lastLogin = _data["lastLogin"] ? new Date(_data["lastLogin"].toString()) : <any>undefined;
-            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : <any>undefined;
             if (Array.isArray(_data["scopes"])) {
                 this.scopes = [] as any;
                 for (let item of _data["scopes"])
                     this.scopes!.push(item);
             }
-            this.settings = _data["settings"] ? UserSettingsDTO.fromJS(_data["settings"]) : <any>undefined;
+            this.settings = _data["settings"] ? UserSettingsDTO.fromJS(_data["settings"]) : new UserSettingsDTO();
         }
     }
 
-    static fromJS(data: any): UserDTO {
+    static override fromJS(data: any): UserDTO {
         data = typeof data === 'object' ? data : {};
         let result = new UserDTO();
         result.init(data);
         return result;
     }
 
-    toJSON(data?: any) {
+    override toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["lastLogin"] = this.lastLogin ? this.lastLogin.toISOString() : <any>undefined;
-        data["player"] = this.player ? this.player.toJSON() : <any>undefined;
         if (Array.isArray(this.scopes)) {
             data["scopes"] = [];
             for (let item of this.scopes)
                 data["scopes"].push(item);
         }
         data["settings"] = this.settings ? this.settings.toJSON() : <any>undefined;
+        super.toJSON(data);
         return data;
     }
 }
 
 /** Represents user information including optional data */
-export interface IUserDTO {
-    /** Id */
-    id?: number;
-    /** Timestamp of the user's last login to the o!TR website */
-    lastLogin?: Date | undefined;
-    player?: PlayerCompactDTO;
+export interface IUserDTO extends IUserCompactDTO {
     /** List of permissions granted to the user */
-    scopes?: string[];
-    settings?: UserSettingsDTO;
+    scopes: string[];
+    /** Settings of the user */
+    settings: UserSettingsDTO;
 }
 
 /** Represents user controlled settings for otr-web */
 export class UserSettingsDTO implements IUserSettingsDTO {
-    ruleset?: Ruleset;
+    /** Represents osu! play modes */
+    ruleset!: Ruleset;
     /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
-    rulesetIsControlled?: boolean;
+    rulesetIsControlled!: boolean;
 
     constructor(data?: IUserSettingsDTO) {
         if (data) {
@@ -7972,9 +10352,10 @@ export class UserSettingsDTO implements IUserSettingsDTO {
 
 /** Represents user controlled settings for otr-web */
 export interface IUserSettingsDTO {
-    ruleset?: Ruleset;
+    /** Represents osu! play modes */
+    ruleset: Ruleset;
     /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
-    rulesetIsControlled?: boolean;
+    rulesetIsControlled: boolean;
 }
 
 /** The verification status of a Database.Entities.Tournament, Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
@@ -8004,7 +10385,7 @@ export class OtrApiResponse<TResult> {
     }
 }
 
-export class OtrApiException extends Error {
+export class OtrApiError extends Error {
     override message: string;
     status: number;
     response: string;
@@ -8021,10 +10402,10 @@ export class OtrApiException extends Error {
         this.result = result;
     }
 
-    protected isOtrApiException = true;
+    protected isOtrApiError = true;
 
-    static isOtrApiException(obj: any): obj is OtrApiException {
-        return obj.isOtrApiException === true;
+    static isOtrApiError(obj: any): obj is OtrApiError {
+        return obj.isOtrApiError === true;
     }
 }
 
@@ -8032,7 +10413,11 @@ function throwException(message: string, status: number, response: string, heade
     if (result !== null && result !== undefined)
         throw result;
     else
-        throw new OtrApiException(message, status, response, headers, null);
+        throw new OtrApiError(message, status, response, headers, null);
+}
+
+function isAxiosError(obj: any): obj is AxiosError {
+    return obj && obj.isAxiosError === true;
 }
 
 /** Configuration required for o!TR API Wrappers */
@@ -8040,6 +10425,9 @@ export interface IOtrApiWrapperConfiguration {
   /** The base URL of the API */
   baseUrl: string;
 
-  /** Default headers to be included in every request */
-  headers: HeadersInit;
+  /** Defaults used to created the inner axios client */
+  clientConfiguration?: CreateAxiosDefaults;
+
+  /** Function to configure the inner axios client after creation . Called during creation of the wrapper */
+  postConfigureClientMethod?: (instance: AxiosInstance) => void;
 }

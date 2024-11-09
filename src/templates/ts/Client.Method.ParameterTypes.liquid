@@ -1,0 +1,18 @@
+{% for operation in Operations -%}
+{% if operation.Parameters.size > 0 -%}
+/**
+* Request parameters available for use when requesting {@link {{ Class }}.prototype.{{ operation.ActualOperationName }} | {{ operation.Path | replace: '{', '[' |  replace: '}', ']' }}}
+*/
+{% if ExportTypes %}export {% endif %}type {{ Class | remove: 'Wrapper' }}{{ operation.ActualOperationName | capitalize }}RequestParams = {
+{% for parameter in operation.Parameters -%}
+{% if parameter.HasDescriptionOrIsOptional -%}
+    /**
+    * {% if parameter.IsOptional -%}(optional) {% else %}(required) {% endif %}{{ parameter.Description | replace: "\n", "\n\t* " }}
+    */
+{% endif -%}
+    {{ parameter.VariableName }}{% if GenerateOptionalParameters and parameter.IsOptional %}?{% endif %}: {{ parameter.Type }}{{ parameter.TypePostfix }};
+{% endfor -%}
+}
+
+{% endif -%}
+{% endfor %}
