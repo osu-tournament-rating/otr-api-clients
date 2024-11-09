@@ -96,14 +96,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(BeatmapDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -170,14 +163,14 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a beatmap for the search key does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = BeatmapDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<BeatmapDTO>>(new OtrApiResponse<BeatmapDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -279,14 +272,14 @@ export class ClientsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If the provided id does not belong to a client", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = OAuthClientDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse<OAuthClientDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -381,15 +374,14 @@ export class FilteringWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
+            result400 = JSON.parse(resultData400);
             return throwException("Errors encountered during validation", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = FilteringResultDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(new OtrApiResponse<FilteringResultDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -557,21 +549,21 @@ export class GamesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -636,21 +628,14 @@ export class GamesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AdminNoteDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -724,21 +709,21 @@ export class GamesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -807,21 +792,21 @@ export class GamesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -891,22 +876,21 @@ export class GamesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If the provided id does not belong to a game", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
+            result400 = JSON.parse(resultData400);
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = GameDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse<GameDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1139,21 +1123,21 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1218,21 +1202,14 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AdminNoteDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1306,21 +1283,21 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1389,21 +1366,21 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1473,22 +1450,21 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If the provided id does not belong to a score", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
+            result400 = JSON.parse(resultData400);
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = GameScoreDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse<GameScoreDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1683,7 +1659,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = LeaderboardDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(new OtrApiResponse<LeaderboardDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -1939,21 +1915,21 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2018,21 +1994,14 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AdminNoteDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2106,21 +2075,21 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2189,21 +2158,21 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2331,7 +2300,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = MatchDTOPagedResultDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<MatchDTOPagedResultDTO>>(new OtrApiResponse<MatchDTOPagedResultDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2396,14 +2365,14 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a match does not exist for the given id", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = MatchDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2473,22 +2442,21 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If the provided id does not belong to a match", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
+            result400 = JSON.parse(resultData400);
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = MatchDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2727,7 +2695,7 @@ export class MeWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = UserDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2812,7 +2780,7 @@ export class MeWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = PlayerStatsDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -2881,7 +2849,7 @@ export class MeWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
@@ -2946,7 +2914,7 @@ export class MeWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
@@ -3068,14 +3036,14 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result401: any = null;
             let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
+            result401 = JSON.parse(resultData401);
             return throwException("If there was an error during authorization", status, _responseText, _headers, result401);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AccessCredentialsDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3142,14 +3110,14 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If there was an error during authorization", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AccessCredentialsDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3210,7 +3178,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = OAuthClientCreatedDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3275,14 +3243,14 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the given refresh token is invalid, or there was an error during authorization", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AccessCredentialsDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3433,21 +3401,21 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3512,21 +3480,14 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AdminNoteDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3600,21 +3561,21 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3683,21 +3644,21 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3762,7 +3723,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = PlayerCompactDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3858,7 +3819,7 @@ export class SearchWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = SearchResponseCollectionDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(new OtrApiResponse<SearchResponseCollectionDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -3994,14 +3955,14 @@ export class StatsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a player does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = PlayerStatsDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4067,16 +4028,7 @@ export class StatsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (resultData200) {
-                result200 = {} as any;
-                for (let key in resultData200) {
-                    if (resultData200.hasOwnProperty(key))
-                        (<any>result200)![key] = resultData200[key] !== undefined ? resultData200[key] : <any>null;
-                }
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<{ [key: string]: number; }>>(new OtrApiResponse<{ [key: string]: number; }>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4311,28 +4263,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result401: any = null;
             let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
+            result401 = JSON.parse(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4397,21 +4349,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AdminNoteDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4485,28 +4430,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result401: any = null;
             let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
+            result401 = JSON.parse(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4575,28 +4520,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result401: any = null;
             let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
+            result401 = JSON.parse(resultData401);
             return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
             let result403: any = null;
             let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
+            result403 = JSON.parse(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = AdminNoteDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4685,21 +4630,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(TournamentDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse<TournamentDTO[]>(status, _headers, result200));
 
         } else if (status === 401) {
             const _responseText = response.data;
             let result401: any = null;
             let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
+            result401 = JSON.parse(resultData401);
             return throwException("Unauthorized", status, _responseText, _headers, result401);
 
         } else if (status !== 200 && status !== 204) {
@@ -4765,14 +4703,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
 
         } else if (status === 201) {
             const _responseText = response.data;
             let result201: any = null;
             let resultData201  = _responseText;
-            result201 = TournamentCreatedResultDTO.fromJS(resultData201);
+            result201 = JSON.parse(resultData201);
             return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(new OtrApiResponse<TournamentCreatedResultDTO>(status, _headers, result201));
 
         } else if (status !== 200 && status !== 204) {
@@ -4842,14 +4780,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = TournamentDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -4919,22 +4857,21 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If the provided id does not belong to a tournament", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-                result400 = resultData400 !== undefined ? resultData400 : <any>null;
-    
+            result400 = JSON.parse(resultData400);
             return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = TournamentDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5064,21 +5001,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(MatchDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse<MatchDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5267,14 +5197,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = UserDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5344,21 +5274,21 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If any of the given scopes are invalid, or the update was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = UserDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5423,21 +5353,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(MatchSubmissionStatusDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(new OtrApiResponse<MatchSubmissionStatusDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5501,7 +5424,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
@@ -5577,21 +5500,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(OAuthClientDTO.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5662,14 +5578,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the deletion was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
@@ -5745,21 +5661,21 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the secret reset was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
-            result200 = OAuthClientCreatedDTO.fromJS(resultData200);
+            result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
@@ -5828,14 +5744,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
@@ -5903,14 +5819,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = JSON.parse(resultData404);
             return throwException("If a user does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = JSON.parse(resultData400);
             return throwException("If the operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
@@ -5926,53 +5842,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
 }
 
 /** Represents access credentials and their expiry */
-export class AccessCredentialsDTO implements IAccessCredentialsDTO {
-    /** Access token */
-    accessToken?: string | undefined;
-    /** Refresh token */
-    refreshToken?: string | undefined;
-    /** Lifetime of the access token in seconds */
-    accessExpiration?: number | undefined;
-    /** Lifetime of the refresh token in seconds */
-    refreshExpiration?: number | undefined;
-
-    constructor(data?: IAccessCredentialsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.accessToken = _data["accessToken"];
-            this.refreshToken = _data["refreshToken"];
-            this.accessExpiration = _data["accessExpiration"];
-            this.refreshExpiration = _data["refreshExpiration"];
-        }
-    }
-
-    static fromJS(data: any): AccessCredentialsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new AccessCredentialsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["accessToken"] = this.accessToken;
-        data["refreshToken"] = this.refreshToken;
-        data["accessExpiration"] = this.accessExpiration;
-        data["refreshExpiration"] = this.refreshExpiration;
-        return data;
-    }
-}
-
-/** Represents access credentials and their expiry */
-export interface IAccessCredentialsDTO {
+export interface AccessCredentialsDTO {
     /** Access token */
     accessToken?: string | undefined;
     /** Refresh token */
@@ -5984,64 +5854,7 @@ export interface IAccessCredentialsDTO {
 }
 
 /** Represents a note for an entity created by an admin */
-export class AdminNoteDTO implements IAdminNoteDTO {
-    /** The id of the admin note */
-    id!: number;
-    /** Timestamp of creation */
-    created!: Date;
-    /** Timestamp of the last update, if available */
-    updated?: Date | undefined;
-    /** Id of the parent entity */
-    referenceId!: number;
-    /** The admin user that created the note */
-    adminUser!: UserCompactDTO;
-    /** Content of the note */
-    note!: string;
-
-    constructor(data?: IAdminNoteDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.adminUser = new UserCompactDTO();
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
-            this.updated = _data["updated"] ? new Date(_data["updated"].toString()) : <any>undefined;
-            this.referenceId = _data["referenceId"];
-            this.adminUser = _data["adminUser"] ? UserCompactDTO.fromJS(_data["adminUser"]) : new UserCompactDTO();
-            this.note = _data["note"];
-        }
-    }
-
-    static fromJS(data: any): AdminNoteDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new AdminNoteDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
-        data["updated"] = this.updated ? this.updated.toISOString() : <any>undefined;
-        data["referenceId"] = this.referenceId;
-        data["adminUser"] = this.adminUser ? this.adminUser.toJSON() : <any>undefined;
-        data["note"] = this.note;
-        return data;
-    }
-}
-
-/** Represents a note for an entity created by an admin */
-export interface IAdminNoteDTO {
+export interface AdminNoteDTO {
     /** The id of the admin note */
     id: number;
     /** Timestamp of creation */
@@ -6057,123 +5870,7 @@ export interface IAdminNoteDTO {
 }
 
 /** Represents an aggregate of match statistics for a player during a period of time */
-export class AggregatePlayerMatchStatsDTO implements IAggregatePlayerMatchStatsDTO {
-    /** The player's average match cost during the period */
-    averageMatchCostAggregate!: number;
-    /** The peak rating achieved by the player during the period */
-    highestRating!: number;
-    /** The amount of rating gained from the start of the period to the end of the period */
-    ratingGained!: number;
-    /** The amount of games won during the period */
-    gamesWon!: number;
-    /** The amount of games lost during the period */
-    gamesLost!: number;
-    /** The amount of games played during the period */
-    gamesPlayed!: number;
-    /** The amount of matches won during the period */
-    matchesWon!: number;
-    /** The amount of matches lost during the period */
-    matchesLost!: number;
-    /** The amount of matches played during the period */
-    readonly matchesPlayed!: number;
-    /** A value between 0 and 1 representing the player's game win rate during the period */
-    readonly gameWinRate!: number;
-    /** A value between 0 and 1 representing the player's match win rate during the period */
-    readonly matchWinRate!: number;
-    /** The average rating of the player's teammates during the period. This average does not include the player's own rating */
-    averageTeammateRating?: number | undefined;
-    /** The average rating of the player's opponents during the period */
-    averageOpponentRating?: number | undefined;
-    /** The most amount of matches won in a row during the period */
-    bestWinStreak!: number;
-    /** Across all matches the player has played in, the average score across the entire lobby. This average includes
-scores for games the player may have not been in for */
-    matchAverageScoreAggregate!: number;
-    /** Across all matches the player has played in, the average miss count of the lobby, across all games in that match */
-    matchAverageMissesAggregate!: number;
-    /** Across all matches the player has played in, the average accuracy of the lobby, across all games in that match */
-    matchAverageAccuracyAggregate!: number;
-    /** The amount of maps the player participates in, on average. */
-    averageGamesPlayedAggregate!: number;
-    /** The average lobby ranking the player has on maps they participate in.
-A top-score is 1, bottom score would be team size * 2 */
-    averagePlacingAggregate!: number;
-    /** The beginning of the period for which the statistics are calculated. */
-    periodStart!: Date;
-    /** The end of the period for which the statistics are calculated. */
-    periodEnd!: Date;
-
-    constructor(data?: IAggregatePlayerMatchStatsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.averageMatchCostAggregate = _data["averageMatchCostAggregate"];
-            this.highestRating = _data["highestRating"];
-            this.ratingGained = _data["ratingGained"];
-            this.gamesWon = _data["gamesWon"];
-            this.gamesLost = _data["gamesLost"];
-            this.gamesPlayed = _data["gamesPlayed"];
-            this.matchesWon = _data["matchesWon"];
-            this.matchesLost = _data["matchesLost"];
-            (<any>this).matchesPlayed = _data["matchesPlayed"];
-            (<any>this).gameWinRate = _data["gameWinRate"];
-            (<any>this).matchWinRate = _data["matchWinRate"];
-            this.averageTeammateRating = _data["averageTeammateRating"];
-            this.averageOpponentRating = _data["averageOpponentRating"];
-            this.bestWinStreak = _data["bestWinStreak"];
-            this.matchAverageScoreAggregate = _data["matchAverageScoreAggregate"];
-            this.matchAverageMissesAggregate = _data["matchAverageMissesAggregate"];
-            this.matchAverageAccuracyAggregate = _data["matchAverageAccuracyAggregate"];
-            this.averageGamesPlayedAggregate = _data["averageGamesPlayedAggregate"];
-            this.averagePlacingAggregate = _data["averagePlacingAggregate"];
-            this.periodStart = _data["periodStart"] ? new Date(_data["periodStart"].toString()) : <any>undefined;
-            this.periodEnd = _data["periodEnd"] ? new Date(_data["periodEnd"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): AggregatePlayerMatchStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new AggregatePlayerMatchStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["averageMatchCostAggregate"] = this.averageMatchCostAggregate;
-        data["highestRating"] = this.highestRating;
-        data["ratingGained"] = this.ratingGained;
-        data["gamesWon"] = this.gamesWon;
-        data["gamesLost"] = this.gamesLost;
-        data["gamesPlayed"] = this.gamesPlayed;
-        data["matchesWon"] = this.matchesWon;
-        data["matchesLost"] = this.matchesLost;
-        data["matchesPlayed"] = this.matchesPlayed;
-        data["gameWinRate"] = this.gameWinRate;
-        data["matchWinRate"] = this.matchWinRate;
-        data["averageTeammateRating"] = this.averageTeammateRating;
-        data["averageOpponentRating"] = this.averageOpponentRating;
-        data["bestWinStreak"] = this.bestWinStreak;
-        data["matchAverageScoreAggregate"] = this.matchAverageScoreAggregate;
-        data["matchAverageMissesAggregate"] = this.matchAverageMissesAggregate;
-        data["matchAverageAccuracyAggregate"] = this.matchAverageAccuracyAggregate;
-        data["averageGamesPlayedAggregate"] = this.averageGamesPlayedAggregate;
-        data["averagePlacingAggregate"] = this.averagePlacingAggregate;
-        data["periodStart"] = this.periodStart ? this.periodStart.toISOString() : <any>undefined;
-        data["periodEnd"] = this.periodEnd ? this.periodEnd.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents an aggregate of match statistics for a player during a period of time */
-export interface IAggregatePlayerMatchStatsDTO {
+export interface AggregatePlayerMatchStatsDTO {
     /** The player's average match cost during the period */
     averageMatchCostAggregate: number;
     /** The peak rating achieved by the player during the period */
@@ -6191,11 +5888,11 @@ export interface IAggregatePlayerMatchStatsDTO {
     /** The amount of matches lost during the period */
     matchesLost: number;
     /** The amount of matches played during the period */
-    matchesPlayed: number;
+    readonly matchesPlayed: number;
     /** A value between 0 and 1 representing the player's game win rate during the period */
-    gameWinRate: number;
+    readonly gameWinRate: number;
     /** A value between 0 and 1 representing the player's match win rate during the period */
-    matchWinRate: number;
+    readonly matchWinRate: number;
     /** The average rating of the player's teammates during the period. This average does not include the player's own rating */
     averageTeammateRating?: number | undefined;
     /** The average rating of the player's opponents during the period */
@@ -6221,93 +5918,7 @@ A top-score is 1, bottom score would be team size * 2 */
 }
 
 /** Represents a beatmap */
-export class BeatmapDTO implements IBeatmapDTO {
-    /** Id of the beatmap */
-    id!: number;
-    /** Artist of the song */
-    artist!: string;
-    /** osu! id of the beatmap */
-    osuId!: number;
-    /** Beats per minute */
-    bpm?: number | undefined;
-    /** osu! id of the mapper */
-    mapperId!: number;
-    /** osu! username of the mapper */
-    mapperName!: string;
-    /** Star rating */
-    sr!: number;
-    /** Circle size */
-    cs!: number;
-    /** Approach rate */
-    ar!: number;
-    /** Hp */
-    hp!: number;
-    /** Overall difficulty */
-    od!: number;
-    /** Song length */
-    length!: number;
-    /** Title of the beatmap / song */
-    title!: string;
-    /** Name of the difficulty */
-    diffName?: string | undefined;
-
-    constructor(data?: IBeatmapDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.artist = _data["artist"];
-            this.osuId = _data["osuId"];
-            this.bpm = _data["bpm"];
-            this.mapperId = _data["mapperId"];
-            this.mapperName = _data["mapperName"];
-            this.sr = _data["sr"];
-            this.cs = _data["cs"];
-            this.ar = _data["ar"];
-            this.hp = _data["hp"];
-            this.od = _data["od"];
-            this.length = _data["length"];
-            this.title = _data["title"];
-            this.diffName = _data["diffName"];
-        }
-    }
-
-    static fromJS(data: any): BeatmapDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new BeatmapDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["artist"] = this.artist;
-        data["osuId"] = this.osuId;
-        data["bpm"] = this.bpm;
-        data["mapperId"] = this.mapperId;
-        data["mapperName"] = this.mapperName;
-        data["sr"] = this.sr;
-        data["cs"] = this.cs;
-        data["ar"] = this.ar;
-        data["hp"] = this.hp;
-        data["od"] = this.od;
-        data["length"] = this.length;
-        data["title"] = this.title;
-        data["diffName"] = this.diffName;
-        return data;
-    }
-}
-
-/** Represents a beatmap */
-export interface IBeatmapDTO {
+export interface BeatmapDTO {
     /** Id of the beatmap */
     id: number;
     /** Artist of the song */
@@ -6339,49 +5950,7 @@ export interface IBeatmapDTO {
 }
 
 /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-export class CreatedAtRouteValues implements ICreatedAtRouteValues {
-    /** Any route or query parameters that must be included in the URI */
-    routeValues?: any | undefined;
-    /** The controller method that produces the resource */
-    action?: string | undefined;
-    /** The controller that produces the resource */
-    controller?: string | undefined;
-
-    constructor(data?: ICreatedAtRouteValues) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.routeValues = _data["routeValues"];
-            this.action = _data["action"];
-            this.controller = _data["controller"];
-        }
-    }
-
-    static fromJS(data: any): CreatedAtRouteValues {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreatedAtRouteValues();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["routeValues"] = this.routeValues;
-        data["action"] = this.action;
-        data["controller"] = this.controller;
-        return data;
-    }
-}
-
-/** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-export interface ICreatedAtRouteValues {
+export interface CreatedAtRouteValues {
     /** Any route or query parameters that must be included in the URI */
     routeValues?: any | undefined;
     /** The controller method that produces the resource */
@@ -6391,45 +5960,7 @@ export interface ICreatedAtRouteValues {
 }
 
 /** Represents a newly created resource */
-export class CreatedResultBaseDTO implements ICreatedResultBaseDTO {
-    /** Id of the resource */
-    id!: number;
-    /** URL of where the new resource can be accessed */
-    location!: string;
-
-    constructor(data?: ICreatedResultBaseDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.location = _data["location"];
-        }
-    }
-
-    static fromJS(data: any): CreatedResultBaseDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreatedResultBaseDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["location"] = this.location;
-        return data;
-    }
-}
-
-/** Represents a newly created resource */
-export interface ICreatedResultBaseDTO {
+export interface CreatedResultBaseDTO {
     /** Id of the resource */
     id: number;
     /** URL of where the new resource can be accessed */
@@ -6467,83 +5998,7 @@ export enum FilteringFailReason {
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
-export class FilteringRequestDTO implements IFilteringRequestDTO {
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Players with a current rating below this value will be filtered */
-    minRating?: number | undefined;
-    /** Players with a current rating above this value will be filtered */
-    maxRating?: number | undefined;
-    /** Whether to filter players that currently have a provisional rating */
-    allowProvisional!: boolean;
-    /** If set, requires players to have participated in at least
-this many distinct tournaments */
-    tournamentsPlayed?: number | undefined;
-    /** If set, requires players to have an all-time peak rating less than
-this value */
-    peakRating?: number | undefined;
-    /** If set, requires players to have played in at least
-this many matches */
-    matchesPlayed?: number | undefined;
-    /** A list of osu! player ids that will be filtered */
-    osuPlayerIds!: number[];
-
-    constructor(data?: IFilteringRequestDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.osuPlayerIds = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.ruleset = _data["ruleset"];
-            this.minRating = _data["minRating"];
-            this.maxRating = _data["maxRating"];
-            this.allowProvisional = _data["allowProvisional"];
-            this.tournamentsPlayed = _data["tournamentsPlayed"];
-            this.peakRating = _data["peakRating"];
-            this.matchesPlayed = _data["matchesPlayed"];
-            if (Array.isArray(_data["osuPlayerIds"])) {
-                this.osuPlayerIds = [] as any;
-                for (let item of _data["osuPlayerIds"])
-                    this.osuPlayerIds!.push(item);
-            }
-        }
-    }
-
-    static fromJS(data: any): FilteringRequestDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new FilteringRequestDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["ruleset"] = this.ruleset;
-        data["minRating"] = this.minRating;
-        data["maxRating"] = this.maxRating;
-        data["allowProvisional"] = this.allowProvisional;
-        data["tournamentsPlayed"] = this.tournamentsPlayed;
-        data["peakRating"] = this.peakRating;
-        data["matchesPlayed"] = this.matchesPlayed;
-        if (Array.isArray(this.osuPlayerIds)) {
-            data["osuPlayerIds"] = [];
-            for (let item of this.osuPlayerIds)
-                data["osuPlayerIds"].push(item);
-        }
-        return data;
-    }
-}
-
-/** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
-export interface IFilteringRequestDTO {
+export interface FilteringRequestDTO {
     /** Represents osu! play modes */
     ruleset: Ruleset;
     /** Players with a current rating below this value will be filtered */
@@ -6574,61 +6029,7 @@ export enum FilteringResult {
 }
 
 /** Represents a filterings result for a collection of players */
-export class FilteringResultDTO implements IFilteringResultDTO {
-    /** The number of players who passed filtering */
-    playersPassed!: number;
-    /** The number of players who failed filtering */
-    playersFailed!: number;
-    /** A collection of filtering results, one per submitted player,
-in the same order as submitted in the API.DTOs.FilteringRequestDTO */
-    filteringResults!: PlayerFilteringResultDTO[];
-
-    constructor(data?: IFilteringResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.filteringResults = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playersPassed = _data["playersPassed"];
-            this.playersFailed = _data["playersFailed"];
-            if (Array.isArray(_data["filteringResults"])) {
-                this.filteringResults = [] as any;
-                for (let item of _data["filteringResults"])
-                    this.filteringResults!.push(PlayerFilteringResultDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): FilteringResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new FilteringResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playersPassed"] = this.playersPassed;
-        data["playersFailed"] = this.playersFailed;
-        if (Array.isArray(this.filteringResults)) {
-            data["filteringResults"] = [];
-            for (let item of this.filteringResults)
-                data["filteringResults"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents a filterings result for a collection of players */
-export interface IFilteringResultDTO {
+export interface FilteringResultDTO {
     /** The number of players who passed filtering */
     playersPassed: number;
     /** The number of players who failed filtering */
@@ -6639,120 +6040,7 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
 }
 
 /** Represents a single game (osu! beatmap) played in a match */
-export class GameDTO implements IGameDTO {
-    /** Primary key */
-    id!: number;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Represents the scoring method (win condition) for a Database.Entities.Game */
-    scoringType!: ScoringType;
-    /** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
-    teamType!: TeamType;
-    /** Represents mod values */
-    mods!: Mods;
-    /** osu! id */
-    osuId!: number;
-    /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
-    verificationStatus!: VerificationStatus;
-    /** The status of a Database.Entities.Game in the processing flow */
-    processingStatus!: GameProcessingStatus;
-    /** Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
-but should have attention drawn to them during manual review */
-    warningFlags!: GameWarningFlags;
-    /** The reason why a Database.Entities.Game is rejected */
-    rejectionReason!: GameRejectionReason;
-    /** Timestamp of the beginning of the game */
-    startTime!: Date;
-    /** Timestamp of the end of the game */
-    endTime?: Date | undefined;
-    /** The beatmap played */
-    beatmap?: BeatmapDTO | undefined;
-    /** All associated admin notes */
-    adminNotes!: AdminNoteDTO[];
-    /** All match scores */
-    scores!: GameScoreDTO[];
-
-    constructor(data?: IGameDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.adminNotes = [];
-            this.scores = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.ruleset = _data["ruleset"];
-            this.scoringType = _data["scoringType"];
-            this.teamType = _data["teamType"];
-            this.mods = _data["mods"];
-            this.osuId = _data["osuId"];
-            this.verificationStatus = _data["verificationStatus"];
-            this.processingStatus = _data["processingStatus"];
-            this.warningFlags = _data["warningFlags"];
-            this.rejectionReason = _data["rejectionReason"];
-            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
-            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
-            this.beatmap = _data["beatmap"] ? BeatmapDTO.fromJS(_data["beatmap"]) : <any>undefined;
-            if (Array.isArray(_data["adminNotes"])) {
-                this.adminNotes = [] as any;
-                for (let item of _data["adminNotes"])
-                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["scores"])) {
-                this.scores = [] as any;
-                for (let item of _data["scores"])
-                    this.scores!.push(GameScoreDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): GameDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new GameDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["ruleset"] = this.ruleset;
-        data["scoringType"] = this.scoringType;
-        data["teamType"] = this.teamType;
-        data["mods"] = this.mods;
-        data["osuId"] = this.osuId;
-        data["verificationStatus"] = this.verificationStatus;
-        data["processingStatus"] = this.processingStatus;
-        data["warningFlags"] = this.warningFlags;
-        data["rejectionReason"] = this.rejectionReason;
-        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
-        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
-        data["beatmap"] = this.beatmap ? this.beatmap.toJSON() : <any>undefined;
-        if (Array.isArray(this.adminNotes)) {
-            data["adminNotes"] = [];
-            for (let item of this.adminNotes)
-                data["adminNotes"].push(item.toJSON());
-        }
-        if (Array.isArray(this.scores)) {
-            data["scores"] = [];
-            for (let item of this.scores)
-                data["scores"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents a single game (osu! beatmap) played in a match */
-export interface IGameDTO {
+export interface GameDTO {
     /** Primary key */
     id: number;
     /** Represents osu! play modes */
@@ -6847,88 +6135,7 @@ export enum GameRejectionReason {
     RejectedMatch = 512,
 }
 
-export class GameScoreDTO implements IGameScoreDTO {
-    /** The id of the Player this score belongs to */
-    playerId!: number;
-    /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
-    team!: Team;
-    /** The points earned */
-    score!: number;
-    /** Represents mod values */
-    mods!: Mods;
-    /** The number of missed notes */
-    misses!: number;
-    /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
-    verificationStatus!: VerificationStatus;
-    /** The status of a Database.Entities.GameScore in the processing flow */
-    processingStatus!: ScoreProcessingStatus;
-    /** The reason why a Database.Entities.GameScore is rejected */
-    rejectionReason!: ScoreRejectionReason;
-    /** The accuracy of the score */
-    accuracy!: number;
-    /** All associated admin notes */
-    adminNotes!: AdminNoteDTO[];
-
-    constructor(data?: IGameScoreDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.adminNotes = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerId = _data["playerId"];
-            this.team = _data["team"];
-            this.score = _data["score"];
-            this.mods = _data["mods"];
-            this.misses = _data["misses"];
-            this.verificationStatus = _data["verificationStatus"];
-            this.processingStatus = _data["processingStatus"];
-            this.rejectionReason = _data["rejectionReason"];
-            this.accuracy = _data["accuracy"];
-            if (Array.isArray(_data["adminNotes"])) {
-                this.adminNotes = [] as any;
-                for (let item of _data["adminNotes"])
-                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): GameScoreDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new GameScoreDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerId"] = this.playerId;
-        data["team"] = this.team;
-        data["score"] = this.score;
-        data["mods"] = this.mods;
-        data["misses"] = this.misses;
-        data["verificationStatus"] = this.verificationStatus;
-        data["processingStatus"] = this.processingStatus;
-        data["rejectionReason"] = this.rejectionReason;
-        data["accuracy"] = this.accuracy;
-        if (Array.isArray(this.adminNotes)) {
-            data["adminNotes"] = [];
-            for (let item of this.adminNotes)
-                data["adminNotes"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-export interface IGameScoreDTO {
+export interface GameScoreDTO {
     /** The id of the Player this score belongs to */
     playerId: number;
     /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
@@ -6974,61 +6181,7 @@ export enum GameWarningFlags {
     BeatmapNotInMappool = 2,
 }
 
-export class ProblemDetails implements IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
-
-    constructor(data?: IProblemDetails) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.type = _data["type"];
-            this.title = _data["title"];
-            this.status = _data["status"];
-            this.detail = _data["detail"];
-            this.instance = _data["instance"];
-        }
-    }
-
-    static fromJS(data: any): ProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new ProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["type"] = this.type;
-        data["title"] = this.title;
-        data["status"] = this.status;
-        data["detail"] = this.detail;
-        data["instance"] = this.instance;
-        return data;
-    }
-}
-
-export interface IProblemDetails {
+export interface ProblemDetails {
     type?: string | undefined;
     title?: string | undefined;
     status?: number | undefined;
@@ -7038,61 +6191,7 @@ export interface IProblemDetails {
     [key: string]: any;
 }
 
-export class HttpValidationProblemDetails extends ProblemDetails implements IHttpValidationProblemDetails {
-    errors!: { [key: string]: string[]; };
-
-    [key: string]: any;
-
-    constructor(data?: IHttpValidationProblemDetails) {
-        super(data);
-        if (!data) {
-            this.errors = {};
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            if (_data["errors"]) {
-                this.errors = {} as any;
-                for (let key in _data["errors"]) {
-                    if (_data["errors"].hasOwnProperty(key))
-                        (<any>this.errors)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
-                }
-            }
-        }
-    }
-
-    static override fromJS(data: any): HttpValidationProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new HttpValidationProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        if (this.errors) {
-            data["errors"] = {};
-            for (let key in this.errors) {
-                if (this.errors.hasOwnProperty(key))
-                    (<any>data["errors"])[key] = (<any>this.errors)[key];
-            }
-        }
-        super.toJSON(data);
-        return data;
-    }
-}
-
-export interface IHttpValidationProblemDetails extends IProblemDetails {
+export interface HttpValidationProblemDetails extends ProblemDetails {
     errors: { [key: string]: string[]; };
 
     [key: string]: any;
@@ -7103,61 +6202,7 @@ export enum LeaderboardChartType {
     Country = 1,
 }
 
-export class LeaderboardDTO implements ILeaderboardDTO {
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    totalPlayerCount!: number;
-    filterDefaults!: LeaderboardFilterDefaultsDTO;
-    leaderboard!: LeaderboardPlayerInfoDTO[];
-
-    constructor(data?: ILeaderboardDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.filterDefaults = new LeaderboardFilterDefaultsDTO();
-            this.leaderboard = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.ruleset = _data["ruleset"];
-            this.totalPlayerCount = _data["totalPlayerCount"];
-            this.filterDefaults = _data["filterDefaults"] ? LeaderboardFilterDefaultsDTO.fromJS(_data["filterDefaults"]) : new LeaderboardFilterDefaultsDTO();
-            if (Array.isArray(_data["leaderboard"])) {
-                this.leaderboard = [] as any;
-                for (let item of _data["leaderboard"])
-                    this.leaderboard!.push(LeaderboardPlayerInfoDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): LeaderboardDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new LeaderboardDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["ruleset"] = this.ruleset;
-        data["totalPlayerCount"] = this.totalPlayerCount;
-        data["filterDefaults"] = this.filterDefaults ? this.filterDefaults.toJSON() : <any>undefined;
-        if (Array.isArray(this.leaderboard)) {
-            data["leaderboard"] = [];
-            for (let item of this.leaderboard)
-                data["leaderboard"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-export interface ILeaderboardDTO {
+export interface LeaderboardDTO {
     /** Represents osu! play modes */
     ruleset: Ruleset;
     totalPlayerCount: number;
@@ -7166,73 +6211,7 @@ export interface ILeaderboardDTO {
 }
 
 /** Filters for the leaderboard */
-export class LeaderboardFilterDTO implements ILeaderboardFilterDTO {
-    /** The "better" inclusive bound (ranges from 1+) */
-    minRank?: number | undefined;
-    /** The "worse" inclusive bound (ranges from 1+) */
-    maxRank?: number | undefined;
-    /** The lower-performing rating bound (ranges from 100+) */
-    minRating?: number | undefined;
-    /** The higher-performing rating bound (ranges from 100+) */
-    maxRating?: number | undefined;
-    /** The minimum number of matches played (ranges from 1-10000) */
-    minMatches?: number | undefined;
-    /** The maximum number of matches played (ranges from 1-10000) */
-    maxMatches?: number | undefined;
-    /** Ranges from 0.00-1.00 */
-    minWinRate?: number | undefined;
-    /** Ranges from 0.00-1.00 */
-    maxWinRate?: number | undefined;
-    /** A collection of optional filters for tiers */
-    tierFilters?: LeaderboardTierFilterDTO | undefined;
-
-    constructor(data?: ILeaderboardFilterDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.minRank = _data["minRank"];
-            this.maxRank = _data["maxRank"];
-            this.minRating = _data["minRating"];
-            this.maxRating = _data["maxRating"];
-            this.minMatches = _data["minMatches"];
-            this.maxMatches = _data["maxMatches"];
-            this.minWinRate = _data["minWinRate"];
-            this.maxWinRate = _data["maxWinRate"];
-            this.tierFilters = _data["tierFilters"] ? LeaderboardTierFilterDTO.fromJS(_data["tierFilters"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): LeaderboardFilterDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new LeaderboardFilterDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["minRank"] = this.minRank;
-        data["maxRank"] = this.maxRank;
-        data["minRating"] = this.minRating;
-        data["maxRating"] = this.maxRating;
-        data["minMatches"] = this.minMatches;
-        data["maxMatches"] = this.maxMatches;
-        data["minWinRate"] = this.minWinRate;
-        data["maxWinRate"] = this.maxWinRate;
-        data["tierFilters"] = this.tierFilters ? this.tierFilters.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-/** Filters for the leaderboard */
-export interface ILeaderboardFilterDTO {
+export interface LeaderboardFilterDTO {
     /** The "better" inclusive bound (ranges from 1+) */
     minRank?: number | undefined;
     /** The "worse" inclusive bound (ranges from 1+) */
@@ -7253,113 +6232,14 @@ export interface ILeaderboardFilterDTO {
     tierFilters?: LeaderboardTierFilterDTO | undefined;
 }
 
-export class LeaderboardFilterDefaultsDTO implements ILeaderboardFilterDefaultsDTO {
-    maxRank!: number;
-    maxRating!: number;
-    maxMatches!: number;
-
-    constructor(data?: ILeaderboardFilterDefaultsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.maxRank = _data["maxRank"];
-            this.maxRating = _data["maxRating"];
-            this.maxMatches = _data["maxMatches"];
-        }
-    }
-
-    static fromJS(data: any): LeaderboardFilterDefaultsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new LeaderboardFilterDefaultsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["maxRank"] = this.maxRank;
-        data["maxRating"] = this.maxRating;
-        data["maxMatches"] = this.maxMatches;
-        return data;
-    }
-}
-
-export interface ILeaderboardFilterDefaultsDTO {
+export interface LeaderboardFilterDefaultsDTO {
     maxRank: number;
     maxRating: number;
     maxMatches: number;
 }
 
 /** Individual line items in the leaderboard */
-export class LeaderboardPlayerInfoDTO implements ILeaderboardPlayerInfoDTO {
-    playerId!: number;
-    osuId!: number;
-    globalRank!: number;
-    name!: string;
-    tier!: string;
-    rating!: number;
-    matchesPlayed!: number;
-    winRate!: number;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    country?: string | undefined;
-
-    constructor(data?: ILeaderboardPlayerInfoDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerId = _data["playerId"];
-            this.osuId = _data["osuId"];
-            this.globalRank = _data["globalRank"];
-            this.name = _data["name"];
-            this.tier = _data["tier"];
-            this.rating = _data["rating"];
-            this.matchesPlayed = _data["matchesPlayed"];
-            this.winRate = _data["winRate"];
-            this.ruleset = _data["ruleset"];
-            this.country = _data["country"];
-        }
-    }
-
-    static fromJS(data: any): LeaderboardPlayerInfoDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new LeaderboardPlayerInfoDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerId"] = this.playerId;
-        data["osuId"] = this.osuId;
-        data["globalRank"] = this.globalRank;
-        data["name"] = this.name;
-        data["tier"] = this.tier;
-        data["rating"] = this.rating;
-        data["matchesPlayed"] = this.matchesPlayed;
-        data["winRate"] = this.winRate;
-        data["ruleset"] = this.ruleset;
-        data["country"] = this.country;
-        return data;
-    }
-}
-
-/** Individual line items in the leaderboard */
-export interface ILeaderboardPlayerInfoDTO {
+export interface LeaderboardPlayerInfoDTO {
     playerId: number;
     osuId: number;
     globalRank: number;
@@ -7374,64 +6254,7 @@ export interface ILeaderboardPlayerInfoDTO {
 }
 
 /** A collection of booleans representing which tiers to filter.            False = Default, no behavioral change True = Explicitly included in leaderboard results            If *all* tiers are set to false, or all tiers are set to true, the leaderboard will return as if no tier filters were applied.            For example, if Bronze and Emerald are true and everything else is false, then only Bronze and Emerald players will show up in the leaderboard (specifically, Bronze III-I and Emerald III-I) */
-export class LeaderboardTierFilterDTO implements ILeaderboardTierFilterDTO {
-    filterBronze!: boolean;
-    filterSilver!: boolean;
-    filterGold!: boolean;
-    filterPlatinum!: boolean;
-    filterEmerald!: boolean;
-    filterDiamond!: boolean;
-    filterMaster!: boolean;
-    filterGrandmaster!: boolean;
-    filterEliteGrandmaster!: boolean;
-
-    constructor(data?: ILeaderboardTierFilterDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.filterBronze = _data["filterBronze"];
-            this.filterSilver = _data["filterSilver"];
-            this.filterGold = _data["filterGold"];
-            this.filterPlatinum = _data["filterPlatinum"];
-            this.filterEmerald = _data["filterEmerald"];
-            this.filterDiamond = _data["filterDiamond"];
-            this.filterMaster = _data["filterMaster"];
-            this.filterGrandmaster = _data["filterGrandmaster"];
-            this.filterEliteGrandmaster = _data["filterEliteGrandmaster"];
-        }
-    }
-
-    static fromJS(data: any): LeaderboardTierFilterDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new LeaderboardTierFilterDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["filterBronze"] = this.filterBronze;
-        data["filterSilver"] = this.filterSilver;
-        data["filterGold"] = this.filterGold;
-        data["filterPlatinum"] = this.filterPlatinum;
-        data["filterEmerald"] = this.filterEmerald;
-        data["filterDiamond"] = this.filterDiamond;
-        data["filterMaster"] = this.filterMaster;
-        data["filterGrandmaster"] = this.filterGrandmaster;
-        data["filterEliteGrandmaster"] = this.filterEliteGrandmaster;
-        return data;
-    }
-}
-
-/** A collection of booleans representing which tiers to filter.            False = Default, no behavioral change True = Explicitly included in leaderboard results            If *all* tiers are set to false, or all tiers are set to true, the leaderboard will return as if no tier filters were applied.            For example, if Bronze and Emerald are true and everything else is false, then only Bronze and Emerald players will show up in the leaderboard (specifically, Bronze III-I and Emerald III-I) */
-export interface ILeaderboardTierFilterDTO {
+export interface LeaderboardTierFilterDTO {
     filterBronze: boolean;
     filterSilver: boolean;
     filterGold: boolean;
@@ -7444,163 +6267,15 @@ export interface ILeaderboardTierFilterDTO {
 }
 
 /** Represents a created match */
-export class MatchCreatedResultDTO extends CreatedResultBaseDTO implements IMatchCreatedResultDTO {
+export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
     /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    readonly createdAtRouteValues!: CreatedAtRouteValues;
-    /** osu! match id */
-    osuId!: number;
-
-    constructor(data?: IMatchCreatedResultDTO) {
-        super(data);
-        if (!data) {
-            this.createdAtRouteValues = new CreatedAtRouteValues();
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            (<any>this).createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : new CreatedAtRouteValues();
-            this.osuId = _data["osuId"];
-        }
-    }
-
-    static override fromJS(data: any): MatchCreatedResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new MatchCreatedResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["createdAtRouteValues"] = this.createdAtRouteValues ? this.createdAtRouteValues.toJSON() : <any>undefined;
-        data["osuId"] = this.osuId;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Represents a created match */
-export interface IMatchCreatedResultDTO extends ICreatedResultBaseDTO {
-    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    createdAtRouteValues: CreatedAtRouteValues;
+    readonly createdAtRouteValues: CreatedAtRouteValues;
     /** osu! match id */
     osuId: number;
 }
 
 /** Represents a played match */
-export class MatchDTO implements IMatchDTO {
-    /** Id */
-    id!: number;
-    /** osu! id */
-    osuId!: number;
-    /** Title of the lobby */
-    name!: string;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Start time */
-    startTime?: Date | undefined;
-    /** End time */
-    endTime?: Date | undefined;
-    /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
-    verificationStatus!: VerificationStatus;
-    /** The reason why a Database.Entities.Match is rejected */
-    rejectionReason!: MatchRejectionReason;
-    /** Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
-but should have attention drawn to them during manual review */
-    warningFlags!: MatchWarningFlags;
-    /** The status of a Database.Entities.Match in the processing flow */
-    processingStatus!: MatchProcessingStatus;
-    /** Timestamp of the last time the match was processed */
-    lastProcessingDate!: Date;
-    /** The API.DTOs.TournamentCompactDTO this match was played in */
-    tournament!: TournamentCompactDTO;
-    /** List of games played during the match */
-    games!: GameDTO[];
-    /** All associated admin notes */
-    adminNotes!: AdminNoteDTO[];
-
-    constructor(data?: IMatchDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.tournament = new TournamentCompactDTO();
-            this.games = [];
-            this.adminNotes = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.osuId = _data["osuId"];
-            this.name = _data["name"];
-            this.ruleset = _data["ruleset"];
-            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
-            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
-            this.verificationStatus = _data["verificationStatus"];
-            this.rejectionReason = _data["rejectionReason"];
-            this.warningFlags = _data["warningFlags"];
-            this.processingStatus = _data["processingStatus"];
-            this.lastProcessingDate = _data["lastProcessingDate"] ? new Date(_data["lastProcessingDate"].toString()) : <any>undefined;
-            this.tournament = _data["tournament"] ? TournamentCompactDTO.fromJS(_data["tournament"]) : new TournamentCompactDTO();
-            if (Array.isArray(_data["games"])) {
-                this.games = [] as any;
-                for (let item of _data["games"])
-                    this.games!.push(GameDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["adminNotes"])) {
-                this.adminNotes = [] as any;
-                for (let item of _data["adminNotes"])
-                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): MatchDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new MatchDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["osuId"] = this.osuId;
-        data["name"] = this.name;
-        data["ruleset"] = this.ruleset;
-        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
-        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
-        data["verificationStatus"] = this.verificationStatus;
-        data["rejectionReason"] = this.rejectionReason;
-        data["warningFlags"] = this.warningFlags;
-        data["processingStatus"] = this.processingStatus;
-        data["lastProcessingDate"] = this.lastProcessingDate ? this.lastProcessingDate.toISOString() : <any>undefined;
-        data["tournament"] = this.tournament ? this.tournament.toJSON() : <any>undefined;
-        if (Array.isArray(this.games)) {
-            data["games"] = [];
-            for (let item of this.games)
-                data["games"].push(item.toJSON());
-        }
-        if (Array.isArray(this.adminNotes)) {
-            data["adminNotes"] = [];
-            for (let item of this.adminNotes)
-                data["adminNotes"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents a played match */
-export interface IMatchDTO {
+export interface MatchDTO {
     /** Id */
     id: number;
     /** osu! id */
@@ -7635,64 +6310,7 @@ but should have attention drawn to them during manual review */
 }
 
 /** Represents a paged list of results */
-export class MatchDTOPagedResultDTO implements IMatchDTOPagedResultDTO {
-    /** Link to the next potential page of results */
-    next?: string | undefined;
-    /** Link to the previous potential page of results */
-    previous?: string | undefined;
-    /** Number of results included */
-    count!: number;
-    /** List of resulting data */
-    results!: MatchDTO[];
-
-    constructor(data?: IMatchDTOPagedResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.results = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.next = _data["next"];
-            this.previous = _data["previous"];
-            this.count = _data["count"];
-            if (Array.isArray(_data["results"])) {
-                this.results = [] as any;
-                for (let item of _data["results"])
-                    this.results!.push(MatchDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): MatchDTOPagedResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new MatchDTOPagedResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["next"] = this.next;
-        data["previous"] = this.previous;
-        data["count"] = this.count;
-        if (Array.isArray(this.results)) {
-            data["results"] = [];
-            for (let item of this.results)
-                data["results"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents a paged list of results */
-export interface IMatchDTOPagedResultDTO {
+export interface MatchDTOPagedResultDTO {
     /** Link to the next potential page of results */
     next?: string | undefined;
     /** Link to the previous potential page of results */
@@ -7784,49 +6402,7 @@ export enum MatchRejectionReason {
 }
 
 /** Represents a search result for a match */
-export class MatchSearchResultDTO implements IMatchSearchResultDTO {
-    /** Id of the match */
-    id!: number;
-    /** osu! match id of the match */
-    osuId!: number;
-    /** Name of the match */
-    name?: string | undefined;
-
-    constructor(data?: IMatchSearchResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.osuId = _data["osuId"];
-            this.name = _data["name"];
-        }
-    }
-
-    static fromJS(data: any): MatchSearchResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new MatchSearchResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["osuId"] = this.osuId;
-        data["name"] = this.name;
-        return data;
-    }
-}
-
-/** Represents a search result for a match */
-export interface IMatchSearchResultDTO {
+export interface MatchSearchResultDTO {
     /** Id of the match */
     id: number;
     /** osu! match id of the match */
@@ -7836,61 +6412,7 @@ export interface IMatchSearchResultDTO {
 }
 
 /** Represents the status of a submitted match */
-export class MatchSubmissionStatusDTO implements IMatchSubmissionStatusDTO {
-    /** Id of the match */
-    id!: number;
-    /** osu! match id of the match */
-    osuId!: number;
-    /** Lobby title of the match */
-    name?: string | undefined;
-    /** Current verification status of the match */
-    verificationStatus?: VerificationStatus | undefined;
-    /** Date that the match was submitted */
-    created!: Date;
-    /** Date that the match was last updated */
-    updated?: Date | undefined;
-
-    constructor(data?: IMatchSubmissionStatusDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.osuId = _data["osuId"];
-            this.name = _data["name"];
-            this.verificationStatus = _data["verificationStatus"];
-            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
-            this.updated = _data["updated"] ? new Date(_data["updated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): MatchSubmissionStatusDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new MatchSubmissionStatusDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["osuId"] = this.osuId;
-        data["name"] = this.name;
-        data["verificationStatus"] = this.verificationStatus;
-        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
-        data["updated"] = this.updated ? this.updated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents the status of a submitted match */
-export interface IMatchSubmissionStatusDTO {
+export interface MatchSubmissionStatusDTO {
     /** Id of the match */
     id: number;
     /** osu! match id of the match */
@@ -7923,49 +6445,7 @@ export enum MatchWarningFlags {
 }
 
 /** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
-export class ModStatsDTO implements IModStatsDTO {
-    gamesPlayed!: number;
-    gamesWon!: number;
-    winRate!: number;
-    normalizedAverageScore!: number;
-
-    constructor(data?: IModStatsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.gamesPlayed = _data["gamesPlayed"];
-            this.gamesWon = _data["gamesWon"];
-            this.winRate = _data["winRate"];
-            this.normalizedAverageScore = _data["normalizedAverageScore"];
-        }
-    }
-
-    static fromJS(data: any): ModStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new ModStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["gamesPlayed"] = this.gamesPlayed;
-        data["gamesWon"] = this.gamesWon;
-        data["winRate"] = this.winRate;
-        data["normalizedAverageScore"] = this.normalizedAverageScore;
-        return data;
-    }
-}
-
-/** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
-export interface IModStatsDTO {
+export interface ModStatsDTO {
     gamesPlayed: number;
     gamesWon: number;
     winRate: number;
@@ -8121,60 +6601,7 @@ export enum Mods {
 }
 
 /** Represents an OAuth client */
-export class OAuthClientDTO implements IOAuthClientDTO {
-    /** Client id of the client */
-    clientId!: number;
-    /** List of permissions granted to the client */
-    scopes!: string[];
-    /** Possible rate limit override for the client */
-    rateLimitOverride?: number | undefined;
-
-    constructor(data?: IOAuthClientDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.scopes = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.clientId = _data["clientId"];
-            if (Array.isArray(_data["scopes"])) {
-                this.scopes = [] as any;
-                for (let item of _data["scopes"])
-                    this.scopes!.push(item);
-            }
-            this.rateLimitOverride = _data["rateLimitOverride"];
-        }
-    }
-
-    static fromJS(data: any): OAuthClientDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new OAuthClientDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["clientId"] = this.clientId;
-        if (Array.isArray(this.scopes)) {
-            data["scopes"] = [];
-            for (let item of this.scopes)
-                data["scopes"].push(item);
-        }
-        data["rateLimitOverride"] = this.rateLimitOverride;
-        return data;
-    }
-}
-
-/** Represents an OAuth client */
-export interface IOAuthClientDTO {
+export interface OAuthClientDTO {
     /** Client id of the client */
     clientId: number;
     /** List of permissions granted to the client */
@@ -8184,120 +6611,19 @@ export interface IOAuthClientDTO {
 }
 
 /** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
-export class OAuthClientCreatedDTO extends OAuthClientDTO implements IOAuthClientCreatedDTO {
-    /** Client secret of the client */
-    clientSecret!: string;
-
-    constructor(data?: IOAuthClientCreatedDTO) {
-        super(data);
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            this.clientSecret = _data["clientSecret"];
-        }
-    }
-
-    static override fromJS(data: any): OAuthClientCreatedDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new OAuthClientCreatedDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["clientSecret"] = this.clientSecret;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
-export interface IOAuthClientCreatedDTO extends IOAuthClientDTO {
+export interface OAuthClientCreatedDTO extends OAuthClientDTO {
     /** Client secret of the client */
     clientSecret: string;
 }
 
-export class OperationBase implements IOperationBase {
-    readonly operationType!: OperationType;
-    path?: string | undefined;
-    op?: string | undefined;
-    from?: string | undefined;
-
-    constructor(data?: IOperationBase) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            (<any>this).operationType = _data["operationType"];
-            this.path = _data["path"];
-            this.op = _data["op"];
-            this.from = _data["from"];
-        }
-    }
-
-    static fromJS(data: any): OperationBase {
-        data = typeof data === 'object' ? data : {};
-        let result = new OperationBase();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["operationType"] = this.operationType;
-        data["path"] = this.path;
-        data["op"] = this.op;
-        data["from"] = this.from;
-        return data;
-    }
-}
-
-export interface IOperationBase {
-    operationType: OperationType;
+export interface OperationBase {
+    readonly operationType: OperationType;
     path?: string | undefined;
     op?: string | undefined;
     from?: string | undefined;
 }
 
-export class Operation extends OperationBase implements IOperation {
-    value?: any | undefined;
-
-    constructor(data?: IOperation) {
-        super(data);
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            this.value = _data["value"];
-        }
-    }
-
-    static override fromJS(data: any): Operation {
-        data = typeof data === 'object' ? data : {};
-        let result = new Operation();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["value"] = this.value;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-export interface IOperation extends IOperationBase {
+export interface Operation extends OperationBase {
     value?: any | undefined;
 }
 
@@ -8311,89 +6637,11 @@ export enum OperationType {
     Invalid = 6,
 }
 
-export class Operation_1 extends Operation implements IOperation_1 {
-
-    constructor(data?: IOperation_1) {
-        super(data);
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-    }
-
-    static override fromJS(data: any): Operation_1 {
-        data = typeof data === 'object' ? data : {};
-        let result = new Operation_1();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        super.toJSON(data);
-        return data;
-    }
-}
-
-export interface IOperation_1 extends IOperation {
+export interface Operation_1 extends Operation {
 }
 
 /** Represents player information */
-export class PlayerCompactDTO implements IPlayerCompactDTO {
-    /** Id */
-    id!: number;
-    /** osu! id */
-    osuId!: number;
-    /** osu! username */
-    username!: string;
-    /** osu! country code */
-    country!: string;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Id of the associated user, if available */
-    userId?: number | undefined;
-
-    constructor(data?: IPlayerCompactDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.osuId = _data["osuId"];
-            this.username = _data["username"];
-            this.country = _data["country"];
-            this.ruleset = _data["ruleset"];
-            this.userId = _data["userId"];
-        }
-    }
-
-    static fromJS(data: any): PlayerCompactDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerCompactDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["osuId"] = this.osuId;
-        data["username"] = this.username;
-        data["country"] = this.country;
-        data["ruleset"] = this.ruleset;
-        data["userId"] = this.userId;
-        return data;
-    }
-}
-
-/** Represents player information */
-export interface IPlayerCompactDTO {
+export interface PlayerCompactDTO {
     /** Id */
     id: number;
     /** osu! id */
@@ -8409,65 +6657,7 @@ export interface IPlayerCompactDTO {
 }
 
 /** Represents one player's filtering result */
-export class PlayerFilteringResultDTO implements IPlayerFilteringResultDTO {
-    /** The id of the player, if found */
-    playerId?: number | undefined;
-    /** The username of the player, if found */
-    username?: string | undefined;
-    /** The osu! id of the player */
-    osuId!: number;
-    /** Indicates whether a player passed or failed filtering */
-    filteringResult!: FilteringResult;
-    /** If the user failed filtering, the fail reason */
-    filteringFailReason?: FilteringFailReason | undefined;
-    /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    readonly filteringResultMessage!: string;
-    /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
-    readonly filteringFailReasonMessage?: string | undefined;
-
-    constructor(data?: IPlayerFilteringResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerId = _data["playerId"];
-            this.username = _data["username"];
-            this.osuId = _data["osuId"];
-            this.filteringResult = _data["filteringResult"];
-            this.filteringFailReason = _data["filteringFailReason"];
-            (<any>this).filteringResultMessage = _data["filteringResultMessage"];
-            (<any>this).filteringFailReasonMessage = _data["filteringFailReasonMessage"];
-        }
-    }
-
-    static fromJS(data: any): PlayerFilteringResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerFilteringResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerId"] = this.playerId;
-        data["username"] = this.username;
-        data["osuId"] = this.osuId;
-        data["filteringResult"] = this.filteringResult;
-        data["filteringFailReason"] = this.filteringFailReason;
-        data["filteringResultMessage"] = this.filteringResultMessage;
-        data["filteringFailReasonMessage"] = this.filteringFailReasonMessage;
-        return data;
-    }
-}
-
-/** Represents one player's filtering result */
-export interface IPlayerFilteringResultDTO {
+export interface PlayerFilteringResultDTO {
     /** The id of the player, if found */
     playerId?: number | undefined;
     /** The username of the player, if found */
@@ -8479,59 +6669,13 @@ export interface IPlayerFilteringResultDTO {
     /** If the user failed filtering, the fail reason */
     filteringFailReason?: FilteringFailReason | undefined;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-    filteringResultMessage: string;
+    readonly filteringResultMessage: string;
     /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
-    filteringFailReasonMessage?: string | undefined;
+    readonly filteringFailReasonMessage?: string | undefined;
 }
 
 /** Represents a player in the context of a teammate or opponent of another player */
-export class PlayerFrequencyDTO implements IPlayerFrequencyDTO {
-    /** Id of the teammate or opponent */
-    playerId!: number;
-    /** osu! id of the teammate or opponent */
-    osuId!: number;
-    /** osu! username of the teammate or opponent */
-    username?: string | undefined;
-    /** Number of times this teammate or opponent has played with the player */
-    frequency!: number;
-
-    constructor(data?: IPlayerFrequencyDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerId = _data["playerId"];
-            this.osuId = _data["osuId"];
-            this.username = _data["username"];
-            this.frequency = _data["frequency"];
-        }
-    }
-
-    static fromJS(data: any): PlayerFrequencyDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerFrequencyDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerId"] = this.playerId;
-        data["osuId"] = this.osuId;
-        data["username"] = this.username;
-        data["frequency"] = this.frequency;
-        return data;
-    }
-}
-
-/** Represents a player in the context of a teammate or opponent of another player */
-export interface IPlayerFrequencyDTO {
+export interface PlayerFrequencyDTO {
     /** Id of the teammate or opponent */
     playerId: number;
     /** osu! id of the teammate or opponent */
@@ -8543,77 +6687,7 @@ export interface IPlayerFrequencyDTO {
 }
 
 /** Represents counts of participation in games of differing mod combinations */
-export class PlayerModStatsDTO implements IPlayerModStatsDTO {
-    /** Number of games played with no mods */
-    playedNM?: ModStatsDTO | undefined;
-    /** Number of games played with easy */
-    playedEZ?: ModStatsDTO | undefined;
-    /** Number of games played with half time */
-    playedHT?: ModStatsDTO | undefined;
-    /** Number of games played with hidden */
-    playedHD?: ModStatsDTO | undefined;
-    /** Number of games played with hard rock */
-    playedHR?: ModStatsDTO | undefined;
-    /** Number of games played with double time */
-    playedDT?: ModStatsDTO | undefined;
-    /** Number of games played with flashlight */
-    playedFL?: ModStatsDTO | undefined;
-    /** Number of games played with both hidden and hard rock */
-    playedHDHR?: ModStatsDTO | undefined;
-    /** Number of games played with both hidden and double time */
-    playedHDDT?: ModStatsDTO | undefined;
-    /** Number of games played with both hidden and easy */
-    playedHDEZ?: ModStatsDTO | undefined;
-
-    constructor(data?: IPlayerModStatsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playedNM = _data["playedNM"] ? ModStatsDTO.fromJS(_data["playedNM"]) : <any>undefined;
-            this.playedEZ = _data["playedEZ"] ? ModStatsDTO.fromJS(_data["playedEZ"]) : <any>undefined;
-            this.playedHT = _data["playedHT"] ? ModStatsDTO.fromJS(_data["playedHT"]) : <any>undefined;
-            this.playedHD = _data["playedHD"] ? ModStatsDTO.fromJS(_data["playedHD"]) : <any>undefined;
-            this.playedHR = _data["playedHR"] ? ModStatsDTO.fromJS(_data["playedHR"]) : <any>undefined;
-            this.playedDT = _data["playedDT"] ? ModStatsDTO.fromJS(_data["playedDT"]) : <any>undefined;
-            this.playedFL = _data["playedFL"] ? ModStatsDTO.fromJS(_data["playedFL"]) : <any>undefined;
-            this.playedHDHR = _data["playedHDHR"] ? ModStatsDTO.fromJS(_data["playedHDHR"]) : <any>undefined;
-            this.playedHDDT = _data["playedHDDT"] ? ModStatsDTO.fromJS(_data["playedHDDT"]) : <any>undefined;
-            this.playedHDEZ = _data["playedHDEZ"] ? ModStatsDTO.fromJS(_data["playedHDEZ"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): PlayerModStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerModStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playedNM"] = this.playedNM ? this.playedNM.toJSON() : <any>undefined;
-        data["playedEZ"] = this.playedEZ ? this.playedEZ.toJSON() : <any>undefined;
-        data["playedHT"] = this.playedHT ? this.playedHT.toJSON() : <any>undefined;
-        data["playedHD"] = this.playedHD ? this.playedHD.toJSON() : <any>undefined;
-        data["playedHR"] = this.playedHR ? this.playedHR.toJSON() : <any>undefined;
-        data["playedDT"] = this.playedDT ? this.playedDT.toJSON() : <any>undefined;
-        data["playedFL"] = this.playedFL ? this.playedFL.toJSON() : <any>undefined;
-        data["playedHDHR"] = this.playedHDHR ? this.playedHDHR.toJSON() : <any>undefined;
-        data["playedHDDT"] = this.playedHDDT ? this.playedHDDT.toJSON() : <any>undefined;
-        data["playedHDEZ"] = this.playedHDEZ ? this.playedHDEZ.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents counts of participation in games of differing mod combinations */
-export interface IPlayerModStatsDTO {
+export interface PlayerModStatsDTO {
     /** Number of games played with no mods */
     playedNM?: ModStatsDTO | undefined;
     /** Number of games played with easy */
@@ -8637,136 +6711,13 @@ export interface IPlayerModStatsDTO {
 }
 
 /** Represents data used to construct a rating delta chart for a player */
-export class PlayerRatingChartDTO implements IPlayerRatingChartDTO {
-    /** List of data points used to construct the chart */
-    chartData!: PlayerRatingChartDataPointDTO[][];
-
-    constructor(data?: IPlayerRatingChartDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.chartData = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            if (Array.isArray(_data["chartData"])) {
-                this.chartData = [] as any;
-                for (let item of _data["chartData"])
-                    this.chartData!.push(item);
-            }
-        }
-    }
-
-    static fromJS(data: any): PlayerRatingChartDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerRatingChartDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.chartData)) {
-            data["chartData"] = [];
-            for (let item of this.chartData)
-                data["chartData"].push(item);
-        }
-        return data;
-    }
-}
-
-/** Represents data used to construct a rating delta chart for a player */
-export interface IPlayerRatingChartDTO {
+export interface PlayerRatingChartDTO {
     /** List of data points used to construct the chart */
     chartData: PlayerRatingChartDataPointDTO[][];
 }
 
 /** Represents a data point used to construct a rating chart for a player */
-export class PlayerRatingChartDataPointDTO implements IPlayerRatingChartDataPointDTO {
-    /** Match name */
-    name!: string;
-    /** Match id */
-    matchId?: number | undefined;
-    /** osu! match id */
-    matchOsuId?: number | undefined;
-    /** Match cost of the player */
-    matchCost?: number | undefined;
-    /** Rating of the player before this match occurred */
-    ratingBefore!: number;
-    /** Rating of the player after this match occurred */
-    ratingAfter!: number;
-    /** Volatility of the player before this match occurred */
-    volatilityBefore!: number;
-    /** Volatility of the player after this match occurred */
-    volatilityAfter!: number;
-    /** Difference in rating for the player after this match occurred */
-    readonly ratingChange!: number;
-    /** Difference in volatility for the player after this match occurred */
-    readonly volatilityChange!: number;
-    /** Indicates whether this data point is from a rating change that occurred outside of a match (i.e. decay) */
-    isAdjustment!: boolean;
-    /** Match start time */
-    timestamp?: Date | undefined;
-
-    constructor(data?: IPlayerRatingChartDataPointDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.name = _data["name"];
-            this.matchId = _data["matchId"];
-            this.matchOsuId = _data["matchOsuId"];
-            this.matchCost = _data["matchCost"];
-            this.ratingBefore = _data["ratingBefore"];
-            this.ratingAfter = _data["ratingAfter"];
-            this.volatilityBefore = _data["volatilityBefore"];
-            this.volatilityAfter = _data["volatilityAfter"];
-            (<any>this).ratingChange = _data["ratingChange"];
-            (<any>this).volatilityChange = _data["volatilityChange"];
-            this.isAdjustment = _data["isAdjustment"];
-            this.timestamp = _data["timestamp"] ? new Date(_data["timestamp"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): PlayerRatingChartDataPointDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerRatingChartDataPointDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
-        data["matchId"] = this.matchId;
-        data["matchOsuId"] = this.matchOsuId;
-        data["matchCost"] = this.matchCost;
-        data["ratingBefore"] = this.ratingBefore;
-        data["ratingAfter"] = this.ratingAfter;
-        data["volatilityBefore"] = this.volatilityBefore;
-        data["volatilityAfter"] = this.volatilityAfter;
-        data["ratingChange"] = this.ratingChange;
-        data["volatilityChange"] = this.volatilityChange;
-        data["isAdjustment"] = this.isAdjustment;
-        data["timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents a data point used to construct a rating chart for a player */
-export interface IPlayerRatingChartDataPointDTO {
+export interface PlayerRatingChartDataPointDTO {
     /** Match name */
     name: string;
     /** Match id */
@@ -8784,9 +6735,9 @@ export interface IPlayerRatingChartDataPointDTO {
     /** Volatility of the player after this match occurred */
     volatilityAfter: number;
     /** Difference in rating for the player after this match occurred */
-    ratingChange: number;
+    readonly ratingChange: number;
     /** Difference in volatility for the player after this match occurred */
-    volatilityChange: number;
+    readonly volatilityChange: number;
     /** Indicates whether this data point is from a rating change that occurred outside of a match (i.e. decay) */
     isAdjustment: boolean;
     /** Match start time */
@@ -8794,80 +6745,7 @@ export interface IPlayerRatingChartDataPointDTO {
 }
 
 /** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
-export class PlayerRatingDTO implements IPlayerRatingDTO {
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Rating */
-    rating!: number;
-    /** Rating volatility */
-    volatility!: number;
-    /** Global rating percentile */
-    percentile!: number;
-    /** Global rank */
-    globalRank!: number;
-    /** Country rank */
-    countryRank!: number;
-    /** Player id */
-    playerId!: number;
-    /** A collection of adjustments that describe the changes resulting in the final rating */
-    adjustments!: RatingAdjustmentDTO[];
-
-    constructor(data?: IPlayerRatingDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.adjustments = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.ruleset = _data["ruleset"];
-            this.rating = _data["rating"];
-            this.volatility = _data["volatility"];
-            this.percentile = _data["percentile"];
-            this.globalRank = _data["globalRank"];
-            this.countryRank = _data["countryRank"];
-            this.playerId = _data["playerId"];
-            if (Array.isArray(_data["adjustments"])) {
-                this.adjustments = [] as any;
-                for (let item of _data["adjustments"])
-                    this.adjustments!.push(RatingAdjustmentDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): PlayerRatingDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerRatingDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["ruleset"] = this.ruleset;
-        data["rating"] = this.rating;
-        data["volatility"] = this.volatility;
-        data["percentile"] = this.percentile;
-        data["globalRank"] = this.globalRank;
-        data["countryRank"] = this.countryRank;
-        data["playerId"] = this.playerId;
-        if (Array.isArray(this.adjustments)) {
-            data["adjustments"] = [];
-            for (let item of this.adjustments)
-                data["adjustments"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
-export interface IPlayerRatingDTO {
+export interface PlayerRatingDTO {
     /** Represents osu! play modes */
     ruleset: Ruleset;
     /** Rating */
@@ -8887,57 +6765,7 @@ export interface IPlayerRatingDTO {
 }
 
 /** Describes tournament rating based information for a player in a ruleset with additional statistics */
-export class PlayerRatingStatsDTO extends PlayerRatingDTO implements IPlayerRatingStatsDTO {
-    /** Total number of tournaments played */
-    tournamentsPlayed!: number;
-    /** Total number of matches played */
-    matchesPlayed!: number;
-    /** Match win rate */
-    winRate!: number;
-    /** Rating tier progress information */
-    rankProgress!: RankProgressDTO;
-    /** Denotes the current rating as being provisional */
-    isProvisional!: boolean;
-
-    constructor(data?: IPlayerRatingStatsDTO) {
-        super(data);
-        if (!data) {
-            this.rankProgress = new RankProgressDTO();
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            this.tournamentsPlayed = _data["tournamentsPlayed"];
-            this.matchesPlayed = _data["matchesPlayed"];
-            this.winRate = _data["winRate"];
-            this.rankProgress = _data["rankProgress"] ? RankProgressDTO.fromJS(_data["rankProgress"]) : new RankProgressDTO();
-            this.isProvisional = _data["isProvisional"];
-        }
-    }
-
-    static override fromJS(data: any): PlayerRatingStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerRatingStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["tournamentsPlayed"] = this.tournamentsPlayed;
-        data["matchesPlayed"] = this.matchesPlayed;
-        data["winRate"] = this.winRate;
-        data["rankProgress"] = this.rankProgress ? this.rankProgress.toJSON() : <any>undefined;
-        data["isProvisional"] = this.isProvisional;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Describes tournament rating based information for a player in a ruleset with additional statistics */
-export interface IPlayerRatingStatsDTO extends IPlayerRatingDTO {
+export interface PlayerRatingStatsDTO extends PlayerRatingDTO {
     /** Total number of tournaments played */
     tournamentsPlayed: number;
     /** Total number of matches played */
@@ -8951,65 +6779,7 @@ export interface IPlayerRatingStatsDTO extends IPlayerRatingDTO {
 }
 
 /** Represents a search result for a player for a given ruleset */
-export class PlayerSearchResultDTO implements IPlayerSearchResultDTO {
-    /** Id of the player */
-    id!: number;
-    /** osu! id of the player */
-    osuId!: number;
-    /** Rating of the player for the given ruleset */
-    rating?: number | undefined;
-    /** Current global rank of the player for the given ruleset */
-    globalRank?: number | undefined;
-    /** Current rating tier of the player for the given ruleset */
-    readonly ratingTier?: string | undefined;
-    /** osu! username of the player */
-    username?: string | undefined;
-    /** Link to an osu! thumbnail for the player */
-    thumbnail!: string;
-
-    constructor(data?: IPlayerSearchResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.osuId = _data["osuId"];
-            this.rating = _data["rating"];
-            this.globalRank = _data["globalRank"];
-            (<any>this).ratingTier = _data["ratingTier"];
-            this.username = _data["username"];
-            this.thumbnail = _data["thumbnail"];
-        }
-    }
-
-    static fromJS(data: any): PlayerSearchResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerSearchResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["osuId"] = this.osuId;
-        data["rating"] = this.rating;
-        data["globalRank"] = this.globalRank;
-        data["ratingTier"] = this.ratingTier;
-        data["username"] = this.username;
-        data["thumbnail"] = this.thumbnail;
-        return data;
-    }
-}
-
-/** Represents a search result for a player for a given ruleset */
-export interface IPlayerSearchResultDTO {
+export interface PlayerSearchResultDTO {
     /** Id of the player */
     id: number;
     /** osu! id of the player */
@@ -9019,7 +6789,7 @@ export interface IPlayerSearchResultDTO {
     /** Current global rank of the player for the given ruleset */
     globalRank?: number | undefined;
     /** Current rating tier of the player for the given ruleset */
-    ratingTier?: string | undefined;
+    readonly ratingTier?: string | undefined;
     /** osu! username of the player */
     username?: string | undefined;
     /** Link to an osu! thumbnail for the player */
@@ -9027,92 +6797,7 @@ export interface IPlayerSearchResultDTO {
 }
 
 /** Represents a collection of statistics for a player in a ruleset */
-export class PlayerStatsDTO implements IPlayerStatsDTO {
-    /** Player info */
-    playerInfo!: PlayerCompactDTO;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Base stats for the player */
-    rating?: PlayerRatingStatsDTO | undefined;
-    /** Match stats for the player */
-    matchStats?: AggregatePlayerMatchStatsDTO | undefined;
-    /** Mod stats for the player */
-    modStats?: PlayerModStatsDTO | undefined;
-    /** Tournament participation and performance stats for the player */
-    tournamentStats?: PlayerTournamentStatsDTO | undefined;
-    /** List of frequencies of the player's teammates */
-    frequentTeammates?: PlayerFrequencyDTO[] | undefined;
-    /** List of frequencies of the player's opponents */
-    frequentOpponents?: PlayerFrequencyDTO[] | undefined;
-    /** Rating chart for the player */
-    ratingChart?: PlayerRatingChartDTO | undefined;
-
-    constructor(data?: IPlayerStatsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.playerInfo = new PlayerCompactDTO();
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerInfo = _data["playerInfo"] ? PlayerCompactDTO.fromJS(_data["playerInfo"]) : new PlayerCompactDTO();
-            this.ruleset = _data["ruleset"];
-            this.rating = _data["rating"] ? PlayerRatingStatsDTO.fromJS(_data["rating"]) : <any>undefined;
-            this.matchStats = _data["matchStats"] ? AggregatePlayerMatchStatsDTO.fromJS(_data["matchStats"]) : <any>undefined;
-            this.modStats = _data["modStats"] ? PlayerModStatsDTO.fromJS(_data["modStats"]) : <any>undefined;
-            this.tournamentStats = _data["tournamentStats"] ? PlayerTournamentStatsDTO.fromJS(_data["tournamentStats"]) : <any>undefined;
-            if (Array.isArray(_data["frequentTeammates"])) {
-                this.frequentTeammates = [] as any;
-                for (let item of _data["frequentTeammates"])
-                    this.frequentTeammates!.push(PlayerFrequencyDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["frequentOpponents"])) {
-                this.frequentOpponents = [] as any;
-                for (let item of _data["frequentOpponents"])
-                    this.frequentOpponents!.push(PlayerFrequencyDTO.fromJS(item));
-            }
-            this.ratingChart = _data["ratingChart"] ? PlayerRatingChartDTO.fromJS(_data["ratingChart"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): PlayerStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerInfo"] = this.playerInfo ? this.playerInfo.toJSON() : <any>undefined;
-        data["ruleset"] = this.ruleset;
-        data["rating"] = this.rating ? this.rating.toJSON() : <any>undefined;
-        data["matchStats"] = this.matchStats ? this.matchStats.toJSON() : <any>undefined;
-        data["modStats"] = this.modStats ? this.modStats.toJSON() : <any>undefined;
-        data["tournamentStats"] = this.tournamentStats ? this.tournamentStats.toJSON() : <any>undefined;
-        if (Array.isArray(this.frequentTeammates)) {
-            data["frequentTeammates"] = [];
-            for (let item of this.frequentTeammates)
-                data["frequentTeammates"].push(item.toJSON());
-        }
-        if (Array.isArray(this.frequentOpponents)) {
-            data["frequentOpponents"] = [];
-            for (let item of this.frequentOpponents)
-                data["frequentOpponents"].push(item.toJSON());
-        }
-        data["ratingChart"] = this.ratingChart ? this.ratingChart.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents a collection of statistics for a player in a ruleset */
-export interface IPlayerStatsDTO {
+export interface PlayerStatsDTO {
     /** Player info */
     playerInfo: PlayerCompactDTO;
     /** Represents osu! play modes */
@@ -9134,57 +6819,7 @@ export interface IPlayerStatsDTO {
 }
 
 /** Represents counts of participation in tournaments of differing team sizes */
-export class PlayerTournamentLobbySizeCountDTO implements IPlayerTournamentLobbySizeCountDTO {
-    /** Number of 1v1 tournaments played */
-    count1v1?: number | undefined;
-    /** Number of 2v2 tournaments played */
-    count2v2?: number | undefined;
-    /** Number of 3v3 tournaments played */
-    count3v3?: number | undefined;
-    /** Number of 4v4 tournaments played */
-    count4v4?: number | undefined;
-    /** Number of tournaments played outside of standard team sizes */
-    countOther?: number | undefined;
-
-    constructor(data?: IPlayerTournamentLobbySizeCountDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.count1v1 = _data["count1v1"];
-            this.count2v2 = _data["count2v2"];
-            this.count3v3 = _data["count3v3"];
-            this.count4v4 = _data["count4v4"];
-            this.countOther = _data["countOther"];
-        }
-    }
-
-    static fromJS(data: any): PlayerTournamentLobbySizeCountDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerTournamentLobbySizeCountDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["count1v1"] = this.count1v1;
-        data["count2v2"] = this.count2v2;
-        data["count3v3"] = this.count3v3;
-        data["count4v4"] = this.count4v4;
-        data["countOther"] = this.countOther;
-        return data;
-    }
-}
-
-/** Represents counts of participation in tournaments of differing team sizes */
-export interface IPlayerTournamentLobbySizeCountDTO {
+export interface PlayerTournamentLobbySizeCountDTO {
     /** Number of 1v1 tournaments played */
     count1v1?: number | undefined;
     /** Number of 2v2 tournaments played */
@@ -9198,61 +6833,7 @@ export interface IPlayerTournamentLobbySizeCountDTO {
 }
 
 /** Represents match cost data across an entire tournament for a player */
-export class PlayerTournamentMatchCostDTO implements IPlayerTournamentMatchCostDTO {
-    /** Id of the player */
-    playerId!: number;
-    /** Id of the tournament */
-    tournamentId!: number;
-    /** Name of the tournament */
-    tournamentName!: string;
-    /** Abbreviated name of the tournament */
-    tournamentAcronym!: string;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Average match cost across the tournament for the player */
-    matchCost!: number;
-
-    constructor(data?: IPlayerTournamentMatchCostDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.playerId = _data["playerId"];
-            this.tournamentId = _data["tournamentId"];
-            this.tournamentName = _data["tournamentName"];
-            this.tournamentAcronym = _data["tournamentAcronym"];
-            this.ruleset = _data["ruleset"];
-            this.matchCost = _data["matchCost"];
-        }
-    }
-
-    static fromJS(data: any): PlayerTournamentMatchCostDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerTournamentMatchCostDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["playerId"] = this.playerId;
-        data["tournamentId"] = this.tournamentId;
-        data["tournamentName"] = this.tournamentName;
-        data["tournamentAcronym"] = this.tournamentAcronym;
-        data["ruleset"] = this.ruleset;
-        data["matchCost"] = this.matchCost;
-        return data;
-    }
-}
-
-/** Represents match cost data across an entire tournament for a player */
-export interface IPlayerTournamentMatchCostDTO {
+export interface PlayerTournamentMatchCostDTO {
     /** Id of the player */
     playerId: number;
     /** Id of the tournament */
@@ -9268,70 +6849,7 @@ export interface IPlayerTournamentMatchCostDTO {
 }
 
 /** Represents statistics for a player regarding tournament participation and performance */
-export class PlayerTournamentStatsDTO implements IPlayerTournamentStatsDTO {
-    /** Counts of participation in tournaments of differing team sizes for the player */
-    lobbySizeCounts!: PlayerTournamentLobbySizeCountDTO;
-    /** List of best tournament performances for the player */
-    bestPerformances!: PlayerTournamentMatchCostDTO[];
-    /** List of recent tournament performances for the player */
-    recentPerformances!: PlayerTournamentMatchCostDTO[];
-
-    constructor(data?: IPlayerTournamentStatsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.lobbySizeCounts = new PlayerTournamentLobbySizeCountDTO();
-            this.bestPerformances = [];
-            this.recentPerformances = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.lobbySizeCounts = _data["lobbySizeCounts"] ? PlayerTournamentLobbySizeCountDTO.fromJS(_data["lobbySizeCounts"]) : new PlayerTournamentLobbySizeCountDTO();
-            if (Array.isArray(_data["bestPerformances"])) {
-                this.bestPerformances = [] as any;
-                for (let item of _data["bestPerformances"])
-                    this.bestPerformances!.push(PlayerTournamentMatchCostDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["recentPerformances"])) {
-                this.recentPerformances = [] as any;
-                for (let item of _data["recentPerformances"])
-                    this.recentPerformances!.push(PlayerTournamentMatchCostDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): PlayerTournamentStatsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new PlayerTournamentStatsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["lobbySizeCounts"] = this.lobbySizeCounts ? this.lobbySizeCounts.toJSON() : <any>undefined;
-        if (Array.isArray(this.bestPerformances)) {
-            data["bestPerformances"] = [];
-            for (let item of this.bestPerformances)
-                data["bestPerformances"].push(item.toJSON());
-        }
-        if (Array.isArray(this.recentPerformances)) {
-            data["recentPerformances"] = [];
-            for (let item of this.recentPerformances)
-                data["recentPerformances"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents statistics for a player regarding tournament participation and performance */
-export interface IPlayerTournamentStatsDTO {
+export interface PlayerTournamentStatsDTO {
     /** Counts of participation in tournaments of differing team sizes for the player */
     lobbySizeCounts: PlayerTournamentLobbySizeCountDTO;
     /** List of best tournament performances for the player */
@@ -9341,65 +6859,7 @@ export interface IPlayerTournamentStatsDTO {
 }
 
 /** Represents rating tier progress data */
-export class RankProgressDTO implements IRankProgressDTO {
-    /** Current tier */
-    currentTier!: string;
-    /** Current sub tier */
-    currentSubTier?: number | undefined;
-    /** Rating required to reach next sub tier */
-    ratingForNextTier!: number;
-    /** Rating required to reach next major tier */
-    ratingForNextMajorTier!: number;
-    /** Next major tier following current tier */
-    nextMajorTier?: string | undefined;
-    /** Progress to the next sub tier as a percentage */
-    subTierFillPercentage?: number | undefined;
-    /** Progress to the next major tier as a percentage */
-    majorTierFillPercentage?: number | undefined;
-
-    constructor(data?: IRankProgressDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.currentTier = _data["currentTier"];
-            this.currentSubTier = _data["currentSubTier"];
-            this.ratingForNextTier = _data["ratingForNextTier"];
-            this.ratingForNextMajorTier = _data["ratingForNextMajorTier"];
-            this.nextMajorTier = _data["nextMajorTier"];
-            this.subTierFillPercentage = _data["subTierFillPercentage"];
-            this.majorTierFillPercentage = _data["majorTierFillPercentage"];
-        }
-    }
-
-    static fromJS(data: any): RankProgressDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new RankProgressDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["currentTier"] = this.currentTier;
-        data["currentSubTier"] = this.currentSubTier;
-        data["ratingForNextTier"] = this.ratingForNextTier;
-        data["ratingForNextMajorTier"] = this.ratingForNextMajorTier;
-        data["nextMajorTier"] = this.nextMajorTier;
-        data["subTierFillPercentage"] = this.subTierFillPercentage;
-        data["majorTierFillPercentage"] = this.majorTierFillPercentage;
-        return data;
-    }
-}
-
-/** Represents rating tier progress data */
-export interface IRankProgressDTO {
+export interface RankProgressDTO {
     /** Current tier */
     currentTier: string;
     /** Current sub tier */
@@ -9417,73 +6877,7 @@ export interface IRankProgressDTO {
 }
 
 /** Describes a single change to a PlayerRating */
-export class RatingAdjustmentDTO implements IRatingAdjustmentDTO {
-    /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
-    adjustmentType!: RatingAdjustmentType;
-    /** Timestamp of when the adjustment was applied */
-    timestamp!: Date;
-    /** Rating before the adjustment */
-    ratingBefore!: number;
-    /** Rating after the adjustment */
-    ratingAfter!: number;
-    /** Total change in rating */
-    ratingDelta!: number;
-    /** Rating volatility before the adjustment */
-    volatilityBefore!: number;
-    /** Rating volatility after the adjustment */
-    volatilityAfter!: number;
-    /** Total change in rating volatility */
-    volatilityDelta!: number;
-    /** Id of the match the adjustment was created for if available */
-    matchId?: number | undefined;
-
-    constructor(data?: IRatingAdjustmentDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.adjustmentType = _data["adjustmentType"];
-            this.timestamp = _data["timestamp"] ? new Date(_data["timestamp"].toString()) : <any>undefined;
-            this.ratingBefore = _data["ratingBefore"];
-            this.ratingAfter = _data["ratingAfter"];
-            this.ratingDelta = _data["ratingDelta"];
-            this.volatilityBefore = _data["volatilityBefore"];
-            this.volatilityAfter = _data["volatilityAfter"];
-            this.volatilityDelta = _data["volatilityDelta"];
-            this.matchId = _data["matchId"];
-        }
-    }
-
-    static fromJS(data: any): RatingAdjustmentDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new RatingAdjustmentDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["adjustmentType"] = this.adjustmentType;
-        data["timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
-        data["ratingBefore"] = this.ratingBefore;
-        data["ratingAfter"] = this.ratingAfter;
-        data["ratingDelta"] = this.ratingDelta;
-        data["volatilityBefore"] = this.volatilityBefore;
-        data["volatilityAfter"] = this.volatilityAfter;
-        data["volatilityDelta"] = this.volatilityDelta;
-        data["matchId"] = this.matchId;
-        return data;
-    }
-}
-
-/** Describes a single change to a PlayerRating */
-export interface IRatingAdjustmentDTO {
+export interface RatingAdjustmentDTO {
     /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
     adjustmentType: RatingAdjustmentType;
     /** Timestamp of when the adjustment was applied */
@@ -9579,78 +6973,7 @@ export enum ScoringType {
 }
 
 /** Represents a collection of search results */
-export class SearchResponseCollectionDTO implements ISearchResponseCollectionDTO {
-    /** A collection of search results for tournaments matching the search query */
-    tournaments!: TournamentSearchResultDTO[];
-    /** A collection of search results for matches matching the search query */
-    matches!: MatchSearchResultDTO[];
-    /** A collection of search results for players matching the search query */
-    players!: PlayerSearchResultDTO[];
-
-    constructor(data?: ISearchResponseCollectionDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.tournaments = [];
-            this.matches = [];
-            this.players = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            if (Array.isArray(_data["tournaments"])) {
-                this.tournaments = [] as any;
-                for (let item of _data["tournaments"])
-                    this.tournaments!.push(TournamentSearchResultDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["matches"])) {
-                this.matches = [] as any;
-                for (let item of _data["matches"])
-                    this.matches!.push(MatchSearchResultDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["players"])) {
-                this.players = [] as any;
-                for (let item of _data["players"])
-                    this.players!.push(PlayerSearchResultDTO.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): SearchResponseCollectionDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new SearchResponseCollectionDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.tournaments)) {
-            data["tournaments"] = [];
-            for (let item of this.tournaments)
-                data["tournaments"].push(item.toJSON());
-        }
-        if (Array.isArray(this.matches)) {
-            data["matches"] = [];
-            for (let item of this.matches)
-                data["matches"].push(item.toJSON());
-        }
-        if (Array.isArray(this.players)) {
-            data["players"] = [];
-            for (let item of this.players)
-                data["players"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-/** Represents a collection of search results */
-export interface ISearchResponseCollectionDTO {
+export interface SearchResponseCollectionDTO {
     /** A collection of search results for tournaments matching the search query */
     tournaments: TournamentSearchResultDTO[];
     /** A collection of search results for matches matching the search query */
@@ -9686,97 +7009,7 @@ export enum TeamType {
 }
 
 /** Represents a tournament with minimal data */
-export class TournamentCompactDTO implements ITournamentCompactDTO {
-    /** Id */
-    id!: number;
-    /** The timestamp of submission */
-    created!: Date;
-    /** Full name */
-    name!: string;
-    abbreviation!: string;
-    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-    forumUrl!: string;
-    /** Lowest rank a player can be to participate */
-    rankRangeLowerBound!: number;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Expected in-match team size */
-    lobbySize!: number;
-    /** The start date of the first match */
-    startTime!: Date;
-    /** The end date of the last match */
-    endTime!: Date;
-    /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
-    verificationStatus!: VerificationStatus;
-    /** The status of a Database.Entities.Tournament in the processing flow */
-    processingStatus!: TournamentProcessingStatus;
-    /** The reason why a Database.Entities.Tournament is rejected */
-    rejectionReason!: TournamentRejectionReason;
-    /** The user that submitted the tournament */
-    submittedByUser?: UserCompactDTO | undefined;
-    /** The user that verified the tournament */
-    verifiedByUser?: UserCompactDTO | undefined;
-
-    constructor(data?: ITournamentCompactDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.created = _data["created"] ? new Date(_data["created"].toString()) : <any>undefined;
-            this.name = _data["name"];
-            this.abbreviation = _data["abbreviation"];
-            this.forumUrl = _data["forumUrl"];
-            this.rankRangeLowerBound = _data["rankRangeLowerBound"];
-            this.ruleset = _data["ruleset"];
-            this.lobbySize = _data["lobbySize"];
-            this.startTime = _data["startTime"] ? new Date(_data["startTime"].toString()) : <any>undefined;
-            this.endTime = _data["endTime"] ? new Date(_data["endTime"].toString()) : <any>undefined;
-            this.verificationStatus = _data["verificationStatus"];
-            this.processingStatus = _data["processingStatus"];
-            this.rejectionReason = _data["rejectionReason"];
-            this.submittedByUser = _data["submittedByUser"] ? UserCompactDTO.fromJS(_data["submittedByUser"]) : <any>undefined;
-            this.verifiedByUser = _data["verifiedByUser"] ? UserCompactDTO.fromJS(_data["verifiedByUser"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): TournamentCompactDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TournamentCompactDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["created"] = this.created ? this.created.toISOString() : <any>undefined;
-        data["name"] = this.name;
-        data["abbreviation"] = this.abbreviation;
-        data["forumUrl"] = this.forumUrl;
-        data["rankRangeLowerBound"] = this.rankRangeLowerBound;
-        data["ruleset"] = this.ruleset;
-        data["lobbySize"] = this.lobbySize;
-        data["startTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
-        data["endTime"] = this.endTime ? this.endTime.toISOString() : <any>undefined;
-        data["verificationStatus"] = this.verificationStatus;
-        data["processingStatus"] = this.processingStatus;
-        data["rejectionReason"] = this.rejectionReason;
-        data["submittedByUser"] = this.submittedByUser ? this.submittedByUser.toJSON() : <any>undefined;
-        data["verifiedByUser"] = this.verifiedByUser ? this.verifiedByUser.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents a tournament with minimal data */
-export interface ITournamentCompactDTO {
+export interface TournamentCompactDTO {
     /** Id */
     id: number;
     /** The timestamp of submission */
@@ -9810,65 +7043,9 @@ Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore 
 }
 
 /** Represents a created tournament */
-export class TournamentCreatedResultDTO extends CreatedResultBaseDTO implements ITournamentCreatedResultDTO {
+export interface TournamentCreatedResultDTO extends CreatedResultBaseDTO {
     /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    readonly createdAtRouteValues!: CreatedAtRouteValues;
-    /** The name of the tournament */
-    name!: string;
-    /** Acronym / shortened name of the tournament
-<example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation!: string;
-    /** List of created matches */
-    matches!: MatchCreatedResultDTO[];
-
-    constructor(data?: ITournamentCreatedResultDTO) {
-        super(data);
-        if (!data) {
-            this.createdAtRouteValues = new CreatedAtRouteValues();
-            this.matches = [];
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            (<any>this).createdAtRouteValues = _data["createdAtRouteValues"] ? CreatedAtRouteValues.fromJS(_data["createdAtRouteValues"]) : new CreatedAtRouteValues();
-            this.name = _data["name"];
-            this.abbreviation = _data["abbreviation"];
-            if (Array.isArray(_data["matches"])) {
-                this.matches = [] as any;
-                for (let item of _data["matches"])
-                    this.matches!.push(MatchCreatedResultDTO.fromJS(item));
-            }
-        }
-    }
-
-    static override fromJS(data: any): TournamentCreatedResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TournamentCreatedResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["createdAtRouteValues"] = this.createdAtRouteValues ? this.createdAtRouteValues.toJSON() : <any>undefined;
-        data["name"] = this.name;
-        data["abbreviation"] = this.abbreviation;
-        if (Array.isArray(this.matches)) {
-            data["matches"] = [];
-            for (let item of this.matches)
-                data["matches"].push(item.toJSON());
-        }
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Represents a created tournament */
-export interface ITournamentCreatedResultDTO extends ICreatedResultBaseDTO {
-    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    createdAtRouteValues: CreatedAtRouteValues;
+    readonly createdAtRouteValues: CreatedAtRouteValues;
     /** The name of the tournament */
     name: string;
     /** Acronym / shortened name of the tournament
@@ -9879,62 +7056,7 @@ export interface ITournamentCreatedResultDTO extends ICreatedResultBaseDTO {
 }
 
 /** Represents a tournament including optional data */
-export class TournamentDTO extends TournamentCompactDTO implements ITournamentDTO {
-    /** All associated match data (Will be empty for bulk requests such as List) */
-    matches!: MatchDTO[];
-    /** All admin notes associated with the tournament */
-    adminNotes!: AdminNoteDTO[];
-
-    constructor(data?: ITournamentDTO) {
-        super(data);
-        if (!data) {
-            this.matches = [];
-            this.adminNotes = [];
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            if (Array.isArray(_data["matches"])) {
-                this.matches = [] as any;
-                for (let item of _data["matches"])
-                    this.matches!.push(MatchDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["adminNotes"])) {
-                this.adminNotes = [] as any;
-                for (let item of _data["adminNotes"])
-                    this.adminNotes!.push(AdminNoteDTO.fromJS(item));
-            }
-        }
-    }
-
-    static override fromJS(data: any): TournamentDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TournamentDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.matches)) {
-            data["matches"] = [];
-            for (let item of this.matches)
-                data["matches"].push(item.toJSON());
-        }
-        if (Array.isArray(this.adminNotes)) {
-            data["adminNotes"] = [];
-            for (let item of this.adminNotes)
-                data["adminNotes"].push(item.toJSON());
-        }
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Represents a tournament including optional data */
-export interface ITournamentDTO extends ITournamentCompactDTO {
+export interface TournamentDTO extends TournamentCompactDTO {
     /** All associated match data (Will be empty for bulk requests such as List) */
     matches: MatchDTO[];
     /** All admin notes associated with the tournament */
@@ -10033,53 +7155,7 @@ export enum TournamentRejectionReason {
 }
 
 /** Represents a search result for a tournament */
-export class TournamentSearchResultDTO implements ITournamentSearchResultDTO {
-    /** Id of the tournament */
-    id!: number;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Expected in-match team size */
-    lobbySize!: number;
-    /** Name of the tournament */
-    name!: string;
-
-    constructor(data?: ITournamentSearchResultDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.ruleset = _data["ruleset"];
-            this.lobbySize = _data["lobbySize"];
-            this.name = _data["name"];
-        }
-    }
-
-    static fromJS(data: any): TournamentSearchResultDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TournamentSearchResultDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["ruleset"] = this.ruleset;
-        data["lobbySize"] = this.lobbySize;
-        data["name"] = this.name;
-        return data;
-    }
-}
-
-/** Represents a search result for a tournament */
-export interface ITournamentSearchResultDTO {
+export interface TournamentSearchResultDTO {
     /** Id of the tournament */
     id: number;
     /** Represents osu! play modes */
@@ -10091,95 +7167,7 @@ export interface ITournamentSearchResultDTO {
 }
 
 /** An incoming tournament submission */
-export class TournamentSubmissionDTO implements ITournamentSubmissionDTO {
-    /** The name of the tournament */
-    name!: string;
-    /** Acronym / shortened name of the tournament
-<example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-    abbreviation!: string;
-    /** The osu! forum post advertising this tournament */
-    forumUrl!: string;
-    /** Lowest rank a player can be to participate in the tournament */
-    rankRangeLowerBound!: number;
-    /** Expected in-match team size */
-    lobbySize!: number;
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Optional rejection reason. If set, the created tournament and all matches will be rejected
-for this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users) */
-    rejectionReason?: TournamentRejectionReason | undefined;
-    /** List of osu! match ids */
-    ids!: number[];
-    /** A collection of pooled osu! beatmap ids */
-    beatmapIds!: number[];
-
-    constructor(data?: ITournamentSubmissionDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.ids = [];
-            this.beatmapIds = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.name = _data["name"];
-            this.abbreviation = _data["abbreviation"];
-            this.forumUrl = _data["forumUrl"];
-            this.rankRangeLowerBound = _data["rankRangeLowerBound"];
-            this.lobbySize = _data["lobbySize"];
-            this.ruleset = _data["ruleset"];
-            this.rejectionReason = _data["rejectionReason"];
-            if (Array.isArray(_data["ids"])) {
-                this.ids = [] as any;
-                for (let item of _data["ids"])
-                    this.ids!.push(item);
-            }
-            if (Array.isArray(_data["beatmapIds"])) {
-                this.beatmapIds = [] as any;
-                for (let item of _data["beatmapIds"])
-                    this.beatmapIds!.push(item);
-            }
-        }
-    }
-
-    static fromJS(data: any): TournamentSubmissionDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TournamentSubmissionDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
-        data["abbreviation"] = this.abbreviation;
-        data["forumUrl"] = this.forumUrl;
-        data["rankRangeLowerBound"] = this.rankRangeLowerBound;
-        data["lobbySize"] = this.lobbySize;
-        data["ruleset"] = this.ruleset;
-        data["rejectionReason"] = this.rejectionReason;
-        if (Array.isArray(this.ids)) {
-            data["ids"] = [];
-            for (let item of this.ids)
-                data["ids"].push(item);
-        }
-        if (Array.isArray(this.beatmapIds)) {
-            data["beatmapIds"] = [];
-            for (let item of this.beatmapIds)
-                data["beatmapIds"].push(item);
-        }
-        return data;
-    }
-}
-
-/** An incoming tournament submission */
-export interface ITournamentSubmissionDTO {
+export interface TournamentSubmissionDTO {
     /** The name of the tournament */
     name: string;
     /** Acronym / shortened name of the tournament
@@ -10203,52 +7191,7 @@ for this reason and go through no additional processing (Submissions with a reje
 }
 
 /** Represents user information */
-export class UserCompactDTO implements IUserCompactDTO {
-    /** Id */
-    id!: number;
-    /** Timestamp of the user's last login to the o!TR website */
-    lastLogin?: Date | undefined;
-    /** The associated player */
-    player!: PlayerCompactDTO;
-
-    constructor(data?: IUserCompactDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.player = new PlayerCompactDTO();
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.lastLogin = _data["lastLogin"] ? new Date(_data["lastLogin"].toString()) : <any>undefined;
-            this.player = _data["player"] ? PlayerCompactDTO.fromJS(_data["player"]) : new PlayerCompactDTO();
-        }
-    }
-
-    static fromJS(data: any): UserCompactDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new UserCompactDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["lastLogin"] = this.lastLogin ? this.lastLogin.toISOString() : <any>undefined;
-        data["player"] = this.player ? this.player.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-/** Represents user information */
-export interface IUserCompactDTO {
+export interface UserCompactDTO {
     /** Id */
     id: number;
     /** Timestamp of the user's last login to the o!TR website */
@@ -10258,54 +7201,7 @@ export interface IUserCompactDTO {
 }
 
 /** Represents user information including optional data */
-export class UserDTO extends UserCompactDTO implements IUserDTO {
-    /** List of permissions granted to the user */
-    scopes!: string[];
-    /** Settings of the user */
-    settings!: UserSettingsDTO;
-
-    constructor(data?: IUserDTO) {
-        super(data);
-        if (!data) {
-            this.scopes = [];
-            this.settings = new UserSettingsDTO();
-        }
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            if (Array.isArray(_data["scopes"])) {
-                this.scopes = [] as any;
-                for (let item of _data["scopes"])
-                    this.scopes!.push(item);
-            }
-            this.settings = _data["settings"] ? UserSettingsDTO.fromJS(_data["settings"]) : new UserSettingsDTO();
-        }
-    }
-
-    static override fromJS(data: any): UserDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new UserDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.scopes)) {
-            data["scopes"] = [];
-            for (let item of this.scopes)
-                data["scopes"].push(item);
-        }
-        data["settings"] = this.settings ? this.settings.toJSON() : <any>undefined;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-/** Represents user information including optional data */
-export interface IUserDTO extends IUserCompactDTO {
+export interface UserDTO extends UserCompactDTO {
     /** List of permissions granted to the user */
     scopes: string[];
     /** Settings of the user */
@@ -10313,45 +7209,7 @@ export interface IUserDTO extends IUserCompactDTO {
 }
 
 /** Represents user controlled settings for otr-web */
-export class UserSettingsDTO implements IUserSettingsDTO {
-    /** Represents osu! play modes */
-    ruleset!: Ruleset;
-    /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
-    rulesetIsControlled!: boolean;
-
-    constructor(data?: IUserSettingsDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.ruleset = _data["ruleset"];
-            this.rulesetIsControlled = _data["rulesetIsControlled"];
-        }
-    }
-
-    static fromJS(data: any): UserSettingsDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new UserSettingsDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["ruleset"] = this.ruleset;
-        data["rulesetIsControlled"] = this.rulesetIsControlled;
-        return data;
-    }
-}
-
-/** Represents user controlled settings for otr-web */
-export interface IUserSettingsDTO {
+export interface UserSettingsDTO {
     /** Represents osu! play modes */
     ruleset: Ruleset;
     /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
