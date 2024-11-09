@@ -6031,27 +6031,6 @@
         "additionalProperties": false,
         "description": "Represents a beatmap"
       },
-      "CreatedAtRouteValues": {
-        "type": "object",
-        "properties": {
-          "routeValues": {
-            "description": "Any route or query parameters that must be included in the URI",
-            "nullable": true
-          },
-          "action": {
-            "type": "string",
-            "description": "The controller method that produces the resource",
-            "nullable": true
-          },
-          "controller": {
-            "type": "string",
-            "description": "The controller that produces the resource",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult"
-      },
       "CreatedResultBaseDTO": {
         "required": [
           "id",
@@ -6066,7 +6045,7 @@
           },
           "location": {
             "type": "string",
-            "description": "URL of where the new resource can be accessed"
+            "description": "Location of the resource"
           }
         },
         "additionalProperties": false,
@@ -6802,7 +6781,6 @@
       },
       "MatchCreatedResultDTO": {
         "required": [
-          "createdAtRouteValues",
           "osuId"
         ],
         "type": "object",
@@ -6812,15 +6790,6 @@
           }
         ],
         "properties": {
-          "createdAtRouteValues": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CreatedAtRouteValues"
-              }
-            ],
-            "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult",
-            "readOnly": true
-          },
           "osuId": {
             "type": "integer",
             "description": "osu! match id",
@@ -8592,7 +8561,6 @@
       "TournamentCreatedResultDTO": {
         "required": [
           "abbreviation",
-          "createdAtRouteValues",
           "matches",
           "name"
         ],
@@ -8603,15 +8571,6 @@
           }
         ],
         "properties": {
-          "createdAtRouteValues": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CreatedAtRouteValues"
-              }
-            ],
-            "description": "Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult",
-            "readOnly": true
-          },
           "name": {
             "type": "string",
             "description": "The name of the tournament"

@@ -5949,21 +5949,11 @@ export interface BeatmapDTO {
     diffName?: string | undefined;
 }
 
-/** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-export interface CreatedAtRouteValues {
-    /** Any route or query parameters that must be included in the URI */
-    routeValues?: any | undefined;
-    /** The controller method that produces the resource */
-    action?: string | undefined;
-    /** The controller that produces the resource */
-    controller?: string | undefined;
-}
-
 /** Represents a newly created resource */
 export interface CreatedResultBaseDTO {
     /** Id of the resource */
     id: number;
-    /** URL of where the new resource can be accessed */
+    /** Location of the resource */
     location: string;
 }
 
@@ -6268,8 +6258,6 @@ export interface LeaderboardTierFilterDTO {
 
 /** Represents a created match */
 export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
-    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    readonly createdAtRouteValues: CreatedAtRouteValues;
     /** osu! match id */
     osuId: number;
 }
@@ -7044,8 +7032,6 @@ Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore 
 
 /** Represents a created tournament */
 export interface TournamentCreatedResultDTO extends CreatedResultBaseDTO {
-    /** Represents data for constructing Microsoft.AspNetCore.Mvc.CreatedResult */
-    readonly createdAtRouteValues: CreatedAtRouteValues;
     /** The name of the tournament */
     name: string;
     /** Acronym / shortened name of the tournament
