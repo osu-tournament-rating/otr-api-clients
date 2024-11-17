@@ -26,7 +26,7 @@ export abstract class OtrApiWrapperBase {
 */
 export type BeatmapsGetRequestParams = {
     /**
-    * (required) Search key
+    * (required) Search key (o!TR id or osu! id)
     */
     key: number;
 }
@@ -107,9 +107,9 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Get a beatmap by versatile search
+    * Get a beatmap
     *
-    * Get a beatmap searching first by id, then by osu! beatmap id
+    * Get a beatmap searching first by id, then by beatmap osu! id
     * 
     * Requires Authorization:
     * 
@@ -164,7 +164,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a beatmap for the search key does not exist", status, _responseText, _headers, result404);
+            return throwException("A beatmap matching the given key does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -186,13 +186,13 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
 */
 export type ClientsPatchRateLimitRequestParams = {
     /**
-    * (required) The client id
+    * (required) Client id
     */
     id: number;
     /**
-    * (optional) The new rate limit for the client
+    * (required) The new rate limit for the client
     */
-    rateLimitOverride?: number | undefined;
+    body: number;
 }
 
 export class ClientsWrapper extends OtrApiWrapperBase {
@@ -219,28 +219,28 @@ export class ClientsWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link ClientsPatchRateLimitRequestParams})
-    * @return Returns the patched client
+    * @return Returns the updated client
     */
     public patchRateLimit(params: ClientsPatchRateLimitRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientDTO>> {
         const {
             id, 
-            rateLimitOverride
+            body
         } = params;
 
-        let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit?";
+        let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        if (rateLimitOverride === null)
-            throw new Error("The parameter 'rateLimitOverride' cannot be null.");
-        else if (rateLimitOverride !== undefined)
-            url_ += "rateLimitOverride=" + encodeURIComponent("" + rateLimitOverride) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(body);
+
         let options_: AxiosRequestConfig = {
+            data: content_,
             method: "POST",
             url: url_,
             headers: {
+                "Content-Type": "application/json-patch+json",
                 "Accept": "text/plain"
             },
             cancelToken
@@ -273,7 +273,7 @@ export class ClientsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If the provided id does not belong to a client", status, _responseText, _headers, result404);
+            return throwException("A client matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -295,9 +295,9 @@ export class ClientsWrapper extends OtrApiWrapperBase {
 */
 export type FilteringFilterRequestParams = {
     /**
-    * (optional) The filtering request
+    * (required) The filtering request
     */
-    body?: FilteringRequestDTO | undefined;
+    body: FilteringRequestDTO;
 }
 
 export class FilteringWrapper extends OtrApiWrapperBase {
@@ -375,7 +375,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("Errors encountered during validation", status, _responseText, _headers, result400);
+            return throwException("The request body is invalid", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -401,9 +401,9 @@ export type GamesCreateAdminNoteRequestParams = {
     */
     id: number;
     /**
-    * (optional) 
+    * (required) Content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -429,9 +429,9 @@ export type GamesUpdateAdminNoteRequestParams = {
     */
     noteId: number;
     /**
-    * (optional) 
+    * (required) New content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -453,7 +453,7 @@ export type GamesDeleteAdminNoteRequestParams = {
 */
 export type GamesUpdateRequestParams = {
     /**
-    * (required) The game id
+    * (required) Game id
     */
     id: number;
     /**
@@ -490,7 +490,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Creates an admin note for a game
+    * Create an admin note for a game
     *
     * Requires Authorization:
     * 
@@ -550,14 +550,14 @@ export class GamesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            return throwException("The authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -578,7 +578,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin
+    * Claim(s): user, client
     * @param params Request parameters (see {@link GamesListAdminNotesRequestParams})
     * @return Returns all admin notes from a game
     */
@@ -629,7 +629,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a game matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -646,7 +646,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Updates an admin note for a game
+    * Update an admin note for a game
     *
     * Requires Authorization:
     * 
@@ -710,14 +710,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            return throwException("A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -734,7 +727,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Deletes an admin note for a game
+    * Delete an admin note for a game
     *
     * Requires Authorization:
     * 
@@ -793,7 +786,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+            return throwException("A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 403) {
             const _responseText = response.data;
@@ -823,7 +816,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link GamesUpdateRequestParams})
-    * @return Returns the patched game
+    * @return Returns the updated game
     */
     public update(params: GamesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameDTO>> {
         const {
@@ -877,14 +870,14 @@ export class GamesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If the provided id does not belong to a game", status, _responseText, _headers, result404);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -956,7 +949,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
 
         } else if (status === 404) {
             const _responseText = response.data;
-            return throwException("The game does not exist", status, _responseText, _headers);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -975,9 +968,9 @@ export type GameScoresCreateAdminNoteRequestParams = {
     */
     id: number;
     /**
-    * (optional) 
+    * (required) Content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -1003,9 +996,9 @@ export type GameScoresUpdateAdminNoteRequestParams = {
     */
     noteId: number;
     /**
-    * (optional) 
+    * (required) New content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -1027,7 +1020,7 @@ export type GameScoresDeleteAdminNoteRequestParams = {
 */
 export type GameScoresUpdateRequestParams = {
     /**
-    * (required) The score id
+    * (required) Score id
     */
     id: number;
     /**
@@ -1064,7 +1057,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Creates an admin note for a score
+    * Create an admin note for a score
     *
     * Requires Authorization:
     * 
@@ -1124,14 +1117,14 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            return throwException("The authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1152,7 +1145,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin
+    * Claim(s): user, client
     * @param params Request parameters (see {@link GameScoresListAdminNotesRequestParams})
     * @return Returns all admin notes from a score
     */
@@ -1203,7 +1196,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a score matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1220,7 +1213,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Updates an admin note for a score
+    * Update an admin note for a score
     *
     * Requires Authorization:
     * 
@@ -1284,14 +1277,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            return throwException("A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1308,7 +1294,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Deletes an admin note for a score
+    * Delete an admin note for a score
     *
     * Requires Authorization:
     * 
@@ -1367,14 +1353,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
+            return throwException("A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1397,7 +1376,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link GameScoresUpdateRequestParams})
-    * @return Returns the patched score
+    * @return Returns the updated score
     */
     public update(params: GameScoresUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameScoreDTO>> {
         const {
@@ -1451,14 +1430,14 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If the provided id does not belong to a score", status, _responseText, _headers, result404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1524,13 +1503,16 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 204) {
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 204) {
             const _responseText = response.data;
             return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
-
-        } else if (status === 404) {
-            const _responseText = response.data;
-            return throwException("The score does not exist", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -1545,13 +1527,13 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
 */
 export type LeaderboardsGetRequestParams = {
     /**
-    * (optional) 
+    * (required) Ruleset for leaderboard data
     */
-    ruleset?: Ruleset | undefined;
+    ruleset: Ruleset;
     /**
-    * (optional) The zero-indexed page offset. Page 0 returns the first PageSize results.
+    * (required) The zero-indexed page offset. Page 0 returns the first PageSize results.
     */
-    page?: number | undefined;
+    page: number;
     /**
     * (optional) The number of elements to return per page
     */
@@ -1561,9 +1543,73 @@ export type LeaderboardsGetRequestParams = {
     */
     chartType?: LeaderboardChartType | undefined;
     /**
-    * (optional) 
+    * (optional) Rank floor
     */
-    filter?: LeaderboardFilterDTO | undefined;
+    filter_minRank?: number | undefined;
+    /**
+    * (optional) Rank ceiling
+    */
+    filter_maxRank?: number | undefined;
+    /**
+    * (optional) Rating floor
+    */
+    filter_minRating?: number | undefined;
+    /**
+    * (optional) Rating ceiling
+    */
+    filter_maxRating?: number | undefined;
+    /**
+    * (optional) Minimum Maximum number of matches played
+    */
+    filter_minMatches?: number | undefined;
+    /**
+    * (optional) Maximum number of matches played
+    */
+    filter_maxMatches?: number | undefined;
+    /**
+    * (optional) Minimum win rate
+    */
+    filter_minWinRate?: number | undefined;
+    /**
+    * (optional) Maximum win rate
+    */
+    filter_maxWinRate?: number | undefined;
+    /**
+    * (optional) Explicitly include bronze players
+    */
+    filter_tierFilters_bronze?: boolean | undefined;
+    /**
+    * (optional) Explicitly include silver players
+    */
+    filter_tierFilters_silver?: boolean | undefined;
+    /**
+    * (optional) Explicitly include gold players
+    */
+    filter_tierFilters_gold?: boolean | undefined;
+    /**
+    * (optional) Explicitly include platinum players
+    */
+    filter_tierFilters_platinum?: boolean | undefined;
+    /**
+    * (optional) Explicitly include emerald players
+    */
+    filter_tierFilters_emerald?: boolean | undefined;
+    /**
+    * (optional) Explicitly include emerald players
+    */
+    filter_tierFilters_diamond?: boolean | undefined;
+    /**
+    * (optional) Explicitly include master players
+    */
+    filter_tierFilters_master?: boolean | undefined;
+    /**
+    * (optional) Explicitly include grandmaster players
+    */
+    filter_tierFilters_grandmaster?: boolean | undefined;
+    /**
+    * (optional) Explicitly include elite grandmaster players
+    */
+    filter_tierFilters_eliteGrandmaster?: boolean | undefined;
 }
 
 export class LeaderboardsWrapper extends OtrApiWrapperBase {
@@ -1584,13 +1630,13 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Undocumented
+    * Get a leaderboard of players which fit an optional request query
     *
     * Requires Authorization:
     * 
     * Claim(s): user
     * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
-    * @return Success
+    * @return Returns the leaderboard
     */
     public get(params: LeaderboardsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<LeaderboardDTO>> {
         const {
@@ -1598,30 +1644,110 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
             page, 
             pageSize, 
             chartType, 
-            filter
+            filter_minRank, 
+            filter_maxRank, 
+            filter_minRating, 
+            filter_maxRating, 
+            filter_minMatches, 
+            filter_maxMatches, 
+            filter_minWinRate, 
+            filter_maxWinRate, 
+            filter_tierFilters_bronze, 
+            filter_tierFilters_silver, 
+            filter_tierFilters_gold, 
+            filter_tierFilters_platinum, 
+            filter_tierFilters_emerald, 
+            filter_tierFilters_diamond, 
+            filter_tierFilters_master, 
+            filter_tierFilters_grandmaster, 
+            filter_tierFilters_eliteGrandmaster
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/leaderboards?";
-        if (ruleset === null)
-            throw new Error("The parameter 'ruleset' cannot be null.");
-        else if (ruleset !== undefined)
-            url_ += "Ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        if (page === null)
-            throw new Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "Page=" + encodeURIComponent("" + page) + "&";
+        if (ruleset === undefined || ruleset === null)
+            throw new Error("The parameter 'ruleset' must be defined and cannot be null.");
+        else
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (page === undefined || page === null)
+            throw new Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
         if (pageSize === null)
             throw new Error("The parameter 'pageSize' cannot be null.");
         else if (pageSize !== undefined)
-            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         if (chartType === null)
             throw new Error("The parameter 'chartType' cannot be null.");
         else if (chartType !== undefined)
-            url_ += "ChartType=" + encodeURIComponent("" + chartType) + "&";
-        if (filter === null)
-            throw new Error("The parameter 'filter' cannot be null.");
-        else if (filter !== undefined)
-            url_ += "Filter=" + encodeURIComponent("" + filter) + "&";
+            url_ += "chartType=" + encodeURIComponent("" + chartType) + "&";
+        if (filter_minRank === null)
+            throw new Error("The parameter 'filter_minRank' cannot be null.");
+        else if (filter_minRank !== undefined)
+            url_ += "filter.minRank=" + encodeURIComponent("" + filter_minRank) + "&";
+        if (filter_maxRank === null)
+            throw new Error("The parameter 'filter_maxRank' cannot be null.");
+        else if (filter_maxRank !== undefined)
+            url_ += "filter.maxRank=" + encodeURIComponent("" + filter_maxRank) + "&";
+        if (filter_minRating === null)
+            throw new Error("The parameter 'filter_minRating' cannot be null.");
+        else if (filter_minRating !== undefined)
+            url_ += "filter.minRating=" + encodeURIComponent("" + filter_minRating) + "&";
+        if (filter_maxRating === null)
+            throw new Error("The parameter 'filter_maxRating' cannot be null.");
+        else if (filter_maxRating !== undefined)
+            url_ += "filter.maxRating=" + encodeURIComponent("" + filter_maxRating) + "&";
+        if (filter_minMatches === null)
+            throw new Error("The parameter 'filter_minMatches' cannot be null.");
+        else if (filter_minMatches !== undefined)
+            url_ += "filter.minMatches=" + encodeURIComponent("" + filter_minMatches) + "&";
+        if (filter_maxMatches === null)
+            throw new Error("The parameter 'filter_maxMatches' cannot be null.");
+        else if (filter_maxMatches !== undefined)
+            url_ += "filter.maxMatches=" + encodeURIComponent("" + filter_maxMatches) + "&";
+        if (filter_minWinRate === null)
+            throw new Error("The parameter 'filter_minWinRate' cannot be null.");
+        else if (filter_minWinRate !== undefined)
+            url_ += "filter.minWinRate=" + encodeURIComponent("" + filter_minWinRate) + "&";
+        if (filter_maxWinRate === null)
+            throw new Error("The parameter 'filter_maxWinRate' cannot be null.");
+        else if (filter_maxWinRate !== undefined)
+            url_ += "filter.maxWinRate=" + encodeURIComponent("" + filter_maxWinRate) + "&";
+        if (filter_tierFilters_bronze === null)
+            throw new Error("The parameter 'filter_tierFilters_bronze' cannot be null.");
+        else if (filter_tierFilters_bronze !== undefined)
+            url_ += "filter.tierFilters.bronze=" + encodeURIComponent("" + filter_tierFilters_bronze) + "&";
+        if (filter_tierFilters_silver === null)
+            throw new Error("The parameter 'filter_tierFilters_silver' cannot be null.");
+        else if (filter_tierFilters_silver !== undefined)
+            url_ += "filter.tierFilters.silver=" + encodeURIComponent("" + filter_tierFilters_silver) + "&";
+        if (filter_tierFilters_gold === null)
+            throw new Error("The parameter 'filter_tierFilters_gold' cannot be null.");
+        else if (filter_tierFilters_gold !== undefined)
+            url_ += "filter.tierFilters.gold=" + encodeURIComponent("" + filter_tierFilters_gold) + "&";
+        if (filter_tierFilters_platinum === null)
+            throw new Error("The parameter 'filter_tierFilters_platinum' cannot be null.");
+        else if (filter_tierFilters_platinum !== undefined)
+            url_ += "filter.tierFilters.platinum=" + encodeURIComponent("" + filter_tierFilters_platinum) + "&";
+        if (filter_tierFilters_emerald === null)
+            throw new Error("The parameter 'filter_tierFilters_emerald' cannot be null.");
+        else if (filter_tierFilters_emerald !== undefined)
+            url_ += "filter.tierFilters.emerald=" + encodeURIComponent("" + filter_tierFilters_emerald) + "&";
+        if (filter_tierFilters_diamond === null)
+            throw new Error("The parameter 'filter_tierFilters_diamond' cannot be null.");
+        else if (filter_tierFilters_diamond !== undefined)
+            url_ += "filter.tierFilters.diamond=" + encodeURIComponent("" + filter_tierFilters_diamond) + "&";
+        if (filter_tierFilters_master === null)
+            throw new Error("The parameter 'filter_tierFilters_master' cannot be null.");
+        else if (filter_tierFilters_master !== undefined)
+            url_ += "filter.tierFilters.master=" + encodeURIComponent("" + filter_tierFilters_master) + "&";
+        if (filter_tierFilters_grandmaster === null)
+            throw new Error("The parameter 'filter_tierFilters_grandmaster' cannot be null.");
+        else if (filter_tierFilters_grandmaster !== undefined)
+            url_ += "filter.tierFilters.grandmaster=" + encodeURIComponent("" + filter_tierFilters_grandmaster) + "&";
+        if (filter_tierFilters_eliteGrandmaster === null)
+            throw new Error("The parameter 'filter_tierFilters_eliteGrandmaster' cannot be null.");
+        else if (filter_tierFilters_eliteGrandmaster !== undefined)
+            url_ += "filter.tierFilters.eliteGrandmaster=" + encodeURIComponent("" + filter_tierFilters_eliteGrandmaster) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
@@ -1679,9 +1805,9 @@ export type MatchesCreateAdminNoteRequestParams = {
     */
     id: number;
     /**
-    * (optional) 
+    * (required) Content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -1707,9 +1833,9 @@ export type MatchesUpdateAdminNoteRequestParams = {
     */
     noteId: number;
     /**
-    * (optional) 
+    * (required) New content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -1730,67 +1856,52 @@ export type MatchesDeleteAdminNoteRequestParams = {
 * Request parameters available for use when requesting {@link MatchesWrapper.prototype.list | api/v1/matches}
 */
 export type MatchesListRequestParams = {
+    page: number;
+    pageSize: number;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a
-	* matching Database.Enums.Ruleset
+    * (optional) Filters results for only matches played in a specified ruleset
     */
     ruleset?: Ruleset | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a partially
-	* matching Database.Entities.Match.Name
+    * (optional) Filters results for only matches with a partially matching name
     */
     name?: string | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a
-	* Database.Entities.Match.StartTime greater than this value
+    * (optional) Filters results for only matches that occurred after a specified date
     */
     dateMin?: Date | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with an
-	* Database.Entities.Match.EndTime less than this value
+    * (optional) Filters results for only matches that occurred before a specified date
     */
     dateMax?: Date | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a
-	* matching Database.Enums.Verification.VerificationStatus
+    * (optional) Filters results for only matches with a specified verification status
     */
     verificationStatus?: VerificationStatus | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason
+    * (optional) Filters results for only matches with a specified rejection reason
     */
     rejectionReason?: MatchRejectionReason | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus
+    * (optional) Filters results for only matches with a specified processing status
     */
     processingStatus?: MatchProcessingStatus | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches where the id of the
-	* Database.Entities.User that submitted it matches this value
+    * (optional) Filters results for only matches submitted by a user with a specified id
     */
     submittedBy?: number | undefined;
     /**
-    * (optional) Filters results for Database.Entities.Matches where the id of the
-	* Database.Entities.User that verified it matches this value
+    * (optional) Filters results for only matches verified by a user with a specified id
     */
     verifiedBy?: number | undefined;
     /**
-    * (optional) Controls the manner in which results are sorted
+    * (optional) The key used to sort results by
     */
     sort?: MatchQuerySortType | undefined;
     /**
-    * (optional) Denotes whether to sort results in ascending or descending order
+    * (optional) Whether the results are sorted in descending order by the API.DTOs.MatchRequestQueryDTO.Sort
     */
-    sortDescending?: boolean | undefined;
-    /**
-    * (optional) Controls the number of matches to return. Functions as a "page size".
-	* Default: 100 Constraints: Minimum 1, Maximum 5000
-    */
-    limit?: number | undefined;
-    /**
-    * (optional) Controls which block of size limit to return.
-	* Default: 1, Constraints: Minimum 1
-    */
-    page?: number | undefined;
+    descending?: boolean | undefined;
 }
 
 /**
@@ -1808,7 +1919,7 @@ export type MatchesGetRequestParams = {
 */
 export type MatchesUpdateRequestParams = {
     /**
-    * (required) The match id
+    * (required) Match id
     */
     id: number;
     /**
@@ -1825,17 +1936,6 @@ export type MatchesDeleteRequestParams = {
     * (required) Match id
     */
     id: number;
-}
-
-/**
-* Request parameters available for use when requesting {@link MatchesWrapper.prototype.getMatches | api/v1/matches/player/[osuId]}
-*/
-export type MatchesGetMatchesRequestParams = {
-    osuId: number;
-    /**
-    * (optional) 
-    */
-    ruleset?: Ruleset | undefined;
 }
 
 export class MatchesWrapper extends OtrApiWrapperBase {
@@ -1856,7 +1956,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Creates an admin note for a match
+    * Create an admin note for a match
     *
     * Requires Authorization:
     * 
@@ -1916,14 +2016,14 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            return throwException("The authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -1944,7 +2044,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin
+    * Claim(s): user, client
     * @param params Request parameters (see {@link MatchesListAdminNotesRequestParams})
     * @return Returns all admin notes from a match
     */
@@ -1995,7 +2095,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a match matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2012,7 +2112,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Updates an admin note for a match
+    * Update an admin note for a match
     *
     * Requires Authorization:
     * 
@@ -2076,14 +2176,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            return throwException("A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2100,7 +2193,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Deletes an admin note for a match
+    * Delete an admin note for a match
     *
     * Requires Authorization:
     * 
@@ -2159,14 +2252,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
+            return throwException("A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2183,18 +2269,20 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Gets all matches
+    * Get all matches which fit an optional request query
     *
-    * Results are ordered by id and support pagination. All match data is included.
+    * Will not include game data
     * 
     * Requires Authorization:
     * 
     * Claim(s): user, client
     * @param params Request parameters (see {@link MatchesListRequestParams})
-    * @return Returns the desired page of matches
+    * @return Returns all matches which fit the request query
     */
-    public list(params: MatchesListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
+    public list(params: MatchesListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO[]>> {
         const {
+            page, 
+            pageSize, 
             ruleset, 
             name, 
             dateMin, 
@@ -2205,64 +2293,62 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             submittedBy, 
             verifiedBy, 
             sort, 
-            sortDescending, 
-            limit, 
-            page
+            descending
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/matches?";
+        if (page === undefined || page === null)
+            throw new Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
         else if (ruleset !== undefined)
-            url_ += "Ruleset=" + encodeURIComponent("" + ruleset) + "&";
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
         if (name === null)
             throw new Error("The parameter 'name' cannot be null.");
         else if (name !== undefined)
-            url_ += "Name=" + encodeURIComponent("" + name) + "&";
+            url_ += "name=" + encodeURIComponent("" + name) + "&";
         if (dateMin === null)
             throw new Error("The parameter 'dateMin' cannot be null.");
         else if (dateMin !== undefined)
-            url_ += "DateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
         if (dateMax === null)
             throw new Error("The parameter 'dateMax' cannot be null.");
         else if (dateMax !== undefined)
-            url_ += "DateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
         if (verificationStatus === null)
             throw new Error("The parameter 'verificationStatus' cannot be null.");
         else if (verificationStatus !== undefined)
-            url_ += "VerificationStatus=" + encodeURIComponent("" + verificationStatus) + "&";
+            url_ += "verificationStatus=" + encodeURIComponent("" + verificationStatus) + "&";
         if (rejectionReason === null)
             throw new Error("The parameter 'rejectionReason' cannot be null.");
         else if (rejectionReason !== undefined)
-            url_ += "RejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
+            url_ += "rejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
         if (processingStatus === null)
             throw new Error("The parameter 'processingStatus' cannot be null.");
         else if (processingStatus !== undefined)
-            url_ += "ProcessingStatus=" + encodeURIComponent("" + processingStatus) + "&";
+            url_ += "processingStatus=" + encodeURIComponent("" + processingStatus) + "&";
         if (submittedBy === null)
             throw new Error("The parameter 'submittedBy' cannot be null.");
         else if (submittedBy !== undefined)
-            url_ += "SubmittedBy=" + encodeURIComponent("" + submittedBy) + "&";
+            url_ += "submittedBy=" + encodeURIComponent("" + submittedBy) + "&";
         if (verifiedBy === null)
             throw new Error("The parameter 'verifiedBy' cannot be null.");
         else if (verifiedBy !== undefined)
-            url_ += "VerifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+            url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
         if (sort === null)
             throw new Error("The parameter 'sort' cannot be null.");
         else if (sort !== undefined)
-            url_ += "Sort=" + encodeURIComponent("" + sort) + "&";
-        if (sortDescending === null)
-            throw new Error("The parameter 'sortDescending' cannot be null.");
-        else if (sortDescending !== undefined)
-            url_ += "SortDescending=" + encodeURIComponent("" + sortDescending) + "&";
-        if (limit === null)
-            throw new Error("The parameter 'limit' cannot be null.");
-        else if (limit !== undefined)
-            url_ += "limit=" + encodeURIComponent("" + limit) + "&";
-        if (page === null)
-            throw new Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "page=" + encodeURIComponent("" + page) + "&";
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+        if (descending === null)
+            throw new Error("The parameter 'descending' cannot be null.");
+        else if (descending !== undefined)
+            url_ += "descending=" + encodeURIComponent("" + descending) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
@@ -2286,7 +2372,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
         });
     }
 
-    protected processList(response: AxiosResponse): Promise<OtrApiResponse<MatchDTOPagedResultDTO>> {
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO[]>> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -2301,13 +2387,13 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result200: any = null;
             let resultData200  = _responseText;
             result200 = JSON.parse(resultData200);
-            return Promise.resolve<OtrApiResponse<MatchDTOPagedResultDTO>>(new OtrApiResponse<MatchDTOPagedResultDTO>(status, _headers, result200));
+            return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse<MatchDTO[]>(status, _headers, result200));
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<OtrApiResponse<MatchDTOPagedResultDTO>>(new OtrApiResponse(status, _headers, null as any));
+        return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -2366,7 +2452,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a match does not exist for the given id", status, _responseText, _headers, result404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2389,7 +2475,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link MatchesUpdateRequestParams})
-    * @return Returns the patched match
+    * @return Returns the updated match
     */
     public update(params: MatchesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO>> {
         const {
@@ -2443,14 +2529,14 @@ export class MatchesWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If the provided id does not belong to a match", status, _responseText, _headers, result404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2516,77 +2602,14 @@ export class MatchesWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 204) {
+        if (status === 404) {
             const _responseText = response.data;
-            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
-        } else if (status === 404) {
-            const _responseText = response.data;
-            return throwException("The match does not exist", status, _responseText, _headers);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
-    }
-
-    /**
-    * Undocumented
-    *
-    * Requires Authorization:
-    * 
-    * Claim(s): admin
-    * @param params Request parameters (see {@link MatchesGetMatchesRequestParams})
-    * @return Success
-    */
-    public getMatches(params: MatchesGetMatchesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-        const {
-            osuId, 
-            ruleset
-        } = params;
-
-        let url_ = this.baseUrl + "/api/v1/matches/player/{osuId}?";
-        if (osuId === undefined || osuId === null)
-            throw new Error("The parameter 'osuId' must be defined.");
-        url_ = url_.replace("{osuId}", encodeURIComponent("" + osuId));
-        if (ruleset === null)
-            throw new Error("The parameter 'ruleset' cannot be null.");
-        else if (ruleset !== undefined)
-            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-        (options_ as any).requiresAuth = true
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processGetMatches(_response);
-        });
-    }
-
-    protected processGetMatches(response: AxiosResponse): Promise<OtrApiResponse<void>> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
+        } else if (status === 204) {
             const _responseText = response.data;
             return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
@@ -2620,10 +2643,7 @@ export type MeGetStatsRequestParams = {
 * Request parameters available for use when requesting {@link MeWrapper.prototype.updateRuleset | api/v1/me/settings/ruleset}
 */
 export type MeUpdateRulesetRequestParams = {
-    /**
-    * (optional) 
-    */
-    body?: Ruleset | undefined;
+    body: Ruleset;
 }
 
 export class MeWrapper extends OtrApiWrapperBase {
@@ -2774,7 +2794,7 @@ export class MeWrapper extends OtrApiWrapperBase {
         }
         if (status === 302) {
             const _responseText = response.data;
-            return throwException("Redirects to `GET` `/stats/{key}`", status, _responseText, _headers);
+            return throwException("Redirects to `GET` `/players/{key}/stats`", status, _responseText, _headers);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2797,7 +2817,7 @@ export class MeWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): user
     * @param params Request parameters (see {@link MeUpdateRulesetRequestParams})
-    * @return If the operation was successful
+    * @return The operation was successful
     */
     public updateRuleset(params: MeUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
         const {
@@ -2811,7 +2831,7 @@ export class MeWrapper extends OtrApiWrapperBase {
 
         let options_: AxiosRequestConfig = {
             data: content_,
-            method: "POST",
+            method: "PATCH",
             url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
@@ -2843,14 +2863,14 @@ export class MeWrapper extends OtrApiWrapperBase {
         }
         if (status === 308) {
             const _responseText = response.data;
-            return throwException("Redirects to `POST` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
+            return throwException("Redirects to `PATCH` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2869,7 +2889,7 @@ export class MeWrapper extends OtrApiWrapperBase {
     * Requires Authorization:
     * 
     * Claim(s): user
-    * @return If the operation was successful
+    * @return The operation was successful
     */
     public syncRuleset( cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
 
@@ -2915,7 +2935,7 @@ export class MeWrapper extends OtrApiWrapperBase {
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -2938,9 +2958,9 @@ export class MeWrapper extends OtrApiWrapperBase {
 */
 export type OAuthAuthorizeRequestParams = {
     /**
-    * (optional) The osu! authorization code
+    * (required) osu! authorization code
     */
-    code?: string | undefined;
+    code: string;
 }
 
 /**
@@ -2948,13 +2968,13 @@ export type OAuthAuthorizeRequestParams = {
 */
 export type OAuthAuthorizeClientRequestParams = {
     /**
-    * (optional) The id of the client
+    * (required) Client id
     */
-    clientId?: number | undefined;
+    clientId: number;
     /**
-    * (optional) The secret of the client
+    * (required) Client secret
     */
-    clientSecret?: string | undefined;
+    clientSecret: string;
 }
 
 /**
@@ -2962,9 +2982,9 @@ export type OAuthAuthorizeClientRequestParams = {
 */
 export type OAuthRefreshRequestParams = {
     /**
-    * (optional) 
+    * (required) Refresh token
     */
-    refreshToken?: string | undefined;
+    refreshToken: string;
 }
 
 export class OAuthWrapper extends OtrApiWrapperBase {
@@ -2995,9 +3015,9 @@ export class OAuthWrapper extends OtrApiWrapperBase {
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/oauth/authorize?";
-        if (code === null)
-            throw new Error("The parameter 'code' cannot be null.");
-        else if (code !== undefined)
+        if (code === undefined || code === null)
+            throw new Error("The parameter 'code' must be defined and cannot be null.");
+        else
             url_ += "code=" + encodeURIComponent("" + code) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3037,7 +3057,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             let result401: any = null;
             let resultData401  = _responseText;
             result401 = JSON.parse(resultData401);
-            return throwException("If there was an error during authorization", status, _responseText, _headers, result401);
+            return throwException("There was an error during authorization", status, _responseText, _headers, result401);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3065,13 +3085,13 @@ export class OAuthWrapper extends OtrApiWrapperBase {
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/oauth/token?";
-        if (clientId === null)
-            throw new Error("The parameter 'clientId' cannot be null.");
-        else if (clientId !== undefined)
+        if (clientId === undefined || clientId === null)
+            throw new Error("The parameter 'clientId' must be defined and cannot be null.");
+        else
             url_ += "clientId=" + encodeURIComponent("" + clientId) + "&";
-        if (clientSecret === null)
-            throw new Error("The parameter 'clientSecret' cannot be null.");
-        else if (clientSecret !== undefined)
+        if (clientSecret === undefined || clientSecret === null)
+            throw new Error("The parameter 'clientSecret' must be defined and cannot be null.");
+        else
             url_ += "clientSecret=" + encodeURIComponent("" + clientSecret) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3111,7 +3131,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If there was an error during authorization", status, _responseText, _headers, result400);
+            return throwException("There was an error during authorization", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3191,8 +3211,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
     /**
     * Generate new access credentials from a valid refresh token
     *
-    * Generated access credentials will contain only a new access token,
-    * and the given refresh token is returned with it
+    * Generated access credentials will contain only a new access token
     * @param params Request parameters (see {@link OAuthRefreshRequestParams})
     * @return Returns access credentials containing a new access token
     */
@@ -3202,9 +3221,9 @@ export class OAuthWrapper extends OtrApiWrapperBase {
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
-        if (refreshToken === null)
-            throw new Error("The parameter 'refreshToken' cannot be null.");
-        else if (refreshToken !== undefined)
+        if (refreshToken === undefined || refreshToken === null)
+            throw new Error("The parameter 'refreshToken' must be defined and cannot be null.");
+        else
             url_ += "refreshToken=" + encodeURIComponent("" + refreshToken) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3244,7 +3263,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the given refresh token is invalid, or there was an error during authorization", status, _responseText, _headers, result400);
+            return throwException("The refresh token is invalid or there was an error during authorization", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3270,9 +3289,9 @@ export type PlayersCreateAdminNoteRequestParams = {
     */
     id: number;
     /**
-    * (optional) 
+    * (required) Content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -3298,9 +3317,9 @@ export type PlayersUpdateAdminNoteRequestParams = {
     */
     noteId: number;
     /**
-    * (optional) 
+    * (required) New content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -3321,7 +3340,32 @@ export type PlayersDeleteAdminNoteRequestParams = {
 * Request parameters available for use when requesting {@link PlayersWrapper.prototype.get | api/v1/players/[key]}
 */
 export type PlayersGetRequestParams = {
+    /**
+    * (required) Search key (o!TR id, osu! id, or osu! username)
+    */
     key: string;
+}
+
+/**
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.getStats | api/v1/players/[key]/stats}
+*/
+export type PlayersGetStatsRequestParams = {
+    /**
+    * (required) Search key
+    */
+    key: string;
+    /**
+    * (optional) Ruleset to filter for
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filter from earliest date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filter to latest date
+    */
+    dateMax?: Date | undefined;
 }
 
 export class PlayersWrapper extends OtrApiWrapperBase {
@@ -3342,7 +3386,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Creates an admin note for a player
+    * Create an admin note for a player
     *
     * Requires Authorization:
     * 
@@ -3402,14 +3446,14 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A player matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the authorized user does not exist", status, _responseText, _headers, result400);
+            return throwException("The authorized user does not exist", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3430,7 +3474,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin
+    * Claim(s): user, client
     * @param params Request parameters (see {@link PlayersListAdminNotesRequestParams})
     * @return Returns all admin notes from a player
     */
@@ -3481,7 +3525,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a player matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A player matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3498,7 +3542,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Updates an admin note for a player
+    * Update an admin note for a player
     *
     * Requires Authorization:
     * 
@@ -3564,13 +3608,6 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             result404 = JSON.parse(resultData404);
             return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
-
         } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
@@ -3586,7 +3623,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Deletes an admin note for a player
+    * Delete an admin note for a player
     *
     * Requires Authorization:
     * 
@@ -3645,14 +3682,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
+            return throwException("A player matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -3669,13 +3699,15 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Undocumented
+    * Get a player
     *
+    * Get a player searching first by id, then by osu! id, then osu! username
+    * 
     * Requires Authorization:
     * 
     * Claim(s): user, client
     * @param params Request parameters (see {@link PlayersGetRequestParams})
-    * @return Success
+    * @return Returns a player
     */
     public get(params: PlayersGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerCompactDTO>> {
         const {
@@ -3719,7 +3751,14 @@ export class PlayersWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 200) {
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A player matching the given key does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
             const _responseText = response.data;
             let result200: any = null;
             let resultData200  = _responseText;
@@ -3732,6 +3771,99 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         }
         return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
+
+    /**
+    * Get a player's stats
+    *
+    * Gets player by versatile search.
+    * If no ruleset is provided, the player's default is used. OsuApiClient.Net.Constants.Endpoints.Osu is used as a fallback.
+    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    * If no date range is provided, gets all stats without considering date
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link PlayersGetStatsRequestParams})
+    * @return Returns a player's stats
+    */
+    public getStats(params: PlayersGetStatsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerStatsDTO>> {
+        const {
+            key, 
+            ruleset, 
+            dateMin, 
+            dateMax
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/players/{key}/stats?";
+        if (key === undefined || key === null)
+            throw new Error("The parameter 'key' must be defined.");
+        url_ = url_.replace("{key}", encodeURIComponent("" + key));
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (dateMin === null)
+            throw new Error("The parameter 'dateMin' cannot be null.");
+        else if (dateMin !== undefined)
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+        if (dateMax === null)
+            throw new Error("The parameter 'dateMax' cannot be null.");
+        else if (dateMax !== undefined)
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetStats(_response);
+        });
+    }
+
+    protected processGetStats(response: AxiosResponse): Promise<OtrApiResponse<PlayerStatsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A player matching the given search key does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 }
 
 /**
@@ -3739,9 +3871,9 @@ export class PlayersWrapper extends OtrApiWrapperBase {
 */
 export type SearchSearchRequestParams = {
     /**
-    * (optional) The string to match against names of tournaments, matches, and usernames
+    * (required) Search key
     */
-    searchKey?: string | undefined;
+    searchKey: string;
 }
 
 export class SearchWrapper extends OtrApiWrapperBase {
@@ -3764,13 +3896,13 @@ export class SearchWrapper extends OtrApiWrapperBase {
     /**
     * Search for tournaments, matches, and users
     *
-    * Allows for partial or full searching on the names of tournaments, matches, and usernames
+    * Search uses partial matching on: tournament name and abbreviation, match name, and player name
     * 
     * Requires Authorization:
     * 
-    * Claim(s): user
+    * Claim(s): user, client
     * @param params Request parameters (see {@link SearchSearchRequestParams})
-    * @return Returns a list of all possible tournaments, matches, and usernames for the given search key
+    * @return Returns a list of tournaments, matches, and usernames matching the given search key
     */
     public search(params: SearchSearchRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
         const {
@@ -3778,9 +3910,9 @@ export class SearchWrapper extends OtrApiWrapperBase {
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/search?";
-        if (searchKey === null)
-            throw new Error("The parameter 'searchKey' cannot be null.");
-        else if (searchKey !== undefined)
+        if (searchKey === undefined || searchKey === null)
+            throw new Error("The parameter 'searchKey' must be defined and cannot be null.");
+        else
             url_ += "searchKey=" + encodeURIComponent("" + searchKey) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3831,215 +3963,6 @@ export class SearchWrapper extends OtrApiWrapperBase {
 }
 
 /**
-* Request parameters available for use when requesting {@link StatsWrapper.prototype.get | api/v1/stats/[key]}
-*/
-export type StatsGetRequestParams = {
-    /**
-    * (required) Key used in versatile search
-    */
-    key: string;
-    /**
-    * (optional) Ruleset to filter for
-    */
-    ruleset?: Ruleset | undefined;
-    /**
-    * (optional) Filter from earliest date
-    */
-    dateMin?: Date | undefined;
-    /**
-    * (optional) Filter to latest date
-    */
-    dateMax?: Date | undefined;
-}
-
-/**
-* Request parameters available for use when requesting {@link StatsWrapper.prototype.getRatingHistogram | api/v1/stats/histogram}
-*/
-export type StatsGetRatingHistogramRequestParams = {
-    /**
-    * (optional) 
-    */
-    ruleset?: Ruleset | undefined;
-}
-
-export class StatsWrapper extends OtrApiWrapperBase {
-    protected instance: AxiosInstance;
-    protected baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(configuration: IOtrApiWrapperConfiguration) {
-
-        super(configuration);
-
-        this.instance = axios.create(this.configuration.clientConfiguration);
-        this.baseUrl = this.getBaseUrl("");
-
-        if (this.configuration.postConfigureClientMethod) {
-            this.configuration.postConfigureClientMethod(this.instance);
-        }
-    }
-
-    /**
-    * Get a player's stats
-    *
-    * Gets player by versatile search.
-    * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
-    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-    * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
-    * If no date range is provided, gets all stats without considering date
-    * 
-    * Requires Authorization:
-    * 
-    * Claim(s): user, client
-    * @param params Request parameters (see {@link StatsGetRequestParams})
-    * @return Returns a player's stats
-    */
-    public get(params: StatsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerStatsDTO>> {
-        const {
-            key, 
-            ruleset, 
-            dateMin, 
-            dateMax
-        } = params;
-
-        let url_ = this.baseUrl + "/api/v1/stats/{key}?";
-        if (key === undefined || key === null)
-            throw new Error("The parameter 'key' must be defined.");
-        url_ = url_.replace("{key}", encodeURIComponent("" + key));
-        if (ruleset === null)
-            throw new Error("The parameter 'ruleset' cannot be null.");
-        else if (ruleset !== undefined)
-            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        if (dateMin === null)
-            throw new Error("The parameter 'dateMin' cannot be null.");
-        else if (dateMin !== undefined)
-            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
-        if (dateMax === null)
-            throw new Error("The parameter 'dateMax' cannot be null.");
-        else if (dateMax !== undefined)
-            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-                "Accept": "text/plain"
-            },
-            cancelToken
-        };
-        (options_ as any).requiresAuth = true
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processGet(_response);
-        });
-    }
-
-    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<PlayerStatsDTO>> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 404) {
-            const _responseText = response.data;
-            let result404: any = null;
-            let resultData404  = _responseText;
-            result404 = JSON.parse(resultData404);
-            return throwException("If a player does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 200) {
-            const _responseText = response.data;
-            let result200: any = null;
-            let resultData200  = _responseText;
-            result200 = JSON.parse(resultData200);
-            return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200));
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
-    }
-
-    /**
-    * Undocumented
-    *
-    * Requires Authorization:
-    * 
-    * Claim(s): user, client
-    * @param params Request parameters (see {@link StatsGetRatingHistogramRequestParams})
-    * @return Success
-    */
-    public getRatingHistogram(params: StatsGetRatingHistogramRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<{ [key: string]: number; }>> {
-        const {
-            ruleset
-        } = params;
-
-        let url_ = this.baseUrl + "/api/v1/stats/histogram?";
-        if (ruleset === null)
-            throw new Error("The parameter 'ruleset' cannot be null.");
-        else if (ruleset !== undefined)
-            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-                "Accept": "text/plain"
-            },
-            cancelToken
-        };
-        (options_ as any).requiresAuth = true
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processGetRatingHistogram(_response);
-        });
-    }
-
-    protected processGetRatingHistogram(response: AxiosResponse): Promise<OtrApiResponse<{ [key: string]: number; }>> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            let result200: any = null;
-            let resultData200  = _responseText;
-            result200 = JSON.parse(resultData200);
-            return Promise.resolve<OtrApiResponse<{ [key: string]: number; }>>(new OtrApiResponse<{ [key: string]: number; }>(status, _headers, result200));
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<OtrApiResponse<{ [key: string]: number; }>>(new OtrApiResponse(status, _headers, null as any));
-    }
-}
-
-/**
 * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.createAdminNote | api/v1/tournaments/[id]/notes}
 */
 export type TournamentsCreateAdminNoteRequestParams = {
@@ -4048,9 +3971,9 @@ export type TournamentsCreateAdminNoteRequestParams = {
     */
     id: number;
     /**
-    * (optional) 
+    * (required) Content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -4076,9 +3999,9 @@ export type TournamentsUpdateAdminNoteRequestParams = {
     */
     noteId: number;
     /**
-    * (optional) 
+    * (required) New content of the admin note
     */
-    body?: string | undefined;
+    body: string;
 }
 
 /**
@@ -4099,28 +4022,22 @@ export type TournamentsDeleteAdminNoteRequestParams = {
 * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.list | api/v1/tournaments}
 */
 export type TournamentsListRequestParams = {
-    /**
-    * (required) The page number
-    */
     page: number;
-    /**
-    * (required) The size of the page
-    */
     pageSize: number;
     /**
-    * (optional) Whether the tournaments must be verified
+    * (optional) Filters results for only tournaments that are verified
     */
     verified?: boolean | undefined;
     /**
-    * (optional) An optional ruleset to filter by
+    * (optional) Filters results for only tournaments played in a specified ruleset
     */
     ruleset?: Ruleset | undefined;
     /**
     * (optional) The key used to sort results by
     */
-    querySortType?: TournamentQuerySortType | undefined;
+    sort?: TournamentQuerySortType | undefined;
     /**
-    * (optional) Whether the tournaments are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.QuerySortType
+    * (optional) Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort
     */
     descending?: boolean | undefined;
 }
@@ -4130,9 +4047,9 @@ export type TournamentsListRequestParams = {
 */
 export type TournamentsCreateRequestParams = {
     /**
-    * (optional) Tournament submission data
+    * (required) Tournament submission data
     */
-    body?: TournamentSubmissionDTO | undefined;
+    body: TournamentSubmissionDTO;
 }
 
 /**
@@ -4157,7 +4074,7 @@ export type TournamentsGetRequestParams = {
 */
 export type TournamentsUpdateRequestParams = {
     /**
-    * (required) The tournament id
+    * (required) Tournament id
     */
     id: number;
     /**
@@ -4204,7 +4121,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Creates an admin note for a tournament
+    * Create an admin note for a tournament
     *
     * Requires Authorization:
     * 
@@ -4299,7 +4216,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     *
     * Requires Authorization:
     * 
-    * Claim(s): admin
+    * Claim(s): user, client
     * @param params Request parameters (see {@link TournamentsListAdminNotesRequestParams})
     * @return Returns all admin notes from a tournament
     */
@@ -4350,7 +4267,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -4367,7 +4284,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Updates an admin note for a tournament
+    * Update an admin note for a tournament
     *
     * Requires Authorization:
     * 
@@ -4426,26 +4343,12 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = JSON.parse(resultData401);
-            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-
-        } else if (status === 404) {
+        if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("If the requester did not create the admin note", status, _responseText, _headers, result403);
+            return throwException("A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -4462,7 +4365,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Deletes an admin note for a tournament
+    * Delete an admin note for a tournament
     *
     * Requires Authorization:
     * 
@@ -4516,26 +4419,12 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = JSON.parse(resultData401);
-            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-
-        } else if (status === 404) {
+        if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = JSON.parse(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
+            return throwException("A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -4564,7 +4453,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             pageSize, 
             verified, 
             ruleset, 
-            querySortType, 
+            sort, 
             descending
         } = params;
 
@@ -4572,27 +4461,27 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         if (page === undefined || page === null)
             throw new Error("The parameter 'page' must be defined and cannot be null.");
         else
-            url_ += "Page=" + encodeURIComponent("" + page) + "&";
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
         if (pageSize === undefined || pageSize === null)
             throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
         else
-            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         if (verified === null)
             throw new Error("The parameter 'verified' cannot be null.");
         else if (verified !== undefined)
-            url_ += "Verified=" + encodeURIComponent("" + verified) + "&";
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
         if (ruleset === null)
             throw new Error("The parameter 'ruleset' cannot be null.");
         else if (ruleset !== undefined)
-            url_ += "Ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        if (querySortType === null)
-            throw new Error("The parameter 'querySortType' cannot be null.");
-        else if (querySortType !== undefined)
-            url_ += "QuerySortType=" + encodeURIComponent("" + querySortType) + "&";
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (sort === null)
+            throw new Error("The parameter 'sort' cannot be null.");
+        else if (sort !== undefined)
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
         if (descending === null)
             throw new Error("The parameter 'descending' cannot be null.");
         else if (descending !== undefined)
-            url_ += "Descending=" + encodeURIComponent("" + descending) + "&";
+            url_ += "descending=" + encodeURIComponent("" + descending) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
@@ -4632,13 +4521,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let resultData200  = _responseText;
             result200 = JSON.parse(resultData200);
             return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse<TournamentDTO[]>(status, _headers, result200));
-
-        } else if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = JSON.parse(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -4704,7 +4586,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
+            return throwException("The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
 
         } else if (status === 201) {
             const _responseText = response.data;
@@ -4727,7 +4609,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): user, client
     * @param params Request parameters (see {@link TournamentsGetRequestParams})
-    * @return Returns the tournament
+    * @return Returns a tournament
     */
     public get(params: TournamentsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
         const {
@@ -4781,7 +4663,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -4804,7 +4686,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
-    * @return Returns the patched tournament
+    * @return Returns the updated tournament
     */
     public update(params: TournamentsUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
         const {
@@ -4858,14 +4740,14 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If the provided id does not belong to a tournament", status, _responseText, _headers, result404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If JsonPatch data is malformed", status, _responseText, _headers, result400);
+            return throwException("JsonPatch data is malformed", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -4937,7 +4819,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
         } else if (status === 404) {
             const _responseText = response.data;
-            return throwException("The tournament does not exist", status, _responseText, _headers);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -5002,7 +4884,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5024,7 +4906,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 */
 export type UsersGetRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
 }
@@ -5034,13 +4916,13 @@ export type UsersGetRequestParams = {
 */
 export type UsersUpdateScopesRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
     /**
-    * (optional) List of scopes to assign to the user
+    * (required) List of scopes to assign to the user
     */
-    body?: string[] | undefined;
+    body: string[];
 }
 
 /**
@@ -5048,7 +4930,7 @@ export type UsersUpdateScopesRequestParams = {
 */
 export type UsersGetSubmissionsRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
 }
@@ -5058,7 +4940,7 @@ export type UsersGetSubmissionsRequestParams = {
 */
 export type UsersRejectSubmissionsRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
 }
@@ -5068,7 +4950,7 @@ export type UsersRejectSubmissionsRequestParams = {
 */
 export type UsersGetClientsRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
 }
@@ -5078,11 +4960,11 @@ export type UsersGetClientsRequestParams = {
 */
 export type UsersDeleteClientRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
     /**
-    * (required) Id of the OAuth client
+    * (required) OAuth client id
     */
     clientId: number;
 }
@@ -5092,11 +4974,11 @@ export type UsersDeleteClientRequestParams = {
 */
 export type UsersResetClientSecretRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
     /**
-    * (required) Id of the OAuth client
+    * (required) OAuth client id
     */
     clientId: number;
 }
@@ -5106,13 +4988,13 @@ export type UsersResetClientSecretRequestParams = {
 */
 export type UsersUpdateRulesetRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
     /**
-    * (optional) The new ruleset
+    * (required) The new ruleset
     */
-    body?: Ruleset | undefined;
+    body: Ruleset;
 }
 
 /**
@@ -5120,7 +5002,7 @@ export type UsersUpdateRulesetRequestParams = {
 */
 export type UsersSyncRulesetRequestParams = {
     /**
-    * (required) Id of the user
+    * (required) User id
     */
     id: number;
 }
@@ -5198,7 +5080,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5221,7 +5103,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link UsersUpdateScopesRequestParams})
-    * @return Returns an updated user
+    * @return Returns the updated user
     */
     public updateScopes(params: UsersUpdateScopesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
         const {
@@ -5275,14 +5157,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If any of the given scopes are invalid, or the update was not successful", status, _responseText, _headers, result400);
+            return throwException("A given scope is invalid, or the update was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5354,7 +5236,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5371,13 +5253,13 @@ export class UsersWrapper extends OtrApiWrapperBase {
     }
 
     /**
-    * Rejects a user's match submissions
+    * Reject a user's match submissions
     *
     * Requires Authorization:
     * 
     * Claim(s): admin
     * @param params Request parameters (see {@link UsersRejectSubmissionsRequestParams})
-    * @return Denotes the operation was successful
+    * @return The operation was successful
     */
     public rejectSubmissions(params: UsersRejectSubmissionsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
         const {
@@ -5425,7 +5307,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5433,7 +5315,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
 
         } else if (status === 400) {
             const _responseText = response.data;
-            return throwException("If the operation was not successful", status, _responseText, _headers);
+            return throwException("The operation was not successful", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -5445,9 +5327,6 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Get a user's OAuth clients
     *
-    * All users have access to clients that they own.
-    * Admin users have access to clients from any user.
-    * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
@@ -5501,7 +5380,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5520,14 +5399,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Delete a user's OAuth client
     *
-    * All users have access to delete clients that they own.
-    * Admin users have access to clients from any user.
-    * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
     * @param params Request parameters (see {@link UsersDeleteClientRequestParams})
-    * @return If the deletion was successful
+    * @return The deletion was successful
     */
     public deleteClient(params: UsersDeleteClientRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
         const {
@@ -5579,14 +5455,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the deletion was not successful", status, _responseText, _headers, result400);
+            return throwException("The deletion was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5602,14 +5478,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Reset the secret of a user's OAuth client
     *
-    * All users have access to reset secrets of clients that they own.
-    * Admin users have access to clients from any user.
-    * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
     * @param params Request parameters (see {@link UsersResetClientSecretRequestParams})
-    * @return Returns new client credentials if the secret reset was successful
+    * @return Returns new client credentials
     */
     public resetClientSecret(params: UsersResetClientSecretRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
         const {
@@ -5662,14 +5535,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user or client does not exist", status, _responseText, _headers, result404);
-
-        } else if (status === 400) {
-            const _responseText = response.data;
-            let result400: any = null;
-            let resultData400  = _responseText;
-            result400 = JSON.parse(resultData400);
-            return throwException("If the secret reset was not successful", status, _responseText, _headers, result400);
+            return throwException("A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5688,11 +5554,15 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Update the ruleset of a user
     *
+    * If a user's preferred ruleset was previously being synced with the one selected on their osu! profile,
+    * updating it will stop their preferred ruleset from being synced in the future unless it is requested
+    * to be synced again
+    * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
     * @param params Request parameters (see {@link UsersUpdateRulesetRequestParams})
-    * @return If the operation was successful
+    * @return The operation was successful
     */
     public updateRuleset(params: UsersUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
         const {
@@ -5710,7 +5580,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
 
         let options_: AxiosRequestConfig = {
             data: content_,
-            method: "POST",
+            method: "PATCH",
             url: url_,
             headers: {
                 "Content-Type": "application/json-patch+json",
@@ -5745,14 +5615,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5768,11 +5638,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
     /**
     * Sync the ruleset of a user with their osu! ruleset
     *
+    * Sets the user's preferred ruleset to the one currently selected on their osu! profile
+    * and in the future will continuously update if the ruleset selected on their osu! profile changes
+    * 
     * Requires Authorization:
     * 
     * Policy: AccessUserResources
     * @param params Request parameters (see {@link UsersSyncRulesetRequestParams})
-    * @return If the operation was successful
+    * @return The operation was successful
     */
     public syncRuleset(params: UsersSyncRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
         const {
@@ -5820,14 +5693,14 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("If a user does not exist", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
             result400 = JSON.parse(resultData400);
-            return throwException("If the operation was not successful", status, _responseText, _headers, result400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -5915,6 +5788,12 @@ A top-score is 1, bottom score would be team size * 2 */
     periodStart: Date;
     /** The end of the period for which the statistics are calculated. */
     periodEnd: Date;
+}
+
+/** The possible authorization policies enforced on a route. Authorization policies differ from Roles as they may require special conditions to be satisfied. See the description of a policy for more information. */
+export enum AuthorizationPolicies {
+    /** Policy that allows access from the user that owns the resource as well as any admin users */
+    AccessUserResources = "AccessUserResources",
 }
 
 /** Represents a beatmap */
@@ -6200,28 +6079,6 @@ export interface LeaderboardDTO {
     leaderboard: LeaderboardPlayerInfoDTO[];
 }
 
-/** Filters for the leaderboard */
-export interface LeaderboardFilterDTO {
-    /** The "better" inclusive bound (ranges from 1+) */
-    minRank?: number | undefined;
-    /** The "worse" inclusive bound (ranges from 1+) */
-    maxRank?: number | undefined;
-    /** The lower-performing rating bound (ranges from 100+) */
-    minRating?: number | undefined;
-    /** The higher-performing rating bound (ranges from 100+) */
-    maxRating?: number | undefined;
-    /** The minimum number of matches played (ranges from 1-10000) */
-    minMatches?: number | undefined;
-    /** The maximum number of matches played (ranges from 1-10000) */
-    maxMatches?: number | undefined;
-    /** Ranges from 0.00-1.00 */
-    minWinRate?: number | undefined;
-    /** Ranges from 0.00-1.00 */
-    maxWinRate?: number | undefined;
-    /** A collection of optional filters for tiers */
-    tierFilters?: LeaderboardTierFilterDTO | undefined;
-}
-
 export interface LeaderboardFilterDefaultsDTO {
     maxRank: number;
     maxRating: number;
@@ -6241,19 +6098,6 @@ export interface LeaderboardPlayerInfoDTO {
     /** Represents osu! play modes */
     ruleset: Ruleset;
     country?: string | undefined;
-}
-
-/** A collection of booleans representing which tiers to filter.            False = Default, no behavioral change True = Explicitly included in leaderboard results            If *all* tiers are set to false, or all tiers are set to true, the leaderboard will return as if no tier filters were applied.            For example, if Bronze and Emerald are true and everything else is false, then only Bronze and Emerald players will show up in the leaderboard (specifically, Bronze III-I and Emerald III-I) */
-export interface LeaderboardTierFilterDTO {
-    filterBronze: boolean;
-    filterSilver: boolean;
-    filterGold: boolean;
-    filterPlatinum: boolean;
-    filterEmerald: boolean;
-    filterDiamond: boolean;
-    filterMaster: boolean;
-    filterGrandmaster: boolean;
-    filterEliteGrandmaster: boolean;
 }
 
 /** Represents a created match */
@@ -6295,18 +6139,6 @@ but should have attention drawn to them during manual review */
     games: GameDTO[];
     /** All associated admin notes */
     adminNotes: AdminNoteDTO[];
-}
-
-/** Represents a paged list of results */
-export interface MatchDTOPagedResultDTO {
-    /** Link to the next potential page of results */
-    next?: string | undefined;
-    /** Link to the previous potential page of results */
-    previous?: string | undefined;
-    /** Number of results included */
-    count: number;
-    /** List of resulting data */
-    results: MatchDTO[];
 }
 
 /** The status of a Database.Entities.Match in the processing flow */
@@ -6894,6 +6726,22 @@ export enum RatingAdjustmentType {
     Decay = 1,
     /** The Database.Entities.Processor.RatingAdjustment is the result of participation in a Database.Entities.Match */
     Match = 2,
+}
+
+/** The possible roles assignable to a user or client */
+export enum Roles {
+    /** Role granted to all users. */
+    User = "user",
+    /** Role granted to all clients. */
+    Client = "client",
+    /** Role granted to privileged users. */
+    Admin = "admin",
+    /** Role granted to users with permission to verify submission data. */
+    Verifier = "verifier",
+    /** Role granted to users with permission to submit tournament data. */
+    Submit = "submit",
+    /** Role granted to users and clients to allow access during times of restricted use. */
+    Whitelist = "whitelist",
 }
 
 /** Represents osu! play modes */
