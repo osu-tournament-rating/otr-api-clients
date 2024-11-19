@@ -1,6 +1,6 @@
 {
   "name": "@osu-tournament-rating/otr-api-client",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Client code for interacting with the o!TR API",
   "files": [
     "index.js",

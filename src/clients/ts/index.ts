@@ -16,6 +16,13 @@ export abstract class OtrApiWrapperBase {
 
   constructor(configuration: IOtrApiWrapperConfiguration) {
     this.configuration = configuration;
+    this.configuration.clientConfiguration = { 
+      transitional: {
+        forcedJSONParsing: false,
+        silentJSONParsing: false
+      }, 
+      ...this.configuration.clientConfiguration 
+    };
   }
 
   protected getBaseUrl(..._: any[]): string { return this.configuration.baseUrl }
