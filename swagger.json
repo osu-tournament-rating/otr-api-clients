@@ -63,14 +63,14 @@
         "tags": [
           "Beatmaps"
         ],
-        "summary": "Get a beatmap by versatile search",
-        "description": "Get a beatmap searching first by id, then by osu! beatmap id\n\nRequires Authorization:\n\nClaim(s): admin",
+        "summary": "Get a beatmap",
+        "description": "Get a beatmap searching first by id, then by beatmap osu! id\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Beatmaps_get",
         "parameters": [
           {
             "name": "key",
             "in": "path",
-            "description": "Search key",
+            "description": "Search key (o!TR id or osu! id)",
             "required": true,
             "style": "simple",
             "schema": {
@@ -81,7 +81,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a beatmap for the search key does not exist",
+            "description": "A beatmap matching the given key does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -146,28 +146,48 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The client id",
+            "description": "Client id",
             "required": true,
             "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
             }
-          },
-          {
-            "name": "rateLimitOverride",
-            "in": "query",
-            "description": "The new rate limit for the client",
-            "style": "form",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
           }
         ],
+        "requestBody": {
+          "description": "The new rate limit for the client",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "404": {
-            "description": "If the provided id does not belong to a client",
+            "description": "A client matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -187,7 +207,7 @@
             }
           },
           "200": {
-            "description": "Returns the patched client",
+            "description": "Returns the updated client",
             "content": {
               "text/plain": {
                 "schema": {
@@ -271,11 +291,12 @@
                 "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "400": {
-            "description": "Errors encountered during validation",
+            "description": "The request body is invalid",
             "content": {
               "text/plain": {
                 "schema": {
@@ -334,7 +355,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Creates an admin note for a game",
+        "summary": "Create an admin note for a game",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Games_createAdminNote",
         "parameters": [
@@ -351,6 +372,7 @@
           }
         ],
         "requestBody": {
+          "description": "Content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -372,11 +394,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a game matching the given id does not exist",
+            "description": "A game matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -396,7 +419,7 @@
             }
           },
           "400": {
-            "description": "If the authorized user does not exist",
+            "description": "The authorized user does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -453,7 +476,7 @@
           "Games"
         ],
         "summary": "List all admin notes from a game",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Games_listAdminNotes",
         "parameters": [
           {
@@ -470,7 +493,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a game matching the given id does not exist",
+            "description": "A game matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -525,7 +548,8 @@
           },
           {
             "OAuth2": [
-              "admin"
+              "user",
+              "client"
             ]
           }
         ],
@@ -537,7 +561,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Updates an admin note for a game",
+        "summary": "Update an admin note for a game",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Games_updateAdminNote",
         "parameters": [
@@ -565,6 +589,7 @@
           }
         ],
         "requestBody": {
+          "description": "New content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -586,31 +611,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "If the requester did not create the admin note",
+            "description": "A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -666,7 +672,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Deletes an admin note for a game",
+        "summary": "Delete an admin note for a game",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Games_deleteAdminNote",
         "parameters": [
@@ -695,7 +701,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a game matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+            "description": "A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -780,7 +786,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The game id",
+            "description": "Game id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -828,7 +834,7 @@
         },
         "responses": {
           "404": {
-            "description": "If the provided id does not belong to a game",
+            "description": "A game matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -848,27 +854,27 @@
             }
           },
           "400": {
-            "description": "If JsonPatch data is malformed",
+            "description": "The JsonPatch data is malformed",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
           },
           "200": {
-            "description": "Returns the patched game",
+            "description": "Returns the updated game",
             "content": {
               "text/plain": {
                 "schema": {
@@ -925,7 +931,7 @@
             "description": "The game was deleted successfully"
           },
           "404": {
-            "description": "The game does not exist"
+            "description": "A game matching the given id does not exist"
           }
         },
         "security": [
@@ -946,7 +952,7 @@
         "tags": [
           "GameScores"
         ],
-        "summary": "Creates an admin note for a score",
+        "summary": "Create an admin note for a score",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "GameScores_createAdminNote",
         "parameters": [
@@ -963,6 +969,7 @@
           }
         ],
         "requestBody": {
+          "description": "Content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -984,11 +991,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a score matching the given id does not exist",
+            "description": "A score matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1008,7 +1016,7 @@
             }
           },
           "400": {
-            "description": "If the authorized user does not exist",
+            "description": "The authorized user does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1065,7 +1073,7 @@
           "GameScores"
         ],
         "summary": "List all admin notes for a score",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "GameScores_listAdminNotes",
         "parameters": [
           {
@@ -1082,7 +1090,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a score matching the given id does not exist",
+            "description": "A score matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1137,7 +1145,8 @@
           },
           {
             "OAuth2": [
-              "admin"
+              "user",
+              "client"
             ]
           }
         ],
@@ -1149,7 +1158,7 @@
         "tags": [
           "GameScores"
         ],
-        "summary": "Updates an admin note for a score",
+        "summary": "Update an admin note for a score",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "GameScores_updateAdminNote",
         "parameters": [
@@ -1177,6 +1186,7 @@
           }
         ],
         "requestBody": {
+          "description": "New content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -1198,31 +1208,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "If the requester did not create the admin note",
+            "description": "A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1278,7 +1269,7 @@
         "tags": [
           "GameScores"
         ],
-        "summary": "Deletes an admin note for a score",
+        "summary": "Delete an admin note for a score",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "GameScores_deleteAdminNote",
         "parameters": [
@@ -1307,27 +1298,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a score matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
+            "description": "A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1392,7 +1363,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The score id",
+            "description": "Score id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -1440,7 +1411,7 @@
         },
         "responses": {
           "404": {
-            "description": "If the provided id does not belong to a score",
+            "description": "A score matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1460,27 +1431,27 @@
             }
           },
           "400": {
-            "description": "If JsonPatch data is malformed",
+            "description": "The JsonPatch data is malformed",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
           },
           "200": {
-            "description": "Returns the patched score",
+            "description": "Returns the updated score",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1533,11 +1504,28 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "A score matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "204": {
             "description": "The score was deleted successfully"
-          },
-          "404": {
-            "description": "The score does not exist"
           }
         },
         "security": [
@@ -1558,12 +1546,38 @@
         "tags": [
           "Leaderboards"
         ],
+        "summary": "Get a leaderboard of players which fit an optional request query",
         "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Leaderboards_get",
         "parameters": [
           {
-            "name": "Ruleset",
+            "name": "page",
             "in": "query",
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "maximum": 100,
+              "minimum": 10,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "ruleset",
+            "in": "query",
+            "description": "Ruleset for leaderboard data",
             "style": "form",
             "schema": {
               "allOf": [
@@ -1571,13 +1585,75 @@
                   "$ref": "#/components/schemas/Ruleset"
                 }
               ],
-              "description": "Represents osu! play modes"
+              "default": 0
             }
           },
           {
-            "name": "Page",
+            "name": "chartType",
             "in": "query",
-            "description": "The zero-indexed page offset. Page 0 returns the first PageSize results.",
+            "description": "Defines whether the leaderboard should be global or filtered by country",
+            "style": "form",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/LeaderboardChartType"
+                }
+              ],
+              "default": 0
+            }
+          },
+          {
+            "name": "minRank",
+            "in": "query",
+            "description": "Rank floor",
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxRank",
+            "in": "query",
+            "description": "Rank ceiling",
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minRating",
+            "in": "query",
+            "description": "Rating floor",
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 100,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "maxRating",
+            "in": "query",
+            "description": "Rating ceiling",
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 100,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minMatches",
+            "in": "query",
+            "description": "Minimum number of matches played",
             "style": "form",
             "schema": {
               "maximum": 2147483647,
@@ -1587,49 +1663,126 @@
             }
           },
           {
-            "name": "PageSize",
+            "name": "maxMatches",
             "in": "query",
-            "description": "The number of elements to return per page",
+            "description": "Maximum number of matches played",
             "style": "form",
             "schema": {
-              "maximum": 100,
-              "minimum": 5,
+              "maximum": 2147483647,
+              "minimum": 0,
               "type": "integer",
               "format": "int32"
             }
           },
           {
-            "name": "ChartType",
+            "name": "minWinRate",
             "in": "query",
-            "description": "Defines whether the leaderboard should be global or filtered by country",
+            "description": "Minimum win rate",
             "style": "form",
             "schema": {
               "maximum": 1,
               "minimum": 0,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/LeaderboardChartType"
-                }
-              ]
+              "type": "number",
+              "format": "double"
             }
           },
           {
-            "name": "Filter",
+            "name": "maxWinRate",
             "in": "query",
+            "description": "Maximum win rate",
             "style": "form",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/LeaderboardFilterDTO"
-                }
-              ],
-              "description": "Filters for the leaderboard"
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "bronze",
+            "in": "query",
+            "description": "Explicitly include bronze players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "silver",
+            "in": "query",
+            "description": "Explicitly include silver players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "gold",
+            "in": "query",
+            "description": "Explicitly include gold players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "platinum",
+            "in": "query",
+            "description": "Explicitly include platinum players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "emerald",
+            "in": "query",
+            "description": "Explicitly include emerald players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "diamond",
+            "in": "query",
+            "description": "Explicitly include emerald players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "master",
+            "in": "query",
+            "description": "Explicitly include master players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "grandmaster",
+            "in": "query",
+            "description": "Explicitly include grandmaster players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "eliteGrandmaster",
+            "in": "query",
+            "description": "Explicitly include elite grandmaster players",
+            "style": "form",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "Returns the leaderboard",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1667,7 +1820,7 @@
         "tags": [
           "Matches"
         ],
-        "summary": "Creates an admin note for a match",
+        "summary": "Create an admin note for a match",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Matches_createAdminNote",
         "parameters": [
@@ -1684,6 +1837,7 @@
           }
         ],
         "requestBody": {
+          "description": "Content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -1705,11 +1859,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a match matching the given id does not exist",
+            "description": "A match matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1729,7 +1884,7 @@
             }
           },
           "400": {
-            "description": "If the authorized user does not exist",
+            "description": "The authorized user does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1786,7 +1941,7 @@
           "Matches"
         ],
         "summary": "List all admin notes from a match",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Matches_listAdminNotes",
         "parameters": [
           {
@@ -1803,7 +1958,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a match matching the given id does not exist",
+            "description": "A match matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1858,7 +2013,8 @@
           },
           {
             "OAuth2": [
-              "admin"
+              "user",
+              "client"
             ]
           }
         ],
@@ -1870,7 +2026,7 @@
         "tags": [
           "Matches"
         ],
-        "summary": "Updates an admin note for a match",
+        "summary": "Update an admin note for a match",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Matches_updateAdminNote",
         "parameters": [
@@ -1898,6 +2054,7 @@
           }
         ],
         "requestBody": {
+          "description": "New content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -1919,31 +2076,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "If the requester did not create the admin note",
+            "description": "A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1999,7 +2137,7 @@
         "tags": [
           "Matches"
         ],
-        "summary": "Deletes an admin note for a match",
+        "summary": "Delete an admin note for a match",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Matches_deleteAdminNote",
         "parameters": [
@@ -2028,27 +2166,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a match matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
+            "description": "A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2106,14 +2224,38 @@
         "tags": [
           "Matches"
         ],
-        "summary": "Gets all matches",
-        "description": "Results are ordered by id and support pagination. All match data is included.\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "summary": "Get all matches which fit an optional request query",
+        "description": "Will not include game data\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Matches_list",
         "parameters": [
           {
-            "name": "Ruleset",
+            "name": "page",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Ruleset",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "ruleset",
+            "in": "query",
+            "description": "Filters results for only matches played in a specified ruleset",
             "style": "form",
             "schema": {
               "allOf": [
@@ -2124,18 +2266,18 @@
             }
           },
           {
-            "name": "Name",
+            "name": "name",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a partially\r\nmatching Database.Entities.Match.Name",
+            "description": "Filters results for only matches with a partially matching name",
             "style": "form",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "DateMin",
+            "name": "dateMin",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a\r\nDatabase.Entities.Match.StartTime greater than this value",
+            "description": "Filters results for only matches that occurred after a specified date",
             "style": "form",
             "schema": {
               "type": "string",
@@ -2143,9 +2285,9 @@
             }
           },
           {
-            "name": "DateMax",
+            "name": "dateMax",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with an\r\nDatabase.Entities.Match.EndTime less than this value",
+            "description": "Filters results for only matches that occurred before a specified date",
             "style": "form",
             "schema": {
               "type": "string",
@@ -2153,9 +2295,9 @@
             }
           },
           {
-            "name": "VerificationStatus",
+            "name": "verificationStatus",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a\r\nmatching Database.Enums.Verification.VerificationStatus",
+            "description": "Filters results for only matches with a specified verification status",
             "style": "form",
             "schema": {
               "allOf": [
@@ -2166,9 +2308,9 @@
             }
           },
           {
-            "name": "RejectionReason",
+            "name": "rejectionReason",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchRejectionReason",
+            "description": "Filters results for only matches with a specified rejection reason",
             "style": "form",
             "schema": {
               "allOf": [
@@ -2179,9 +2321,9 @@
             }
           },
           {
-            "name": "ProcessingStatus",
+            "name": "processingStatus",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches with a matching Database.Enums.Verification.MatchProcessingStatus",
+            "description": "Filters results for only matches with a specified processing status",
             "style": "form",
             "schema": {
               "allOf": [
@@ -2192,9 +2334,9 @@
             }
           },
           {
-            "name": "SubmittedBy",
+            "name": "submittedBy",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches where the id of the\r\nDatabase.Entities.User that submitted it matches this value",
+            "description": "Filters results for only matches submitted by a user with a specified id",
             "style": "form",
             "schema": {
               "type": "integer",
@@ -2202,9 +2344,9 @@
             }
           },
           {
-            "name": "VerifiedBy",
+            "name": "verifiedBy",
             "in": "query",
-            "description": "Filters results for Database.Entities.Matches where the id of the\r\nDatabase.Entities.User that verified it matches this value",
+            "description": "Filters results for only matches verified by a user with a specified id",
             "style": "form",
             "schema": {
               "type": "integer",
@@ -2212,9 +2354,9 @@
             }
           },
           {
-            "name": "Sort",
+            "name": "sort",
             "in": "query",
-            "description": "Controls the manner in which results are sorted",
+            "description": "The key used to sort results by",
             "style": "form",
             "schema": {
               "allOf": [
@@ -2225,58 +2367,41 @@
             }
           },
           {
-            "name": "SortDescending",
+            "name": "descending",
             "in": "query",
-            "description": "Denotes whether to sort results in ascending or descending order",
+            "description": "Whether the results are sorted in descending order by the API.DTOs.MatchRequestQueryDTO.Sort",
             "style": "form",
             "schema": {
               "type": "boolean"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Controls the number of matches to return. Functions as a \"page size\".\r\nDefault: 100 Constraints: Minimum 1, Maximum 5000",
-            "style": "form",
-            "schema": {
-              "maximum": 2147483647,
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32",
-              "default": 100
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Controls which block of size limit to return.\r\nDefault: 1, Constraints: Minimum 1",
-            "style": "form",
-            "schema": {
-              "maximum": 2147483647,
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32",
-              "default": 1
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Returns the desired page of matches",
+            "description": "Returns all matches which fit the request query",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MatchDTOPagedResultDTO"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MatchDTO"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MatchDTOPagedResultDTO"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MatchDTO"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MatchDTOPagedResultDTO"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MatchDTO"
+                  }
                 }
               }
             }
@@ -2319,7 +2444,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a match does not exist for the given id",
+            "description": "A match matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2383,7 +2508,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The match id",
+            "description": "Match id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -2431,7 +2556,7 @@
         },
         "responses": {
           "404": {
-            "description": "If the provided id does not belong to a match",
+            "description": "A match matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2451,27 +2576,27 @@
             }
           },
           "400": {
-            "description": "If JsonPatch data is malformed",
+            "description": "The JsonPatch data is malformed",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
           },
           "200": {
-            "description": "Returns the patched match",
+            "description": "Returns the updated match",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2524,61 +2649,28 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "A match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "204": {
             "description": "The match was deleted successfully"
-          },
-          "404": {
-            "description": "The match does not exist"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          },
-          {
-            "OAuth2": [
-              "admin"
-            ]
-          }
-        ],
-        "x-requiresAuthorization": true
-      }
-    },
-    "/api/v1/matches/player/{osuId}": {
-      "get": {
-        "tags": [
-          "Matches"
-        ],
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
-        "operationId": "Matches_getMatches",
-        "parameters": [
-          {
-            "name": "osuId",
-            "in": "path",
-            "required": true,
-            "style": "simple",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "ruleset",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Ruleset"
-                }
-              ],
-              "description": "Represents osu! play modes"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
           }
         },
         "security": [
@@ -2685,7 +2777,7 @@
         ],
         "responses": {
           "302": {
-            "description": "Redirects to `GET` `/stats/{key}`"
+            "description": "Redirects to `GET` `/players/{key}/stats`"
           },
           "200": {
             "description": "Returns the currently logged in user's player stats",
@@ -2722,7 +2814,7 @@
       }
     },
     "/api/v1/me/settings/ruleset": {
-      "post": {
+      "patch": {
         "tags": [
           "Me"
         ],
@@ -2771,14 +2863,15 @@
                 "description": "Represents osu! play modes"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "308": {
-            "description": "Redirects to `POST` `/users/{id}/settings/ruleset`"
+            "description": "Redirects to `PATCH` `/users/{id}/settings/ruleset`"
           },
           "400": {
-            "description": "If the operation was not successful",
+            "description": "The operation was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2798,7 +2891,7 @@
             }
           },
           "200": {
-            "description": "If the operation was successful"
+            "description": "The operation was successful"
           }
         },
         "security": [
@@ -2827,7 +2920,7 @@
             "description": "Redirect"
           },
           "400": {
-            "description": "If the operation was not successful",
+            "description": "The operation was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2847,7 +2940,7 @@
             }
           },
           "200": {
-            "description": "If the operation was successful"
+            "description": "The operation was successful"
           },
           "307": {
             "description": "Redirects to `POST` `/users/{id}/settings/ruleset:sync`"
@@ -2877,7 +2970,8 @@
           {
             "name": "code",
             "in": "query",
-            "description": "The osu! authorization code",
+            "description": "osu! authorization code",
+            "required": true,
             "style": "form",
             "schema": {
               "type": "string"
@@ -2886,7 +2980,7 @@
         ],
         "responses": {
           "401": {
-            "description": "If there was an error during authorization",
+            "description": "There was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2940,7 +3034,8 @@
           {
             "name": "clientId",
             "in": "query",
-            "description": "The id of the client",
+            "description": "Client id",
+            "required": true,
             "style": "form",
             "schema": {
               "type": "integer",
@@ -2950,7 +3045,8 @@
           {
             "name": "clientSecret",
             "in": "query",
-            "description": "The secret of the client",
+            "description": "Client secret",
+            "required": true,
             "style": "form",
             "schema": {
               "type": "string"
@@ -2959,7 +3055,7 @@
         ],
         "responses": {
           "400": {
-            "description": "If there was an error during authorization",
+            "description": "There was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3051,13 +3147,14 @@
           "OAuth"
         ],
         "summary": "Generate new access credentials from a valid refresh token",
-        "description": "Generated access credentials will contain only a new access token,\r\nand the given refresh token is returned with it",
+        "description": "Generated access credentials will contain only a new access token",
         "operationId": "OAuth_refresh",
         "parameters": [
           {
             "name": "refreshToken",
             "in": "query",
-            "description": "",
+            "description": "Refresh token",
+            "required": true,
             "style": "form",
             "schema": {
               "type": "string"
@@ -3066,7 +3163,7 @@
         ],
         "responses": {
           "400": {
-            "description": "If the given refresh token is invalid, or there was an error during authorization",
+            "description": "The refresh token is invalid or there was an error during authorization",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3114,7 +3211,7 @@
         "tags": [
           "Players"
         ],
-        "summary": "Creates an admin note for a player",
+        "summary": "Create an admin note for a player",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Players_createAdminNote",
         "parameters": [
@@ -3131,6 +3228,7 @@
           }
         ],
         "requestBody": {
+          "description": "Content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -3152,11 +3250,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a player matching the given id does not exist",
+            "description": "A player matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3176,7 +3275,7 @@
             }
           },
           "400": {
-            "description": "If the authorized user does not exist",
+            "description": "The authorized user does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3233,7 +3332,7 @@
           "Players"
         ],
         "summary": "List all admin notes for a player",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Players_listAdminNotes",
         "parameters": [
           {
@@ -3250,7 +3349,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a player matching the given id does not exist",
+            "description": "A player matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3305,7 +3404,8 @@
           },
           {
             "OAuth2": [
-              "admin"
+              "user",
+              "client"
             ]
           }
         ],
@@ -3317,7 +3417,7 @@
         "tags": [
           "Players"
         ],
-        "summary": "Updates an admin note for a player",
+        "summary": "Update an admin note for a player",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Players_updateAdminNote",
         "parameters": [
@@ -3345,6 +3445,7 @@
           }
         ],
         "requestBody": {
+          "description": "New content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -3366,31 +3467,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
             "description": "If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "If the requester did not create the admin note",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3446,7 +3528,7 @@
         "tags": [
           "Players"
         ],
-        "summary": "Deletes an admin note for a player",
+        "summary": "Delete an admin note for a player",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Players_deleteAdminNote",
         "parameters": [
@@ -3475,27 +3557,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
+            "description": "A player matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3553,12 +3615,14 @@
         "tags": [
           "Players"
         ],
-        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "summary": "Get a player",
+        "description": "Get a player searching first by id, then by osu! id, then osu! username\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Players_get",
         "parameters": [
           {
             "name": "key",
             "in": "path",
+            "description": "Search key (o!TR id, osu! id, or osu! username)",
             "required": true,
             "style": "simple",
             "schema": {
@@ -3567,8 +3631,28 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "A player matching the given key does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "Success",
+            "description": "Returns a player",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3602,73 +3686,19 @@
         "x-requiresAuthorization": true
       }
     },
-    "/api/v1/search": {
+    "/api/v1/players/{key}/stats": {
       "get": {
         "tags": [
-          "Search"
-        ],
-        "summary": "Search for tournaments, matches, and users",
-        "description": "Allows for partial or full searching on the names of tournaments, matches, and usernames\n\nRequires Authorization:\n\nClaim(s): user",
-        "operationId": "Search_search",
-        "parameters": [
-          {
-            "name": "searchKey",
-            "in": "query",
-            "description": "The string to match against names of tournaments, matches, and usernames",
-            "style": "form",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns a list of all possible tournaments, matches, and usernames for the given search key",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          },
-          {
-            "OAuth2": [
-              "user"
-            ]
-          }
-        ],
-        "x-requiresAuthorization": true
-      }
-    },
-    "/api/v1/stats/{key}": {
-      "get": {
-        "tags": [
-          "Stats"
+          "Players"
         ],
         "summary": "Get a player's stats",
-        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date\n\nRequires Authorization:\n\nClaim(s): user, client",
-        "operationId": "Stats_get",
+        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. OsuApiClient.Net.Constants.Endpoints.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "operationId": "Players_getStats",
         "parameters": [
           {
             "name": "key",
             "in": "path",
-            "description": "Key used in versatile search",
+            "description": "Search key",
             "required": true,
             "style": "simple",
             "schema": {
@@ -3711,7 +3741,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a player does not exist",
+            "description": "A player matching the given search key does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3765,58 +3795,43 @@
         "x-requiresAuthorization": true
       }
     },
-    "/api/v1/stats/histogram": {
+    "/api/v1/search": {
       "get": {
         "tags": [
-          "Stats"
+          "Search"
         ],
-        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
-        "operationId": "Stats_getRatingHistogram",
+        "summary": "Search for tournaments, matches, and users",
+        "description": "Search uses partial matching on: tournament name and abbreviation, match name, and player name\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "operationId": "Search_search",
         "parameters": [
           {
-            "name": "ruleset",
+            "name": "searchKey",
             "in": "query",
+            "description": "Search key",
+            "required": true,
             "style": "form",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Ruleset"
-                }
-              ],
-              "description": "Represents osu! play modes",
-              "default": 0
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "Returns a list of tournaments, matches, and usernames matching the given search key",
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
+                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
+                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
+                  "$ref": "#/components/schemas/SearchResponseCollectionDTO"
                 }
               }
             }
@@ -3836,12 +3851,157 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/tournaments/{id}:accept-pre-verification-statuses": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Mark pre-rejected items as rejected, marks pre-verified\r\nitems as verified. Applies for the tournament and all children.",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_acceptPreVerificationStatuses",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "All items were updated successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TournamentDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TournamentDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TournamentDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/tournaments/{id}:reset-automation-statuses": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Rerun automation checks for a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_rerunAutomationChecks",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Whether to overwrite data which has already been Verified or Rejected",
+            "style": "form",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "If a tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The entities were updated successfully"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/tournaments/{id}/notes": {
       "post": {
         "tags": [
           "Tournaments"
         ],
-        "summary": "Creates an admin note for a tournament",
+        "summary": "Create an admin note for a tournament",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Tournaments_createAdminNote",
         "parameters": [
@@ -3858,6 +4018,7 @@
           }
         ],
         "requestBody": {
+          "description": "Content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -3879,29 +4040,10 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "404": {
             "description": "If a tournament matching the given id does not exist",
             "content": {
@@ -3980,7 +4122,7 @@
           "Tournaments"
         ],
         "summary": "List all admin notes from a tournament",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Tournaments_listAdminNotes",
         "parameters": [
           {
@@ -3997,7 +4139,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a tournament matching the given id does not exist",
+            "description": "A tournament matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4052,7 +4194,8 @@
           },
           {
             "OAuth2": [
-              "admin"
+              "user",
+              "client"
             ]
           }
         ],
@@ -4064,7 +4207,7 @@
         "tags": [
           "Tournaments"
         ],
-        "summary": "Updates an admin note for a tournament",
+        "summary": "Update an admin note for a tournament",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Tournaments_updateAdminNote",
         "parameters": [
@@ -4092,6 +4235,7 @@
           }
         ],
         "requestBody": {
+          "description": "New content of the admin note",
           "content": {
             "application/json-patch+json": {
               "schema": {
@@ -4113,51 +4257,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "If the requester did not create the admin note",
+            "description": "A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4213,7 +4318,7 @@
         "tags": [
           "Tournaments"
         ],
-        "summary": "Deletes an admin note for a tournament",
+        "summary": "Delete an admin note for a tournament",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Tournaments_deleteAdminNote",
         "parameters": [
@@ -4241,48 +4346,8 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "If the requester is not properly authorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "If a tournament matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
+            "description": "A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4335,6 +4400,262 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/tournaments/{id}/beatmaps": {
+      "post": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Add beatmaps to a tournament by osu! id",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_insertBeatmaps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "A collection of osu! beatmap ids",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "A tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The beatmaps were added successfully"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      },
+      "delete": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Delete all pooled beatmaps from a tournament. This does not alter the beatmaps table. This only\r\ndeletes the mapping between a tournament and a pooled beatmap.",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Tournaments_deleteBeatmaps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "An optional collection of specific beatmap ids to remove from the pooled beatmaps collection",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "A tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "All beatmaps were successfully removed"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      },
+      "get": {
+        "tags": [
+          "Tournaments"
+        ],
+        "summary": "Get all beatmaps pooled by a tournament",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "operationId": "Tournaments_getBeatmaps",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tournament id",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a collection of pooled beatmaps"
+          },
+          "404": {
+            "description": "A tournament matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/tournaments": {
       "get": {
         "tags": [
@@ -4345,44 +4666,42 @@
         "operationId": "Tournaments_list",
         "parameters": [
           {
-            "name": "Page",
+            "name": "page",
             "in": "query",
-            "description": "The page number",
             "required": true,
             "style": "form",
             "schema": {
               "maximum": 2147483647,
-              "minimum": 0,
+              "minimum": 1,
               "type": "integer",
               "format": "int32"
             }
           },
           {
-            "name": "PageSize",
+            "name": "pageSize",
             "in": "query",
-            "description": "The size of the page",
             "required": true,
             "style": "form",
             "schema": {
               "maximum": 100,
-              "minimum": 5,
+              "minimum": 1,
               "type": "integer",
               "format": "int32"
             }
           },
           {
-            "name": "Verified",
+            "name": "verified",
             "in": "query",
-            "description": "Whether the tournaments must be verified",
+            "description": "Filters results for only tournaments that are verified",
             "style": "form",
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "name": "Ruleset",
+            "name": "ruleset",
             "in": "query",
-            "description": "An optional ruleset to filter by",
+            "description": "Filters results for only tournaments played in a specified ruleset",
             "style": "form",
             "schema": {
               "allOf": [
@@ -4393,7 +4712,7 @@
             }
           },
           {
-            "name": "QuerySortType",
+            "name": "sort",
             "in": "query",
             "description": "The key used to sort results by",
             "style": "form",
@@ -4406,9 +4725,9 @@
             }
           },
           {
-            "name": "Descending",
+            "name": "descending",
             "in": "query",
-            "description": "Whether the tournaments are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.QuerySortType",
+            "description": "Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort",
             "style": "form",
             "schema": {
               "type": "boolean"
@@ -4441,26 +4760,6 @@
                   "items": {
                     "$ref": "#/components/schemas/TournamentDTO"
                   }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -4518,11 +4817,12 @@
                 "description": "An incoming tournament submission"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "400": {
-            "description": "If the given !:tournamentSubmission is malformed or\r\nif a tournament matching the given name and ruleset already exists",
+            "description": "The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4608,7 +4908,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a tournament matching the given id does not exist",
+            "description": "A tournament matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4628,7 +4928,7 @@
             }
           },
           "200": {
-            "description": "Returns the tournament",
+            "description": "Returns a tournament",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4672,7 +4972,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The tournament id",
+            "description": "Tournament id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -4720,7 +5020,7 @@
         },
         "responses": {
           "404": {
-            "description": "If the provided id does not belong to a tournament",
+            "description": "A tournament matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4740,7 +5040,7 @@
             }
           },
           "400": {
-            "description": "If JsonPatch data is malformed",
+            "description": "JsonPatch data is malformed",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4760,7 +5060,7 @@
             }
           },
           "200": {
-            "description": "Returns the patched tournament",
+            "description": "Returns the updated tournament",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4817,7 +5117,7 @@
             "description": "The tournament was deleted successfully"
           },
           "404": {
-            "description": "The tournament does not exist"
+            "description": "A tournament matching the given id does not exist"
           }
         },
         "security": [
@@ -4856,7 +5156,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a tournament matching the given id does not exist",
+            "description": "A tournament matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4931,7 +5231,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -4942,7 +5242,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5002,7 +5302,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5046,11 +5346,12 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5070,7 +5371,7 @@
             }
           },
           "400": {
-            "description": "If any of the given scopes are invalid, or the update was not successful",
+            "description": "A given scope is invalid, or the update was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5090,7 +5391,7 @@
             }
           },
           "200": {
-            "description": "Returns an updated user",
+            "description": "Returns the updated user",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5135,7 +5436,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5146,7 +5447,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5208,14 +5509,14 @@
         "tags": [
           "Users"
         ],
-        "summary": "Rejects a user's match submissions",
+        "summary": "Reject a user's match submissions",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Users_rejectSubmissions",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5226,7 +5527,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5246,10 +5547,10 @@
             }
           },
           "200": {
-            "description": "Denotes the operation was successful"
+            "description": "The operation was successful"
           },
           "400": {
-            "description": "If the operation was not successful"
+            "description": "The operation was not successful"
           }
         },
         "security": [
@@ -5271,13 +5572,13 @@
           "Users"
         ],
         "summary": "Get a user's OAuth clients",
-        "description": "All users have access to clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_getClients",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5288,7 +5589,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5351,13 +5652,13 @@
           "Users"
         ],
         "summary": "Delete a user's OAuth client",
-        "description": "All users have access to delete clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_deleteClient",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5368,7 +5669,7 @@
           {
             "name": "clientId",
             "in": "path",
-            "description": "Id of the OAuth client",
+            "description": "OAuth client id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5379,7 +5680,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user or client does not exist",
+            "description": "A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5399,7 +5700,7 @@
             }
           },
           "400": {
-            "description": "If the deletion was not successful",
+            "description": "The deletion was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5419,7 +5720,7 @@
             }
           },
           "200": {
-            "description": "If the deletion was successful"
+            "description": "The deletion was successful"
           }
         },
         "security": [
@@ -5436,13 +5737,13 @@
           "Users"
         ],
         "summary": "Reset the secret of a user's OAuth client",
-        "description": "All users have access to reset secrets of clients that they own.\r\nAdmin users have access to clients from any user.\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_resetClientSecret",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5453,7 +5754,7 @@
           {
             "name": "clientId",
             "in": "path",
-            "description": "Id of the OAuth client",
+            "description": "OAuth client id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5464,27 +5765,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user or client does not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "If the secret reset was not successful",
+            "description": "A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5504,7 +5785,7 @@
             }
           },
           "200": {
-            "description": "Returns new client credentials if the secret reset was successful",
+            "description": "Returns new client credentials",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5533,18 +5814,18 @@
       }
     },
     "/api/v1/users/{id}/settings/ruleset": {
-      "post": {
+      "patch": {
         "tags": [
           "Users"
         ],
         "summary": "Update the ruleset of a user",
-        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "If a user's preferred ruleset was previously being synced with the one selected on their osu! profile,\r\nupdating it will stop their preferred ruleset from being synced in the future unless it is requested\r\nto be synced again\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_updateRuleset",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5596,11 +5877,12 @@
                 "description": "Represents osu! play modes"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5620,7 +5902,7 @@
             }
           },
           "400": {
-            "description": "If the operation was not successful",
+            "description": "The operation was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5640,7 +5922,7 @@
             }
           },
           "200": {
-            "description": "If the operation was successful"
+            "description": "The operation was successful"
           }
         },
         "security": [
@@ -5657,13 +5939,13 @@
           "Users"
         ],
         "summary": "Sync the ruleset of a user with their osu! ruleset",
-        "description": "\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
+        "description": "Sets the user's preferred ruleset to the one currently selected on their osu! profile\r\nand in the future will continuously update if the ruleset selected on their osu! profile changes\n\nRequires Authorization:\n\nPolicy: AccessUserResources",
         "operationId": "Users_syncRuleset",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of the user",
+            "description": "User id",
             "required": true,
             "style": "simple",
             "schema": {
@@ -5674,7 +5956,7 @@
         ],
         "responses": {
           "404": {
-            "description": "If a user does not exist",
+            "description": "A user matching the given id does not exist",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5694,7 +5976,7 @@
             }
           },
           "400": {
-            "description": "If the operation was not successful",
+            "description": "The operation was not successful",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5714,7 +5996,7 @@
             }
           },
           "200": {
-            "description": "If the operation was successful"
+            "description": "The operation was successful"
           }
         },
         "security": [
@@ -5941,6 +6223,19 @@
         },
         "additionalProperties": false,
         "description": "Represents an aggregate of match statistics for a player during a period of time"
+      },
+      "AuthorizationPolicies": {
+        "enum": [
+          "AccessUserResources"
+        ],
+        "type": "string",
+        "description": "The possible authorization policies enforced on a route. Authorization policies differ from Roles as they may require special conditions to be satisfied. See the description of a policy for more information.",
+        "x-enumNames": [
+          "AccessUserResources"
+        ],
+        "x-enumDescriptions": [
+          "Policy that allows access from the user that owns the resource as well as any admin users"
+        ]
       },
       "BeatmapDTO": {
         "required": [
@@ -6372,7 +6667,8 @@
           64,
           128,
           256,
-          512
+          512,
+          1024
         ],
         "type": "integer",
         "description": "The reason why a Database.Entities.Game is rejected",
@@ -6389,7 +6685,8 @@
           "NoValidScores",
           "LobbySizeMismatch",
           "NoEndTime",
-          "RejectedMatch"
+          "RejectedMatch",
+          "BeatmapNotPooled"
         ],
         "x-enumDescriptions": [
           "The Database.Entities.Game is not rejected",
@@ -6402,7 +6699,8 @@
           "The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2",
           "The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus\r\nof Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament",
           "The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined",
-          "The Database.Entities.Match the Database.Entities.Game was played in was rejected"
+          "The Database.Entities.Match the Database.Entities.Game was played in was rejected",
+          "The Database.Entities.Tournament has a known collection of PooledBeatmaps\r\nand the Database.Entities.Beatmap played in the Database.Entities.Game is not present\r\nin said collection"
         ]
       },
       "GameScoreDTO": {
@@ -6493,8 +6791,7 @@
       "GameWarningFlags": {
         "enum": [
           0,
-          1,
-          2
+          1
         ],
         "type": "integer",
         "description": "Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
@@ -6502,13 +6799,11 @@
         "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
-          "BeatmapUsedOnce",
-          "BeatmapNotInMappool"
+          "BeatmapUsedOnce"
         ],
         "x-enumDescriptions": [
           "The Database.Entities.Game has no warnings",
-          "If the parent Database.Entities.Tournament does not have a submitted pool of\r\nDatabase.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap\r\nis played only once throughout the entire Database.Entities.Tournament",
-          "If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,\r\nthe Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,\r\nand the Database.Entities.Game is not one of the first two in the Database.Entities.Match"
+          "If the parent Database.Entities.Tournament does not have a submitted pool of\r\nDatabase.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap\r\nis played only once throughout the entire Database.Entities.Tournament"
         ]
       },
       "HttpValidationProblemDetails": {
@@ -6586,70 +6881,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "LeaderboardFilterDTO": {
-        "type": "object",
-        "properties": {
-          "minRank": {
-            "type": "integer",
-            "description": "The \"better\" inclusive bound (ranges from 1+)",
-            "format": "int32",
-            "nullable": true
-          },
-          "maxRank": {
-            "type": "integer",
-            "description": "The \"worse\" inclusive bound (ranges from 1+)",
-            "format": "int32",
-            "nullable": true
-          },
-          "minRating": {
-            "type": "integer",
-            "description": "The lower-performing rating bound (ranges from 100+)",
-            "format": "int32",
-            "nullable": true
-          },
-          "maxRating": {
-            "type": "integer",
-            "description": "The higher-performing rating bound (ranges from 100+)",
-            "format": "int32",
-            "nullable": true
-          },
-          "minMatches": {
-            "type": "integer",
-            "description": "The minimum number of matches played (ranges from 1-10000)",
-            "format": "int32",
-            "nullable": true
-          },
-          "maxMatches": {
-            "type": "integer",
-            "description": "The maximum number of matches played (ranges from 1-10000)",
-            "format": "int32",
-            "nullable": true
-          },
-          "minWinRate": {
-            "type": "number",
-            "description": "Ranges from 0.00-1.00",
-            "format": "double",
-            "nullable": true
-          },
-          "maxWinRate": {
-            "type": "number",
-            "description": "Ranges from 0.00-1.00",
-            "format": "double",
-            "nullable": true
-          },
-          "tierFilters": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LeaderboardTierFilterDTO"
-              }
-            ],
-            "description": "A collection of optional filters for tiers",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Filters for the leaderboard"
       },
       "LeaderboardFilterDefaultsDTO": {
         "required": [
@@ -6733,51 +6964,6 @@
         },
         "additionalProperties": false,
         "description": "Individual line items in the leaderboard"
-      },
-      "LeaderboardTierFilterDTO": {
-        "required": [
-          "filterBronze",
-          "filterDiamond",
-          "filterEliteGrandmaster",
-          "filterEmerald",
-          "filterGold",
-          "filterGrandmaster",
-          "filterMaster",
-          "filterPlatinum",
-          "filterSilver"
-        ],
-        "type": "object",
-        "properties": {
-          "filterBronze": {
-            "type": "boolean"
-          },
-          "filterSilver": {
-            "type": "boolean"
-          },
-          "filterGold": {
-            "type": "boolean"
-          },
-          "filterPlatinum": {
-            "type": "boolean"
-          },
-          "filterEmerald": {
-            "type": "boolean"
-          },
-          "filterDiamond": {
-            "type": "boolean"
-          },
-          "filterMaster": {
-            "type": "boolean"
-          },
-          "filterGrandmaster": {
-            "type": "boolean"
-          },
-          "filterEliteGrandmaster": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "description": "A collection of booleans representing which tiers to filter.\r\n            \r\nFalse = Default, no behavioral change\r\nTrue = Explicitly included in leaderboard results\r\n            \r\nIf *all* tiers are set to false, or all tiers are set to true, the leaderboard will return\r\nas if no tier filters were applied.\r\n            \r\nFor example, if Bronze and Emerald are true and everything else is false,\r\nthen only Bronze and Emerald players will show up in the leaderboard\r\n(specifically, Bronze III-I and Emerald III-I)"
       },
       "MatchCreatedResultDTO": {
         "required": [
@@ -6912,39 +7098,6 @@
         },
         "additionalProperties": false,
         "description": "Represents a played match"
-      },
-      "MatchDTOPagedResultDTO": {
-        "required": [
-          "count",
-          "results"
-        ],
-        "type": "object",
-        "properties": {
-          "next": {
-            "type": "string",
-            "description": "Link to the next potential page of results",
-            "nullable": true
-          },
-          "previous": {
-            "type": "string",
-            "description": "Link to the previous potential page of results",
-            "nullable": true
-          },
-          "count": {
-            "type": "integer",
-            "description": "Number of results included",
-            "format": "int32"
-          },
-          "results": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MatchDTO"
-            },
-            "description": "List of resulting data"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Represents a paged list of results"
       },
       "MatchProcessingStatus": {
         "enum": [
@@ -7117,7 +7270,8 @@
         "enum": [
           0,
           1,
-          2
+          2,
+          4
         ],
         "type": "integer",
         "description": "Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected\r\nbut should have attention drawn to them during manual review",
@@ -7126,12 +7280,14 @@
         "x-enumNames": [
           "None",
           "UnexpectedNameFormat",
-          "LowGameCount"
+          "LowGameCount",
+          "UnexpectedBeatmapsFound"
         ],
         "x-enumDescriptions": [
           "The Database.Entities.Match has no warnings",
           "The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
-          "The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4"
+          "The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4",
+          "The !:Match has 1 or more !:Games with a Database.Enums.Verification.GameRejectionReason\r\nof Database.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games"
         ]
       },
       "ModStatsDTO": {
@@ -8268,6 +8424,34 @@
           "The Database.Entities.Processor.RatingAdjustment is the initial rating",
           "The Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay)",
           "The Database.Entities.Processor.RatingAdjustment is the result of participation in a Database.Entities.Match"
+        ]
+      },
+      "Roles": {
+        "enum": [
+          "user",
+          "client",
+          "admin",
+          "verifier",
+          "submit",
+          "whitelist"
+        ],
+        "type": "string",
+        "description": "The possible roles assignable to a user or client",
+        "x-enumNames": [
+          "User",
+          "Client",
+          "Admin",
+          "Verifier",
+          "Submit",
+          "Whitelist"
+        ],
+        "x-enumDescriptions": [
+          "Role granted to all users.",
+          "Role granted to all clients.",
+          "Role granted to privileged users.",
+          "Role granted to users with permission to verify submission data.",
+          "Role granted to users with permission to submit tournament data.",
+          "Role granted to users and clients to allow access during times of restricted use."
         ]
       },
       "Ruleset": {

@@ -1527,17 +1527,17 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
 */
 export type LeaderboardsGetRequestParams = {
     /**
-    * (required) Ruleset for leaderboard data
+    * (optional) 
     */
-    ruleset: Ruleset;
+    page?: number | undefined;
     /**
-    * (required) The zero-indexed page offset. Page 0 returns the first PageSize results.
-    */
-    page: number;
-    /**
-    * (optional) The number of elements to return per page
+    * (optional) 
     */
     pageSize?: number | undefined;
+    /**
+    * (optional) Ruleset for leaderboard data
+    */
+    ruleset?: Ruleset | undefined;
     /**
     * (optional) Defines whether the leaderboard should be global or filtered by country
     */
@@ -1545,71 +1545,71 @@ export type LeaderboardsGetRequestParams = {
     /**
     * (optional) Rank floor
     */
-    filter_minRank?: number | undefined;
+    minRank?: number | undefined;
     /**
     * (optional) Rank ceiling
     */
-    filter_maxRank?: number | undefined;
+    maxRank?: number | undefined;
     /**
     * (optional) Rating floor
     */
-    filter_minRating?: number | undefined;
+    minRating?: number | undefined;
     /**
     * (optional) Rating ceiling
     */
-    filter_maxRating?: number | undefined;
+    maxRating?: number | undefined;
     /**
-    * (optional) Minimum Maximum number of matches played
+    * (optional) Minimum number of matches played
     */
-    filter_minMatches?: number | undefined;
+    minMatches?: number | undefined;
     /**
     * (optional) Maximum number of matches played
     */
-    filter_maxMatches?: number | undefined;
+    maxMatches?: number | undefined;
     /**
     * (optional) Minimum win rate
     */
-    filter_minWinRate?: number | undefined;
+    minWinRate?: number | undefined;
     /**
     * (optional) Maximum win rate
     */
-    filter_maxWinRate?: number | undefined;
+    maxWinRate?: number | undefined;
     /**
     * (optional) Explicitly include bronze players
     */
-    filter_tierFilters_bronze?: boolean | undefined;
+    bronze?: boolean | undefined;
     /**
     * (optional) Explicitly include silver players
     */
-    filter_tierFilters_silver?: boolean | undefined;
+    silver?: boolean | undefined;
     /**
     * (optional) Explicitly include gold players
     */
-    filter_tierFilters_gold?: boolean | undefined;
+    gold?: boolean | undefined;
     /**
     * (optional) Explicitly include platinum players
     */
-    filter_tierFilters_platinum?: boolean | undefined;
+    platinum?: boolean | undefined;
     /**
     * (optional) Explicitly include emerald players
     */
-    filter_tierFilters_emerald?: boolean | undefined;
+    emerald?: boolean | undefined;
     /**
     * (optional) Explicitly include emerald players
     */
-    filter_tierFilters_diamond?: boolean | undefined;
+    diamond?: boolean | undefined;
     /**
     * (optional) Explicitly include master players
     */
-    filter_tierFilters_master?: boolean | undefined;
+    master?: boolean | undefined;
     /**
     * (optional) Explicitly include grandmaster players
     */
-    filter_tierFilters_grandmaster?: boolean | undefined;
+    grandmaster?: boolean | undefined;
     /**
     * (optional) Explicitly include elite grandmaster players
     */
-    filter_tierFilters_eliteGrandmaster?: boolean | undefined;
+    eliteGrandmaster?: boolean | undefined;
 }
 
 export class LeaderboardsWrapper extends OtrApiWrapperBase {
@@ -1640,114 +1640,114 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
     */
     public get(params: LeaderboardsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<LeaderboardDTO>> {
         const {
-            ruleset, 
             page, 
             pageSize, 
+            ruleset, 
             chartType, 
-            filter_minRank, 
-            filter_maxRank, 
-            filter_minRating, 
-            filter_maxRating, 
-            filter_minMatches, 
-            filter_maxMatches, 
-            filter_minWinRate, 
-            filter_maxWinRate, 
-            filter_tierFilters_bronze, 
-            filter_tierFilters_silver, 
-            filter_tierFilters_gold, 
-            filter_tierFilters_platinum, 
-            filter_tierFilters_emerald, 
-            filter_tierFilters_diamond, 
-            filter_tierFilters_master, 
-            filter_tierFilters_grandmaster, 
-            filter_tierFilters_eliteGrandmaster
+            minRank, 
+            maxRank, 
+            minRating, 
+            maxRating, 
+            minMatches, 
+            maxMatches, 
+            minWinRate, 
+            maxWinRate, 
+            bronze, 
+            silver, 
+            gold, 
+            platinum, 
+            emerald, 
+            diamond, 
+            master, 
+            grandmaster, 
+            eliteGrandmaster
         } = params;
 
         let url_ = this.baseUrl + "/api/v1/leaderboards?";
-        if (ruleset === undefined || ruleset === null)
-            throw new Error("The parameter 'ruleset' must be defined and cannot be null.");
-        else
-            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
-        if (page === undefined || page === null)
-            throw new Error("The parameter 'page' must be defined and cannot be null.");
-        else
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
             url_ += "page=" + encodeURIComponent("" + page) + "&";
         if (pageSize === null)
             throw new Error("The parameter 'pageSize' cannot be null.");
         else if (pageSize !== undefined)
             url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
         if (chartType === null)
             throw new Error("The parameter 'chartType' cannot be null.");
         else if (chartType !== undefined)
             url_ += "chartType=" + encodeURIComponent("" + chartType) + "&";
-        if (filter_minRank === null)
-            throw new Error("The parameter 'filter_minRank' cannot be null.");
-        else if (filter_minRank !== undefined)
-            url_ += "filter.minRank=" + encodeURIComponent("" + filter_minRank) + "&";
-        if (filter_maxRank === null)
-            throw new Error("The parameter 'filter_maxRank' cannot be null.");
-        else if (filter_maxRank !== undefined)
-            url_ += "filter.maxRank=" + encodeURIComponent("" + filter_maxRank) + "&";
-        if (filter_minRating === null)
-            throw new Error("The parameter 'filter_minRating' cannot be null.");
-        else if (filter_minRating !== undefined)
-            url_ += "filter.minRating=" + encodeURIComponent("" + filter_minRating) + "&";
-        if (filter_maxRating === null)
-            throw new Error("The parameter 'filter_maxRating' cannot be null.");
-        else if (filter_maxRating !== undefined)
-            url_ += "filter.maxRating=" + encodeURIComponent("" + filter_maxRating) + "&";
-        if (filter_minMatches === null)
-            throw new Error("The parameter 'filter_minMatches' cannot be null.");
-        else if (filter_minMatches !== undefined)
-            url_ += "filter.minMatches=" + encodeURIComponent("" + filter_minMatches) + "&";
-        if (filter_maxMatches === null)
-            throw new Error("The parameter 'filter_maxMatches' cannot be null.");
-        else if (filter_maxMatches !== undefined)
-            url_ += "filter.maxMatches=" + encodeURIComponent("" + filter_maxMatches) + "&";
-        if (filter_minWinRate === null)
-            throw new Error("The parameter 'filter_minWinRate' cannot be null.");
-        else if (filter_minWinRate !== undefined)
-            url_ += "filter.minWinRate=" + encodeURIComponent("" + filter_minWinRate) + "&";
-        if (filter_maxWinRate === null)
-            throw new Error("The parameter 'filter_maxWinRate' cannot be null.");
-        else if (filter_maxWinRate !== undefined)
-            url_ += "filter.maxWinRate=" + encodeURIComponent("" + filter_maxWinRate) + "&";
-        if (filter_tierFilters_bronze === null)
-            throw new Error("The parameter 'filter_tierFilters_bronze' cannot be null.");
-        else if (filter_tierFilters_bronze !== undefined)
-            url_ += "filter.tierFilters.bronze=" + encodeURIComponent("" + filter_tierFilters_bronze) + "&";
-        if (filter_tierFilters_silver === null)
-            throw new Error("The parameter 'filter_tierFilters_silver' cannot be null.");
-        else if (filter_tierFilters_silver !== undefined)
-            url_ += "filter.tierFilters.silver=" + encodeURIComponent("" + filter_tierFilters_silver) + "&";
-        if (filter_tierFilters_gold === null)
-            throw new Error("The parameter 'filter_tierFilters_gold' cannot be null.");
-        else if (filter_tierFilters_gold !== undefined)
-            url_ += "filter.tierFilters.gold=" + encodeURIComponent("" + filter_tierFilters_gold) + "&";
-        if (filter_tierFilters_platinum === null)
-            throw new Error("The parameter 'filter_tierFilters_platinum' cannot be null.");
-        else if (filter_tierFilters_platinum !== undefined)
-            url_ += "filter.tierFilters.platinum=" + encodeURIComponent("" + filter_tierFilters_platinum) + "&";
-        if (filter_tierFilters_emerald === null)
-            throw new Error("The parameter 'filter_tierFilters_emerald' cannot be null.");
-        else if (filter_tierFilters_emerald !== undefined)
-            url_ += "filter.tierFilters.emerald=" + encodeURIComponent("" + filter_tierFilters_emerald) + "&";
-        if (filter_tierFilters_diamond === null)
-            throw new Error("The parameter 'filter_tierFilters_diamond' cannot be null.");
-        else if (filter_tierFilters_diamond !== undefined)
-            url_ += "filter.tierFilters.diamond=" + encodeURIComponent("" + filter_tierFilters_diamond) + "&";
-        if (filter_tierFilters_master === null)
-            throw new Error("The parameter 'filter_tierFilters_master' cannot be null.");
-        else if (filter_tierFilters_master !== undefined)
-            url_ += "filter.tierFilters.master=" + encodeURIComponent("" + filter_tierFilters_master) + "&";
-        if (filter_tierFilters_grandmaster === null)
-            throw new Error("The parameter 'filter_tierFilters_grandmaster' cannot be null.");
-        else if (filter_tierFilters_grandmaster !== undefined)
-            url_ += "filter.tierFilters.grandmaster=" + encodeURIComponent("" + filter_tierFilters_grandmaster) + "&";
-        if (filter_tierFilters_eliteGrandmaster === null)
-            throw new Error("The parameter 'filter_tierFilters_eliteGrandmaster' cannot be null.");
-        else if (filter_tierFilters_eliteGrandmaster !== undefined)
-            url_ += "filter.tierFilters.eliteGrandmaster=" + encodeURIComponent("" + filter_tierFilters_eliteGrandmaster) + "&";
+        if (minRank === null)
+            throw new Error("The parameter 'minRank' cannot be null.");
+        else if (minRank !== undefined)
+            url_ += "minRank=" + encodeURIComponent("" + minRank) + "&";
+        if (maxRank === null)
+            throw new Error("The parameter 'maxRank' cannot be null.");
+        else if (maxRank !== undefined)
+            url_ += "maxRank=" + encodeURIComponent("" + maxRank) + "&";
+        if (minRating === null)
+            throw new Error("The parameter 'minRating' cannot be null.");
+        else if (minRating !== undefined)
+            url_ += "minRating=" + encodeURIComponent("" + minRating) + "&";
+        if (maxRating === null)
+            throw new Error("The parameter 'maxRating' cannot be null.");
+        else if (maxRating !== undefined)
+            url_ += "maxRating=" + encodeURIComponent("" + maxRating) + "&";
+        if (minMatches === null)
+            throw new Error("The parameter 'minMatches' cannot be null.");
+        else if (minMatches !== undefined)
+            url_ += "minMatches=" + encodeURIComponent("" + minMatches) + "&";
+        if (maxMatches === null)
+            throw new Error("The parameter 'maxMatches' cannot be null.");
+        else if (maxMatches !== undefined)
+            url_ += "maxMatches=" + encodeURIComponent("" + maxMatches) + "&";
+        if (minWinRate === null)
+            throw new Error("The parameter 'minWinRate' cannot be null.");
+        else if (minWinRate !== undefined)
+            url_ += "minWinRate=" + encodeURIComponent("" + minWinRate) + "&";
+        if (maxWinRate === null)
+            throw new Error("The parameter 'maxWinRate' cannot be null.");
+        else if (maxWinRate !== undefined)
+            url_ += "maxWinRate=" + encodeURIComponent("" + maxWinRate) + "&";
+        if (bronze === null)
+            throw new Error("The parameter 'bronze' cannot be null.");
+        else if (bronze !== undefined)
+            url_ += "bronze=" + encodeURIComponent("" + bronze) + "&";
+        if (silver === null)
+            throw new Error("The parameter 'silver' cannot be null.");
+        else if (silver !== undefined)
+            url_ += "silver=" + encodeURIComponent("" + silver) + "&";
+        if (gold === null)
+            throw new Error("The parameter 'gold' cannot be null.");
+        else if (gold !== undefined)
+            url_ += "gold=" + encodeURIComponent("" + gold) + "&";
+        if (platinum === null)
+            throw new Error("The parameter 'platinum' cannot be null.");
+        else if (platinum !== undefined)
+            url_ += "platinum=" + encodeURIComponent("" + platinum) + "&";
+        if (emerald === null)
+            throw new Error("The parameter 'emerald' cannot be null.");
+        else if (emerald !== undefined)
+            url_ += "emerald=" + encodeURIComponent("" + emerald) + "&";
+        if (diamond === null)
+            throw new Error("The parameter 'diamond' cannot be null.");
+        else if (diamond !== undefined)
+            url_ += "diamond=" + encodeURIComponent("" + diamond) + "&";
+        if (master === null)
+            throw new Error("The parameter 'master' cannot be null.");
+        else if (master !== undefined)
+            url_ += "master=" + encodeURIComponent("" + master) + "&";
+        if (grandmaster === null)
+            throw new Error("The parameter 'grandmaster' cannot be null.");
+        else if (grandmaster !== undefined)
+            url_ += "grandmaster=" + encodeURIComponent("" + grandmaster) + "&";
+        if (eliteGrandmaster === null)
+            throw new Error("The parameter 'eliteGrandmaster' cannot be null.");
+        else if (eliteGrandmaster !== undefined)
+            url_ += "eliteGrandmaster=" + encodeURIComponent("" + eliteGrandmaster) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
@@ -3963,6 +3963,30 @@ export class SearchWrapper extends OtrApiWrapperBase {
 }
 
 /**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.acceptPreVerificationStatuses | api/v1/tournaments/[id]:accept-pre-verification-statuses}
+*/
+export type TournamentsAcceptPreVerificationStatusesRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.rerunAutomationChecks | api/v1/tournaments/[id]:reset-automation-statuses}
+*/
+export type TournamentsRerunAutomationChecksRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) Whether to overwrite data which has already been Verified or Rejected
+    */
+    force?: boolean | undefined;
+}
+
+/**
 * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.createAdminNote | api/v1/tournaments/[id]/notes}
 */
 export type TournamentsCreateAdminNoteRequestParams = {
@@ -4016,6 +4040,44 @@ export type TournamentsDeleteAdminNoteRequestParams = {
     * (required) Admin note id
     */
     noteId: number;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.insertBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
+export type TournamentsInsertBeatmapsRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) A collection of osu! beatmap ids
+    */
+    body?: number[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.deleteBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
+export type TournamentsDeleteBeatmapsRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) An optional collection of specific beatmap ids to remove from the pooled beatmaps collection
+    */
+    body?: number[] | undefined;
+}
+
+/**
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.getBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
+export type TournamentsGetBeatmapsRequestParams = {
+    /**
+    * (required) Tournament id
+    */
+    id: number;
 }
 
 /**
@@ -4121,6 +4183,152 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     }
 
     /**
+    * Mark pre-rejected items as rejected, marks pre-verified
+    * items as verified. Applies for the tournament and all children.
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsAcceptPreVerificationStatusesRequestParams})
+    * @return All items were updated successfully
+    */
+    public acceptPreVerificationStatuses(params: TournamentsAcceptPreVerificationStatusesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}:accept-pre-verification-statuses";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processAcceptPreVerificationStatuses(_response);
+        });
+    }
+
+    protected processAcceptPreVerificationStatuses(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Rerun automation checks for a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsRerunAutomationChecksRequestParams})
+    * @return The entities were updated successfully
+    */
+    public rerunAutomationChecks(params: TournamentsRerunAutomationChecksRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            force
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}:reset-automation-statuses?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (force === null)
+            throw new Error("The parameter 'force' cannot be null.");
+        else if (force !== undefined)
+            url_ += "force=" + encodeURIComponent("" + force) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRerunAutomationChecks(_response);
+        });
+    }
+
+    protected processRerunAutomationChecks(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
     * Create an admin note for a tournament
     *
     * Requires Authorization:
@@ -4176,14 +4384,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
                 }
             }
         }
-        if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = JSON.parse(resultData401);
-            return throwException("If the requester is not properly authorized", status, _responseText, _headers, result401);
-
-        } else if (status === 404) {
+        if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
@@ -4438,6 +4639,221 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
         return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Add beatmaps to a tournament by osu! id
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsInsertBeatmapsRequestParams})
+    * @return The beatmaps were added successfully
+    */
+    public insertBeatmaps(params: TournamentsInsertBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processInsertBeatmaps(_response);
+        });
+    }
+
+    protected processInsertBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Delete all pooled beatmaps from a tournament. This does not alter the beatmaps table. This only
+    * deletes the mapping between a tournament and a pooled beatmap.
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsDeleteBeatmapsRequestParams})
+    * @return All beatmaps were successfully removed
+    */
+    public deleteBeatmaps(params: TournamentsDeleteBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "DELETE",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDeleteBeatmaps(_response);
+        });
+    }
+
+    protected processDeleteBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
+
+    /**
+    * Get all beatmaps pooled by a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link TournamentsGetBeatmapsRequestParams})
+    * @return Returns a collection of pooled beatmaps
+    */
+    public getBeatmaps(params: TournamentsGetBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = true
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetBeatmaps(_response);
+        });
+    }
+
+    protected processGetBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 
     /**
@@ -6002,6 +6418,12 @@ export enum GameRejectionReason {
     NoEndTime = 256,
     /** The Database.Entities.Match the Database.Entities.Game was played in was rejected */
     RejectedMatch = 512,
+    /**
+    * The Database.Entities.Tournament has a known collection of PooledBeatmaps
+	* and the Database.Entities.Beatmap played in the Database.Entities.Game is not present
+	* in said collection
+    */
+    BeatmapNotPooled = 1024,
 }
 
 export interface GameScoreDTO {
@@ -6042,12 +6464,6 @@ export enum GameWarningFlags {
 	* is played only once throughout the entire Database.Entities.Tournament
     */
     BeatmapUsedOnce = 1,
-    /**
-    * If the parent Database.Entities.Tournament has a submitted pool of Database.Entities.Beatmaps,
-	* the Database.Entities.Game's Database.Entities.Game.Beatmap is not a part of the pool,
-	* and the Database.Entities.Game is not one of the first two in the Database.Entities.Match
-    */
-    BeatmapNotInMappool = 2,
 }
 
 export interface ProblemDetails {
@@ -6262,6 +6678,11 @@ export enum MatchWarningFlags {
     UnexpectedNameFormat = 1,
     /** The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4 */
     LowGameCount = 2,
+    /**
+    * The !:Match has 1 or more !:Games with a Database.Enums.Verification.GameRejectionReason
+	* of Database.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games
+    */
+    UnexpectedBeatmapsFound = 4,
 }
 
 /** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
