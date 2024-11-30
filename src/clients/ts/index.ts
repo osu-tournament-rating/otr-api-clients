@@ -33,7 +33,7 @@ export abstract class OtrApiWrapperBase {
 */
 export type BeatmapsGetRequestParams = {
     /**
-    * (required) Search key (o!TR id or osu! id)
+    * (required) Search key (id or osu! id)
     */
     key: number;
 }
@@ -116,7 +116,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     /**
     * Get a beatmap
     *
-    * Get a beatmap searching first by id, then by beatmap osu! id
+    * Get a beatmap searching first by id, then by osu! id
     * 
     * Requires Authorization:
     * 
@@ -294,6 +294,74 @@ export class ClientsWrapper extends OtrApiWrapperBase {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
         return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
+}
+
+export class DiagnosticsWrapper extends OtrApiWrapperBase {
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(configuration: IOtrApiWrapperConfiguration) {
+
+        super(configuration);
+
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
+
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
+        }
+    }
+
+    /**
+    * Undocumented
+    * @return Success
+    */
+    public ping( cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+
+        let url_ = this.baseUrl + "/api/v1/diagnostics/ping";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+        (options_ as any).requiresAuth = false
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processPing(_response);
+        });
+    }
+
+    protected processPing(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
 }
 
@@ -1550,19 +1618,23 @@ export type LeaderboardsGetRequestParams = {
     */
     chartType?: LeaderboardChartType | undefined;
     /**
-    * (optional) Rank floor
+    * (optional) Rank floor (The "better" inclusive rank bound.
+	* If given, only players with a rank greater than or equal to this value will be included)
     */
     minRank?: number | undefined;
     /**
-    * (optional) Rank ceiling
+    * (optional) Rank ceiling (The "worse" inclusive rank bound.
+	* If given, only players with a rank less than or equal to this value will be included)
     */
     maxRank?: number | undefined;
     /**
-    * (optional) Rating floor
+    * (optional) Rating floor (The "worse" inclusive rating bound.
+	* If given, only players with a rating greater than or equal to this value will be included)
     */
     minRating?: number | undefined;
     /**
-    * (optional) Rating ceiling
+    * (optional) Rating ceiling (The "better" inclusive rating bound.
+	* If given, only players with a rating less than or equal to this value will be included)
     */
     maxRating?: number | undefined;
     /**
@@ -1870,15 +1942,15 @@ export type MatchesListRequestParams = {
     */
     ruleset?: Ruleset | undefined;
     /**
-    * (optional) Filters results for only matches with a partially matching name
+    * (optional) Filters results for only matches with a partially matching name (case insensitive)
     */
     name?: string | undefined;
     /**
-    * (optional) Filters results for only matches that occurred after a specified date
+    * (optional) Filters results for only matches that occurred on or after a specified date
     */
     dateMin?: Date | undefined;
     /**
-    * (optional) Filters results for only matches that occurred before a specified date
+    * (optional) Filters results for only matches that occurred on or before a specified date
     */
     dateMax?: Date | undefined;
     /**
@@ -3348,7 +3420,7 @@ export type PlayersDeleteAdminNoteRequestParams = {
 */
 export type PlayersGetRequestParams = {
     /**
-    * (required) Search key (o!TR id, osu! id, or osu! username)
+    * (required) Search key (id, osu! id, or osu! username)
     */
     key: string;
 }
@@ -3783,7 +3855,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     * Get a player's stats
     *
     * Gets player by versatile search.
-    * If no ruleset is provided, the player's default is used. OsuApiClient.Net.Constants.Endpoints.Osu is used as a fallback.
+    * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
     * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
     * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
     * If no date range is provided, gets all stats without considering date
@@ -4866,7 +4938,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     /**
     * Get all tournaments which fit an optional request query
     *
-    * Will not include match data
+    * Results will not include match data
     * @param params Request parameters (see {@link TournamentsListRequestParams})
     * @return Returns all tournaments which fit the request query
     */
@@ -5878,7 +5950,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
         } else if (status === 400) {
             const _responseText = response.data;
@@ -5958,7 +6030,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = JSON.parse(resultData404);
-            return throwException("A user matching the given id does not exist\r\nor an oauth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
+            return throwException("A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
         } else if (status === 200) {
             const _responseText = response.data;
@@ -7432,8 +7504,7 @@ export interface TournamentSearchResultDTO {
 export interface TournamentSubmissionDTO {
     /** The name of the tournament */
     name: string;
-    /** Acronym / shortened name of the tournament
-<example>For osu! World Cup 2023, this value would be "OWC23"</example> */
+    /** Acronym / shortened name of the tournament */
     abbreviation: string;
     /** The osu! forum post advertising this tournament */
     forumUrl: string;
