@@ -4728,6 +4728,94 @@
             }
           },
           {
+            "name": "name",
+            "in": "query",
+            "description": "Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateMin",
+            "in": "query",
+            "description": "Filters results for only tournaments that occurred on or after a specified date",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "dateMax",
+            "in": "query",
+            "description": "Filters results for only tournaments that occurred on or before a specified date",
+            "style": "form",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "verificationStatus",
+            "in": "query",
+            "description": "Filters results for only matches with a specified verification status",
+            "style": "form",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/VerificationStatus"
+                }
+              ]
+            }
+          },
+          {
+            "name": "rejectionReason",
+            "in": "query",
+            "description": "Filters results for only tournaments with a specified rejection reason",
+            "style": "form",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TournamentRejectionReason"
+                }
+              ]
+            }
+          },
+          {
+            "name": "processingStatus",
+            "in": "query",
+            "description": "Filters results for only tournaments with a specified processing status",
+            "style": "form",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TournamentProcessingStatus"
+                }
+              ]
+            }
+          },
+          {
+            "name": "submittedBy",
+            "in": "query",
+            "description": "Filters results for only tournaments submitted by a user with a specified id",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "verifiedBy",
+            "in": "query",
+            "description": "Filters results for only tournaments verified by a user with a specified id",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "description": "The key used to sort results by",
@@ -4747,7 +4835,8 @@
             "description": "Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort",
             "style": "form",
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "default": true
             }
           }
         ],
@@ -8855,7 +8944,8 @@
           0,
           1,
           2,
-          3
+          3,
+          4
         ],
         "type": "integer",
         "description": "Defines how to sort the results of fetching all tournaments",
@@ -8863,11 +8953,13 @@
         "x-enumNames": [
           "Id",
           "StartTime",
+          "EndTime",
           "Name",
           "Created"
         ],
         "x-enumDescriptions": [
           "Sort by primary key",
+          "Sort by start date",
           "Sort by start date",
           "Sort by name",
           "Sort by created date"
