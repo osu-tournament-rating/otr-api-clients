@@ -4728,7 +4728,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "searchQuery",
             "in": "query",
             "description": "Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)",
             "style": "form",
@@ -4759,7 +4759,7 @@
           {
             "name": "verificationStatus",
             "in": "query",
-            "description": "Filters results for only matches with a specified verification status",
+            "description": "Filters results for only tournaments with a specified verification status",
             "style": "form",
             "schema": {
               "allOf": [
@@ -4816,6 +4816,16 @@
             }
           },
           {
+            "name": "lobbySize",
+            "in": "query",
+            "description": "Filters results for only tournaments played with a specified lobby size",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "description": "The key used to sort results by",
@@ -4826,7 +4836,7 @@
                   "$ref": "#/components/schemas/TournamentQuerySortType"
                 }
               ],
-              "default": 1
+              "default": 2
             }
           },
           {
@@ -8945,7 +8955,8 @@
           1,
           2,
           3,
-          4
+          4,
+          5
         ],
         "type": "integer",
         "description": "Defines how to sort the results of fetching all tournaments",
@@ -8954,15 +8965,17 @@
           "Id",
           "StartTime",
           "EndTime",
-          "Name",
-          "Created"
+          "SearchQueryRelevance",
+          "Created",
+          "LobbySize"
         ],
         "x-enumDescriptions": [
           "Sort by primary key",
           "Sort by start date",
-          "Sort by start date",
+          "Sort by end date",
           "Sort by name",
-          "Sort by created date"
+          "Sort by created date",
+          "Sort by lobby size"
         ]
       },
       "TournamentRejectionReason": {

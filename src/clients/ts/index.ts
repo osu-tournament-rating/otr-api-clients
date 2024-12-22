@@ -4975,7 +4975,7 @@ export type TournamentsListRequestParams = {
   /**
    * (optional) Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)
    */
-  name?: string | undefined;
+  searchQuery?: string | undefined;
   /**
    * (optional) Filters results for only tournaments that occurred on or after a specified date
    */
@@ -4985,7 +4985,7 @@ export type TournamentsListRequestParams = {
    */
   dateMax?: Date | undefined;
   /**
-   * (optional) Filters results for only matches with a specified verification status
+   * (optional) Filters results for only tournaments with a specified verification status
    */
   verificationStatus?: VerificationStatus | undefined;
   /**
@@ -5004,6 +5004,10 @@ export type TournamentsListRequestParams = {
    * (optional) Filters results for only tournaments verified by a user with a specified id
    */
   verifiedBy?: number | undefined;
+  /**
+   * (optional) Filters results for only tournaments played with a specified lobby size
+   */
+  lobbySize?: number | undefined;
   /**
    * (optional) The key used to sort results by
    */
@@ -5952,7 +5956,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       pageSize,
       verified,
       ruleset,
-      name,
+      searchQuery,
       dateMin,
       dateMax,
       verificationStatus,
@@ -5960,6 +5964,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       processingStatus,
       submittedBy,
       verifiedBy,
+      lobbySize,
       sort,
       descending,
     } = params;
@@ -5983,9 +5988,10 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
       url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
-    if (name === null) throw new Error("The parameter 'name' cannot be null.");
-    else if (name !== undefined)
-      url_ += "name=" + encodeURIComponent("" + name) + "&";
+    if (searchQuery === null)
+      throw new Error("The parameter 'searchQuery' cannot be null.");
+    else if (searchQuery !== undefined)
+      url_ += "searchQuery=" + encodeURIComponent("" + searchQuery) + "&";
     if (dateMin === null)
       throw new Error("The parameter 'dateMin' cannot be null.");
     else if (dateMin !== undefined)
@@ -6025,6 +6031,10 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       throw new Error("The parameter 'verifiedBy' cannot be null.");
     else if (verifiedBy !== undefined)
       url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+    if (lobbySize === null)
+      throw new Error("The parameter 'lobbySize' cannot be null.");
+    else if (lobbySize !== undefined)
+      url_ += "lobbySize=" + encodeURIComponent("" + lobbySize) + "&";
     if (sort === null) throw new Error("The parameter 'sort' cannot be null.");
     else if (sort !== undefined)
       url_ += "sort=" + encodeURIComponent("" + sort) + "&";
@@ -8791,12 +8801,14 @@ export enum TournamentQuerySortType {
   Id = 0,
   /** Sort by start date */
   StartTime = 1,
-  /** Sort by start date */
+  /** Sort by end date */
   EndTime = 2,
   /** Sort by name */
-  Name = 3,
+  SearchQueryRelevance = 3,
   /** Sort by created date */
   Created = 4,
+  /** Sort by lobby size */
+  LobbySize = 5,
 }
 
 /**
