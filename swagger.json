@@ -72,7 +72,6 @@
             "in": "path",
             "description": "Search key (id or osu! id)",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -148,7 +147,6 @@
             "in": "path",
             "description": "Client id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -248,7 +246,7 @@
         "operationId": "Diagnostics_ping",
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         },
         "x-requiresAuthorization": false
@@ -378,7 +376,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -498,7 +495,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -584,7 +580,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -595,7 +590,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -695,7 +689,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -706,7 +699,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -802,7 +794,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -933,7 +924,6 @@
             "in": "path",
             "description": "Game id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -975,7 +965,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1095,7 +1084,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1181,7 +1169,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1192,7 +1179,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1292,7 +1278,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1303,7 +1288,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1379,7 +1363,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1510,7 +1493,6 @@
             "in": "path",
             "description": "Score id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1567,7 +1549,6 @@
           {
             "name": "page",
             "in": "query",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1579,7 +1560,6 @@
           {
             "name": "pageSize",
             "in": "query",
-            "style": "form",
             "schema": {
               "maximum": 100,
               "minimum": 10,
@@ -1592,7 +1572,6 @@
             "name": "ruleset",
             "in": "query",
             "description": "Ruleset for leaderboard data",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -1606,7 +1585,6 @@
             "name": "chartType",
             "in": "query",
             "description": "Defines whether the leaderboard should be global or filtered by country",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -1620,7 +1598,6 @@
             "name": "minRank",
             "in": "query",
             "description": "Rank floor (The \"better\" inclusive rank bound.\r\nIf given, only players with a rank greater than or equal to this value will be included)",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1632,7 +1609,6 @@
             "name": "maxRank",
             "in": "query",
             "description": "Rank ceiling (The \"worse\" inclusive rank bound.\r\nIf given, only players with a rank less than or equal to this value will be included)",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1644,7 +1620,6 @@
             "name": "minRating",
             "in": "query",
             "description": "Rating floor (The \"worse\" inclusive rating bound.\r\nIf given, only players with a rating greater than or equal to this value will be included)",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 100,
@@ -1656,7 +1631,6 @@
             "name": "maxRating",
             "in": "query",
             "description": "Rating ceiling (The \"better\" inclusive rating bound.\r\nIf given, only players with a rating less than or equal to this value will be included)",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 100,
@@ -1668,7 +1642,6 @@
             "name": "minMatches",
             "in": "query",
             "description": "Minimum number of matches played",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 0,
@@ -1680,7 +1653,6 @@
             "name": "maxMatches",
             "in": "query",
             "description": "Maximum number of matches played",
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 0,
@@ -1692,7 +1664,6 @@
             "name": "minWinRate",
             "in": "query",
             "description": "Minimum win rate",
-            "style": "form",
             "schema": {
               "maximum": 1,
               "minimum": 0,
@@ -1704,7 +1675,6 @@
             "name": "maxWinRate",
             "in": "query",
             "description": "Maximum win rate",
-            "style": "form",
             "schema": {
               "maximum": 1,
               "minimum": 0,
@@ -1716,7 +1686,6 @@
             "name": "bronze",
             "in": "query",
             "description": "Explicitly include bronze players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1725,7 +1694,6 @@
             "name": "silver",
             "in": "query",
             "description": "Explicitly include silver players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1734,7 +1702,6 @@
             "name": "gold",
             "in": "query",
             "description": "Explicitly include gold players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1743,7 +1710,6 @@
             "name": "platinum",
             "in": "query",
             "description": "Explicitly include platinum players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1752,7 +1718,6 @@
             "name": "emerald",
             "in": "query",
             "description": "Explicitly include emerald players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1761,7 +1726,6 @@
             "name": "diamond",
             "in": "query",
             "description": "Explicitly include emerald players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1770,7 +1734,6 @@
             "name": "master",
             "in": "query",
             "description": "Explicitly include master players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1779,7 +1742,6 @@
             "name": "grandmaster",
             "in": "query",
             "description": "Explicitly include grandmaster players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1788,7 +1750,6 @@
             "name": "eliteGrandmaster",
             "in": "query",
             "description": "Explicitly include elite grandmaster players",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -1843,7 +1804,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -1963,7 +1923,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2049,7 +2008,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2060,7 +2018,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2160,7 +2117,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2171,7 +2127,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2246,7 +2201,6 @@
             "name": "page",
             "in": "query",
             "required": true,
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -2258,7 +2212,6 @@
             "name": "pageSize",
             "in": "query",
             "required": true,
-            "style": "form",
             "schema": {
               "maximum": 100,
               "minimum": 1,
@@ -2270,7 +2223,6 @@
             "name": "ruleset",
             "in": "query",
             "description": "Filters results for only matches played in a specified ruleset",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2283,7 +2235,6 @@
             "name": "name",
             "in": "query",
             "description": "Filters results for only matches with a partially matching name (case insensitive)",
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -2292,7 +2243,6 @@
             "name": "dateMin",
             "in": "query",
             "description": "Filters results for only matches that occurred on or after a specified date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2302,7 +2252,6 @@
             "name": "dateMax",
             "in": "query",
             "description": "Filters results for only matches that occurred on or before a specified date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2312,7 +2261,6 @@
             "name": "verificationStatus",
             "in": "query",
             "description": "Filters results for only matches with a specified verification status",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2325,7 +2273,6 @@
             "name": "rejectionReason",
             "in": "query",
             "description": "Filters results for only matches with a specified rejection reason",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2338,7 +2285,6 @@
             "name": "processingStatus",
             "in": "query",
             "description": "Filters results for only matches with a specified processing status",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2351,7 +2297,6 @@
             "name": "submittedBy",
             "in": "query",
             "description": "Filters results for only matches submitted by a user with a specified id",
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2361,7 +2306,6 @@
             "name": "verifiedBy",
             "in": "query",
             "description": "Filters results for only matches verified by a user with a specified id",
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2371,7 +2315,6 @@
             "name": "sort",
             "in": "query",
             "description": "The key used to sort results by",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2385,7 +2328,6 @@
             "name": "descending",
             "in": "query",
             "description": "Whether the results are sorted in descending order by the API.DTOs.MatchRequestQueryDTO.Sort",
-            "style": "form",
             "schema": {
               "type": "boolean"
             }
@@ -2450,7 +2392,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2525,7 +2466,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2656,7 +2596,6 @@
             "in": "path",
             "description": "Match id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -2760,7 +2699,6 @@
             "name": "ruleset",
             "in": "query",
             "description": "Ruleset to filter for",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -2773,7 +2711,6 @@
             "name": "dateMin",
             "in": "query",
             "description": "Filter from earliest date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2783,7 +2720,6 @@
             "name": "dateMax",
             "in": "query",
             "description": "Filter to latest date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -2932,7 +2868,7 @@
         "operationId": "Me_syncRuleset",
         "responses": {
           "308": {
-            "description": "Redirect"
+            "description": "Permanent Redirect"
           },
           "400": {
             "description": "The operation was not successful",
@@ -2987,7 +2923,6 @@
             "in": "query",
             "description": "osu! authorization code",
             "required": true,
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -3051,7 +2986,6 @@
             "in": "query",
             "description": "Client id",
             "required": true,
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3062,7 +2996,6 @@
             "in": "query",
             "description": "Client secret",
             "required": true,
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -3170,7 +3103,6 @@
             "in": "query",
             "description": "Refresh token",
             "required": true,
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -3235,7 +3167,6 @@
             "in": "path",
             "description": "Player id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3355,7 +3286,6 @@
             "in": "path",
             "description": "Player id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3441,7 +3371,6 @@
             "in": "path",
             "description": "Player id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3452,7 +3381,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3552,7 +3480,6 @@
             "in": "path",
             "description": "Player id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3563,7 +3490,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3639,7 +3565,6 @@
             "in": "path",
             "description": "Search key (id, osu! id, or osu! username)",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "string"
             }
@@ -3715,7 +3640,6 @@
             "in": "path",
             "description": "Search key",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "string"
             }
@@ -3724,7 +3648,6 @@
             "name": "ruleset",
             "in": "query",
             "description": "Ruleset to filter for",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -3737,7 +3660,6 @@
             "name": "dateMin",
             "in": "query",
             "description": "Filter from earliest date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3747,7 +3669,6 @@
             "name": "dateMax",
             "in": "query",
             "description": "Filter to latest date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3824,7 +3745,6 @@
             "in": "query",
             "description": "Search key",
             "required": true,
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -3880,7 +3800,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3956,7 +3875,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -3966,7 +3884,6 @@
             "name": "force",
             "in": "query",
             "description": "Whether to overwrite data which has already been Verified or Rejected",
-            "style": "form",
             "schema": {
               "type": "boolean",
               "default": false
@@ -4025,7 +3942,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4145,7 +4061,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4231,7 +4146,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4242,7 +4156,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4342,7 +4255,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4353,7 +4265,6 @@
             "in": "path",
             "description": "Admin note id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4429,7 +4340,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4527,7 +4437,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4625,7 +4534,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4677,14 +4585,13 @@
           "Tournaments"
         ],
         "summary": "Get all tournaments which fit an optional request query",
-        "description": "Results will not include match data",
+        "description": "Results will not include match data\n\nRequires Authorization:\n\nClaim(s): user, client",
         "operationId": "Tournaments_list",
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "required": true,
-            "style": "form",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -4696,7 +4603,6 @@
             "name": "pageSize",
             "in": "query",
             "required": true,
-            "style": "form",
             "schema": {
               "maximum": 100,
               "minimum": 1,
@@ -4708,7 +4614,6 @@
             "name": "verified",
             "in": "query",
             "description": "Filters results for only tournaments that are verified",
-            "style": "form",
             "schema": {
               "type": "boolean",
               "default": true
@@ -4718,7 +4623,6 @@
             "name": "ruleset",
             "in": "query",
             "description": "Filters results for only tournaments played in a specified ruleset",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -4731,7 +4635,6 @@
             "name": "searchQuery",
             "in": "query",
             "description": "Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)",
-            "style": "form",
             "schema": {
               "type": "string"
             }
@@ -4740,7 +4643,6 @@
             "name": "dateMin",
             "in": "query",
             "description": "Filters results for only tournaments that occurred on or after a specified date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -4750,7 +4652,6 @@
             "name": "dateMax",
             "in": "query",
             "description": "Filters results for only tournaments that occurred on or before a specified date",
-            "style": "form",
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -4760,7 +4661,6 @@
             "name": "verificationStatus",
             "in": "query",
             "description": "Filters results for only tournaments with a specified verification status",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -4773,7 +4673,6 @@
             "name": "rejectionReason",
             "in": "query",
             "description": "Filters results for only tournaments with a specified rejection reason",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -4786,7 +4685,6 @@
             "name": "processingStatus",
             "in": "query",
             "description": "Filters results for only tournaments with a specified processing status",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -4799,7 +4697,6 @@
             "name": "submittedBy",
             "in": "query",
             "description": "Filters results for only tournaments submitted by a user with a specified id",
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4809,7 +4706,6 @@
             "name": "verifiedBy",
             "in": "query",
             "description": "Filters results for only tournaments verified by a user with a specified id",
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4819,7 +4715,6 @@
             "name": "lobbySize",
             "in": "query",
             "description": "Filters results for only tournaments played with a specified lobby size",
-            "style": "form",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -4829,7 +4724,6 @@
             "name": "sort",
             "in": "query",
             "description": "The key used to sort results by",
-            "style": "form",
             "schema": {
               "allOf": [
                 {
@@ -4843,7 +4737,6 @@
             "name": "descending",
             "in": "query",
             "description": "Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort",
-            "style": "form",
             "schema": {
               "type": "boolean",
               "default": true
@@ -4881,7 +4774,18 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
       },
       "post": {
         "tags": [
@@ -5005,7 +4909,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5015,7 +4918,6 @@
             "name": "verified",
             "in": "query",
             "description": "If true, specifically includes verified match data. If false,\r\nincludes all data, regardless of verification status.\r\nAlso includes all child navigations if false.\r\nDefault true (strictly verified data with limited navigation properties)",
-            "style": "form",
             "schema": {
               "type": "boolean",
               "default": true
@@ -5090,7 +4992,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5221,7 +5122,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5263,7 +5163,6 @@
             "in": "path",
             "description": "Tournament id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5349,7 +5248,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5420,7 +5318,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5554,7 +5451,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5634,7 +5530,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5696,7 +5591,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5776,7 +5670,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5787,7 +5680,6 @@
             "in": "path",
             "description": "OAuth client id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5861,7 +5753,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5872,7 +5763,6 @@
             "in": "path",
             "description": "OAuth client id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -5943,7 +5833,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -6063,7 +5952,6 @@
             "in": "path",
             "description": "User id",
             "required": true,
-            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -6923,27 +6811,26 @@
         ]
       },
       "HttpValidationProblemDetails": {
-        "required": [
-          "errors"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/ProblemDetails"
-          }
-        ],
-        "properties": {
-          "errors": {
+          },
+          {
             "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
+            "properties": {
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
-            }
+            },
+            "additionalProperties": { }
           }
-        },
-        "additionalProperties": { }
+        ]
       },
       "LeaderboardChartType": {
         "enum": [
@@ -7082,23 +6969,22 @@
         "description": "Individual line items in the leaderboard"
       },
       "MatchCreatedResultDTO": {
-        "required": [
-          "osuId"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/CreatedResultBaseDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "osuId": {
+                "type": "integer",
+                "description": "osu! match id",
+                "format": "int64"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "osuId": {
-            "type": "integer",
-            "description": "osu! match id",
-            "format": "int64"
-          }
-        },
-        "additionalProperties": false,
         "description": "Represents a created match"
       },
       "MatchDTO": {
@@ -7556,22 +7442,21 @@
         ]
       },
       "OAuthClientCreatedDTO": {
-        "required": [
-          "clientSecret"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/OAuthClientDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "clientSecret": {
+                "type": "string",
+                "description": "Client secret of the client"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "clientSecret": {
-            "type": "string",
-            "description": "Client secret of the client"
-          }
-        },
-        "additionalProperties": false,
         "description": "Represents a created OAuth client (The only time the client secret is available is when a new client is created)"
       },
       "OAuthClientDTO": {
@@ -7604,18 +7489,20 @@
         "description": "Represents an OAuth client"
       },
       "Operation": {
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/OperationBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "nullable": true
+              }
+            },
+            "additionalProperties": false
           }
-        ],
-        "properties": {
-          "value": {
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
+        ]
       },
       "OperationBase": {
         "required": [
@@ -7678,13 +7565,15 @@
         ]
       },
       "Operation`1": {
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/Operation"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false
           }
-        ],
-        "additionalProperties": false
+        ]
       },
       "PlayerCompactDTO": {
         "required": [
@@ -7939,11 +7828,11 @@
       },
       "PlayerRatingChartDataPointDTO": {
         "required": [
-          "isAdjustment",
-          "name",
+          "ratingAdjustmentType",
           "ratingAfter",
           "ratingBefore",
           "ratingChange",
+          "ruleset",
           "volatilityAfter",
           "volatilityBefore",
           "volatilityChange"
@@ -7952,34 +7841,35 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Match name"
+            "description": "Match name, if applicable",
+            "nullable": true
           },
           "matchId": {
             "type": "integer",
-            "description": "Match id",
+            "description": "Match id, if applicable",
             "format": "int32",
             "nullable": true
           },
           "matchOsuId": {
             "type": "integer",
-            "description": "osu! match id",
+            "description": "osu! match id, if applicable",
             "format": "int64",
             "nullable": true
           },
           "matchCost": {
             "type": "number",
-            "description": "Match cost of the player",
+            "description": "Match cost of the player, if applicable",
             "format": "double",
             "nullable": true
           },
           "ratingBefore": {
             "type": "number",
-            "description": "Rating of the player before this match occurred",
+            "description": "Rating of the player before the adjustment",
             "format": "double"
           },
           "ratingAfter": {
             "type": "number",
-            "description": "Rating of the player after this match occurred",
+            "description": "Rating of the player after the adjustment",
             "format": "double"
           },
           "volatilityBefore": {
@@ -7989,24 +7879,36 @@
           },
           "volatilityAfter": {
             "type": "number",
-            "description": "Volatility of the player after this match occurred",
+            "description": "Volatility of the player after this adjustment",
             "format": "double"
           },
           "ratingChange": {
             "type": "number",
-            "description": "Difference in rating for the player after this match occurred",
+            "description": "Difference in rating between now and the previous adjustment",
             "format": "double",
             "readOnly": true
           },
           "volatilityChange": {
             "type": "number",
-            "description": "Difference in volatility for the player after this match occurred",
+            "description": "Difference in volatility between now and the previous adjustment",
             "format": "double",
             "readOnly": true
           },
-          "isAdjustment": {
-            "type": "boolean",
-            "description": "Indicates whether this data point is from a rating change that occurred outside of a match (i.e. decay)"
+          "ruleset": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
+          },
+          "ratingAdjustmentType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RatingAdjustmentType"
+              }
+            ],
+            "description": "Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment"
           },
           "timestamp": {
             "type": "string",
@@ -8081,49 +7983,44 @@
         "description": "Describes tournament rating based information for a player in a ruleset that are current and not time specific"
       },
       "PlayerRatingStatsDTO": {
-        "required": [
-          "isProvisional",
-          "matchesPlayed",
-          "rankProgress",
-          "tournamentsPlayed",
-          "winRate"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/PlayerRatingDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "tournamentsPlayed": {
+                "type": "integer",
+                "description": "Total number of tournaments played",
+                "format": "int32"
+              },
+              "matchesPlayed": {
+                "type": "integer",
+                "description": "Total number of matches played",
+                "format": "int32"
+              },
+              "winRate": {
+                "type": "number",
+                "description": "Match win rate",
+                "format": "double"
+              },
+              "rankProgress": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RankProgressDTO"
+                  }
+                ],
+                "description": "Rating tier progress information"
+              },
+              "isProvisional": {
+                "type": "boolean",
+                "description": "Denotes the current rating as being provisional"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "tournamentsPlayed": {
-            "type": "integer",
-            "description": "Total number of tournaments played",
-            "format": "int32"
-          },
-          "matchesPlayed": {
-            "type": "integer",
-            "description": "Total number of matches played",
-            "format": "int32"
-          },
-          "winRate": {
-            "type": "number",
-            "description": "Match win rate",
-            "format": "double"
-          },
-          "rankProgress": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/RankProgressDTO"
-              }
-            ],
-            "description": "Rating tier progress information"
-          },
-          "isProvisional": {
-            "type": "boolean",
-            "description": "Denotes the current rating as being provisional"
-          }
-        },
-        "additionalProperties": false,
         "description": "Describes tournament rating based information for a player in a ruleset with additional statistics"
       },
       "PlayerSearchResultDTO": {
@@ -8859,65 +8756,64 @@
         "description": "Represents a tournament with minimal data"
       },
       "TournamentCreatedResultDTO": {
-        "required": [
-          "abbreviation",
-          "matches",
-          "name"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/CreatedResultBaseDTO"
+          },
+          {
+            "required": [
+              "abbreviation",
+              "name"
+            ],
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the tournament"
+              },
+              "abbreviation": {
+                "type": "string",
+                "description": "Acronym / shortened name of the tournament\r\n<example>For osu! World Cup 2023, this value would be \"OWC23\"</example>"
+              },
+              "matches": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MatchCreatedResultDTO"
+                },
+                "description": "List of created matches"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the tournament"
-          },
-          "abbreviation": {
-            "type": "string",
-            "description": "Acronym / shortened name of the tournament\r\n<example>For osu! World Cup 2023, this value would be \"OWC23\"</example>"
-          },
-          "matches": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MatchCreatedResultDTO"
-            },
-            "description": "List of created matches"
-          }
-        },
-        "additionalProperties": false,
         "description": "Represents a created tournament"
       },
       "TournamentDTO": {
-        "required": [
-          "adminNotes",
-          "matches"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/TournamentCompactDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "matches": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MatchDTO"
+                },
+                "description": "All associated match data (Will be empty for bulk requests such as List)"
+              },
+              "adminNotes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AdminNoteDTO"
+                },
+                "description": "All admin notes associated with the tournament"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "matches": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MatchDTO"
-            },
-            "description": "All associated match data (Will be empty for bulk requests such as List)"
-          },
-          "adminNotes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AdminNoteDTO"
-            },
-            "description": "All admin notes associated with the tournament"
-          }
-        },
-        "additionalProperties": false,
         "description": "Represents a tournament including optional data"
       },
       "TournamentProcessingStatus": {
@@ -9005,10 +8901,10 @@
           "The Database.Entities.Tournament is not rejected",
           "The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified",
           "The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or\r\nDatabase.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total",
-          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
-          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
-          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
-          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". <br />\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
+          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
+          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
+          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
+          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
         ]
       },
       "TournamentSearchResultDTO": {
@@ -9067,7 +8963,8 @@
           "abbreviation": {
             "minLength": 1,
             "type": "string",
-            "description": "Acronym / shortened name of the tournament"
+            "description": "Acronym / shortened name of the tournament",
+            "example": "For osu! World Cup 2023, this value would be \"OWC23\""
           },
           "forumUrl": {
             "minLength": 1,
@@ -9156,34 +9053,32 @@
         "description": "Represents user information"
       },
       "UserDTO": {
-        "required": [
-          "scopes",
-          "settings"
-        ],
-        "type": "object",
         "allOf": [
           {
             "$ref": "#/components/schemas/UserCompactDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "scopes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of permissions granted to the user"
+              },
+              "settings": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UserSettingsDTO"
+                  }
+                ],
+                "description": "Settings of the user"
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "properties": {
-          "scopes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of permissions granted to the user"
-          },
-          "settings": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/UserSettingsDTO"
-              }
-            ],
-            "description": "Settings of the user"
-          }
-        },
-        "additionalProperties": false,
         "description": "Represents user information including optional data"
       },
       "UserSettingsDTO": {
