@@ -243,10 +243,11 @@
         "tags": [
           "Diagnostics"
         ],
+        "summary": "Allows clients to determine if the server is running",
         "operationId": "Diagnostics_ping",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The server is running"
           }
         },
         "x-requiresAuthorization": false
@@ -781,6 +782,88 @@
       }
     },
     "/api/v1/games/{id}": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get a game",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "operationId": "Games_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "verified",
+            "in": "query",
+            "description": "Whether the game's scores must be verified",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "A game matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns a game",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      },
       "patch": {
         "tags": [
           "Games"
@@ -1350,6 +1433,78 @@
       }
     },
     "/api/v1/gamescores/{id}": {
+      "get": {
+        "tags": [
+          "GameScores"
+        ],
+        "summary": "Get a score",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "GameScores_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "A score matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the score",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameScoreDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameScoreDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameScoreDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      },
       "patch": {
         "tags": [
           "GameScores"
@@ -2395,6 +2550,15 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "verified",
+            "in": "query",
+            "description": "Whether all games and subsequent child navigations must be verified",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           }
         ],
@@ -6509,9 +6673,12 @@
       "GameDTO": {
         "required": [
           "adminNotes",
+          "beatmap",
           "id",
+          "isFreeMod",
           "mods",
           "osuId",
+          "players",
           "processingStatus",
           "rejectionReason",
           "ruleset",
@@ -6528,6 +6695,11 @@
             "type": "integer",
             "description": "Primary key",
             "format": "int32"
+          },
+          "osuId": {
+            "type": "integer",
+            "description": "osu! id",
+            "format": "int64"
           },
           "ruleset": {
             "allOf": [
@@ -6561,10 +6733,9 @@
             ],
             "description": "Represents mod values"
           },
-          "osuId": {
-            "type": "integer",
-            "description": "osu! id",
-            "format": "int64"
+          "isFreeMod": {
+            "type": "boolean",
+            "description": "Denotes if the mod setting is \"free mod\""
           },
           "verificationStatus": {
             "allOf": [
@@ -6615,8 +6786,23 @@
                 "$ref": "#/components/schemas/BeatmapDTO"
               }
             ],
-            "description": "The beatmap played",
+            "description": "The beatmap played"
+          },
+          "winRecord": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameWinRecordDTO"
+              }
+            ],
+            "description": "Win record",
             "nullable": true
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerCompactDTO"
+            },
+            "description": "All participating players (Will only be populated if the game is the highest order of entity requested)"
           },
           "adminNotes": {
             "type": "array",
@@ -6711,21 +6897,44 @@
         "required": [
           "accuracy",
           "adminNotes",
-          "misses",
+          "count100",
+          "count300",
+          "count50",
+          "countGeki",
+          "countKatu",
+          "countMiss",
+          "grade",
+          "id",
+          "maxCombo",
           "mods",
+          "placement",
           "playerId",
           "processingStatus",
           "rejectionReason",
+          "ruleset",
           "score",
           "team",
           "verificationStatus"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Primary key",
+            "format": "int32"
+          },
           "playerId": {
             "type": "integer",
-            "description": "The id of the Player this score belongs to",
+            "description": "Id of the Player that set the score",
             "format": "int32"
+          },
+          "ruleset": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Represents osu! play modes"
           },
           "team": {
             "allOf": [
@@ -6735,9 +6944,57 @@
             ],
             "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set"
           },
+          "grade": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScoreGrade"
+              }
+            ],
+            "description": "Represents the judgement statistics of a score as a letter grade (See <a href=\"https://osu.ppy.sh/wiki/en/Gameplay/Grade\">osu! Grade</a>\r\nSummaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset)"
+          },
           "score": {
             "type": "integer",
-            "description": "The points earned",
+            "description": "Total score",
+            "format": "int32"
+          },
+          "placement": {
+            "type": "integer",
+            "description": "Placement of the score compared to all others in the same game",
+            "format": "int32"
+          },
+          "maxCombo": {
+            "type": "integer",
+            "description": "Max combo",
+            "format": "int32"
+          },
+          "count50": {
+            "type": "integer",
+            "description": "Count of notes hit with a judgement of 50",
+            "format": "int32"
+          },
+          "count100": {
+            "type": "integer",
+            "description": "Count of notes hit with a judgement of 100",
+            "format": "int32"
+          },
+          "count300": {
+            "type": "integer",
+            "description": "Count of notes hit with a judgement of 300",
+            "format": "int32"
+          },
+          "countKatu": {
+            "type": "integer",
+            "description": "Count of notes hit with a judgement of Katu",
+            "format": "int32"
+          },
+          "countGeki": {
+            "type": "integer",
+            "description": "Count of notes hit with a judgement of Geki",
+            "format": "int32"
+          },
+          "countMiss": {
+            "type": "integer",
+            "description": "Count of missed notes",
             "format": "int32"
           },
           "mods": {
@@ -6748,10 +7005,10 @@
             ],
             "description": "Represents mod values"
           },
-          "misses": {
-            "type": "integer",
-            "description": "The number of missed notes",
-            "format": "int32"
+          "accuracy": {
+            "type": "number",
+            "description": "Accuracy",
+            "format": "double"
           },
           "verificationStatus": {
             "allOf": [
@@ -6777,11 +7034,6 @@
             ],
             "description": "The reason why a Database.Entities.GameScore is rejected"
           },
-          "accuracy": {
-            "type": "number",
-            "description": "The accuracy of the score",
-            "format": "double"
-          },
           "adminNotes": {
             "type": "array",
             "items": {
@@ -6790,7 +7042,8 @@
             "description": "All associated admin notes"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Represents a single score set in a game"
       },
       "GameWarningFlags": {
         "enum": [
@@ -6809,6 +7062,69 @@
           "The Database.Entities.Game has no warnings",
           "If the parent Database.Entities.Tournament does not have a submitted pool of\r\nDatabase.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap\r\nis played only once throughout the entire Database.Entities.Tournament"
         ]
+      },
+      "GameWinRecordDTO": {
+        "required": [
+          "gameId",
+          "loserRoster",
+          "loserScore",
+          "loserTeam",
+          "winnerRoster",
+          "winnerScore",
+          "winnerTeam"
+        ],
+        "type": "object",
+        "properties": {
+          "gameId": {
+            "type": "integer",
+            "description": "Id of the game",
+            "format": "int32"
+          },
+          "winnerTeam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              }
+            ],
+            "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set"
+          },
+          "loserTeam": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              }
+            ],
+            "description": "Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set"
+          },
+          "winnerScore": {
+            "type": "integer",
+            "description": "Combined score of the winning team",
+            "format": "int32"
+          },
+          "loserScore": {
+            "type": "integer",
+            "description": "Combined score of the losing team",
+            "format": "int32"
+          },
+          "winnerRoster": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Ids of all players on the winning team"
+          },
+          "loserRoster": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Ids of all players on the losing team"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents aggregate statistics and roster for both teams in a game"
       },
       "HttpValidationProblemDetails": {
         "allOf": [
@@ -6995,6 +7311,7 @@
           "lastProcessingDate",
           "name",
           "osuId",
+          "players",
           "processingStatus",
           "rejectionReason",
           "ruleset",
@@ -7082,6 +7399,13 @@
               }
             ],
             "description": "The API.DTOs.TournamentCompactDTO this match was played in"
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerCompactDTO"
+            },
+            "description": "The participating !:Players"
           },
           "games": {
             "type": "array",
@@ -8496,6 +8820,41 @@
           "osu! Mania 7k variant"
         ]
       },
+      "ScoreGrade": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "type": "integer",
+        "description": "Represents the judgement statistics of a score as a letter grade (See <a href=\"https://osu.ppy.sh/wiki/en/Gameplay/Grade\">osu! Grade</a>\r\nSummaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset)",
+        "format": "int32",
+        "x-enumNames": [
+          "SSH",
+          "SH",
+          "SS",
+          "S",
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "x-enumDescriptions": [
+          "100% accuracy with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight",
+          "Over 90% 300s, less than 1% 50s and no misses with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight",
+          "100% accuracy",
+          "Over 90% 300s, less than 1% 50s and no misses",
+          "Over 80% 300s and no misses OR over 90% 300s",
+          "Over 70% 300s and no misses OR over 80% 300s",
+          "Over 60% 300s",
+          "Anything else"
+        ]
+      },
       "ScoreProcessingStatus": {
         "enum": [
           0,
@@ -8901,10 +9260,10 @@
           "The Database.Entities.Tournament is not rejected",
           "The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified",
           "The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or\r\nDatabase.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total",
-          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
-          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
-          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
-          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
+          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
+          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
+          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
+          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
         ]
       },
       "TournamentSearchResultDTO": {

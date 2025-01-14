@@ -374,8 +374,8 @@ export class DiagnosticsWrapper extends OtrApiWrapperBase {
   }
 
   /**
-   * Undocumented
-   * @return OK
+   * Allows clients to determine if the server is running
+   * @return The server is running
    */
   public ping(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
     let url_ = this.baseUrl + "/api/v1/diagnostics/ping";
@@ -610,6 +610,17 @@ export type GamesDeleteAdminNoteRequestParams = {
    * (required) Admin note id
    */
   noteId: number;
+};
+
+/**
+ * Request parameters available for use when requesting {@link GamesWrapper.prototype.get | api/v1/games/[id]}
+ */
+export type GamesGetRequestParams = {
+  id: number;
+  /**
+   * (optional) Whether the game's scores must be verified
+   */
+  verified?: boolean | undefined;
 };
 
 /**
@@ -1056,6 +1067,101 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   /**
+   * Get a game
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user, client
+   * @param params Request parameters (see {@link GamesGetRequestParams})
+   * @return Returns a game
+   */
+  public get(
+    params: GamesGetRequestParams,
+    cancelToken?: CancelToken,
+  ): Promise<OtrApiResponse<GameDTO>> {
+    const { id, verified } = params;
+
+    let url_ = this.baseUrl + "/api/v1/games/{id}?";
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    if (verified === null)
+      throw new Error("The parameter 'verified' cannot be null.");
+    else if (verified !== undefined)
+      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: AxiosRequestConfig = {
+      method: "GET",
+      url: url_,
+      headers: {
+        Accept: "text/plain",
+      },
+      cancelToken,
+    };
+    (options_ as any).requiresAuth = true;
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGet(_response);
+      });
+  }
+
+  protected processGet(
+    response: AxiosResponse,
+  ): Promise<OtrApiResponse<GameDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        "A game matching the given id does not exist",
+        status,
+        _responseText,
+        _headers,
+        result404,
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<GameDTO>>(
+        new OtrApiResponse<GameDTO>(status, _headers, result200),
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers,
+      );
+    }
+    return Promise.resolve<OtrApiResponse<GameDTO>>(
+      new OtrApiResponse(status, _headers, null as any),
+    );
+  }
+
+  /**
    * Amend game data
    *
    * Requires Authorization:
@@ -1299,6 +1405,13 @@ export type GameScoresDeleteAdminNoteRequestParams = {
    * (required) Admin note id
    */
   noteId: number;
+};
+
+/**
+ * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.get | api/v1/gamescores/[id]}
+ */
+export type GameScoresGetRequestParams = {
+  id: number;
 };
 
 /**
@@ -1728,6 +1841,97 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
+      new OtrApiResponse(status, _headers, null as any),
+    );
+  }
+
+  /**
+   * Get a score
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link GameScoresGetRequestParams})
+   * @return Returns the score
+   */
+  public get(
+    params: GameScoresGetRequestParams,
+    cancelToken?: CancelToken,
+  ): Promise<OtrApiResponse<GameScoreDTO>> {
+    const { id } = params;
+
+    let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_: AxiosRequestConfig = {
+      method: "GET",
+      url: url_,
+      headers: {
+        Accept: "text/plain",
+      },
+      cancelToken,
+    };
+    (options_ as any).requiresAuth = true;
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGet(_response);
+      });
+  }
+
+  protected processGet(
+    response: AxiosResponse,
+  ): Promise<OtrApiResponse<GameScoreDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        "A score matching the given id does not exist",
+        status,
+        _responseText,
+        _headers,
+        result404,
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
+        new OtrApiResponse<GameScoreDTO>(status, _headers, result200),
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers,
+      );
+    }
+    return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
       new OtrApiResponse(status, _headers, null as any),
     );
   }
@@ -2335,6 +2539,10 @@ export type MatchesGetRequestParams = {
    * (required) Match id
    */
   id: number;
+  /**
+   * (optional) Whether all games and subsequent child navigations must be verified
+   */
+  verified?: boolean | undefined;
 };
 
 /**
@@ -2936,12 +3144,16 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     params: MatchesGetRequestParams,
     cancelToken?: CancelToken,
   ): Promise<OtrApiResponse<MatchDTO>> {
-    const { id } = params;
+    const { id, verified } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}";
+    let url_ = this.baseUrl + "/api/v1/matches/{id}?";
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
     url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    if (verified === null)
+      throw new Error("The parameter 'verified' cannot be null.");
+    else if (verified !== undefined)
+      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
     url_ = url_.replace(/[?&]$/, "");
 
     let options_: AxiosRequestConfig = {
@@ -7787,6 +7999,8 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
 export interface GameDTO {
   /** Primary key */
   id: number;
+  /** osu! id */
+  osuId: number;
   /** Represents osu! play modes */
   ruleset: Ruleset;
   /** Represents the scoring method (win condition) for a Database.Entities.Game */
@@ -7795,8 +8009,8 @@ export interface GameDTO {
   teamType: TeamType;
   /** Represents mod values */
   mods: Mods;
-  /** osu! id */
-  osuId: number;
+  /** Denotes if the mod setting is "free mod" */
+  isFreeMod: boolean;
   /** The verification status of a Database.Entities.Tournament,
 Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
   verificationStatus: VerificationStatus;
@@ -7813,7 +8027,11 @@ but should have attention drawn to them during manual review */
   /** Timestamp of the end of the game */
   endTime?: Date | undefined;
   /** The beatmap played */
-  beatmap?: BeatmapDTO | undefined;
+  beatmap: BeatmapDTO;
+  /** Win record */
+  winRecord?: GameWinRecordDTO | undefined;
+  /** All participating players (Will only be populated if the game is the highest order of entity requested) */
+  players: PlayerCompactDTO[];
   /** All associated admin notes */
   adminNotes: AdminNoteDTO[];
   /** All match scores */
@@ -7885,17 +8103,41 @@ export enum GameRejectionReason {
   BeatmapNotPooled = 1024,
 }
 
+/** Represents a single score set in a game */
 export interface GameScoreDTO {
-  /** The id of the Player this score belongs to */
+  /** Primary key */
+  id: number;
+  /** Id of the Player that set the score */
   playerId: number;
+  /** Represents osu! play modes */
+  ruleset: Ruleset;
   /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
   team: Team;
-  /** The points earned */
+  /** Represents the judgement statistics of a score as a letter grade (See <a href="https://osu.ppy.sh/wiki/en/Gameplay/Grade">osu! Grade</a>
+Summaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset) */
+  grade: ScoreGrade;
+  /** Total score */
   score: number;
+  /** Placement of the score compared to all others in the same game */
+  placement: number;
+  /** Max combo */
+  maxCombo: number;
+  /** Count of notes hit with a judgement of 50 */
+  count50: number;
+  /** Count of notes hit with a judgement of 100 */
+  count100: number;
+  /** Count of notes hit with a judgement of 300 */
+  count300: number;
+  /** Count of notes hit with a judgement of Katu */
+  countKatu: number;
+  /** Count of notes hit with a judgement of Geki */
+  countGeki: number;
+  /** Count of missed notes */
+  countMiss: number;
   /** Represents mod values */
   mods: Mods;
-  /** The number of missed notes */
-  misses: number;
+  /** Accuracy */
+  accuracy: number;
   /** The verification status of a Database.Entities.Tournament,
 Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
   verificationStatus: VerificationStatus;
@@ -7903,8 +8145,6 @@ Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore 
   processingStatus: ScoreProcessingStatus;
   /** The reason why a Database.Entities.GameScore is rejected */
   rejectionReason: ScoreRejectionReason;
-  /** The accuracy of the score */
-  accuracy: number;
   /** All associated admin notes */
   adminNotes: AdminNoteDTO[];
 }
@@ -7923,6 +8163,24 @@ export enum GameWarningFlags {
    * is played only once throughout the entire Database.Entities.Tournament
    */
   BeatmapUsedOnce = 1,
+}
+
+/** Represents aggregate statistics and roster for both teams in a game */
+export interface GameWinRecordDTO {
+  /** Id of the game */
+  gameId: number;
+  /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
+  winnerTeam: Team;
+  /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
+  loserTeam: Team;
+  /** Combined score of the winning team */
+  winnerScore: number;
+  /** Combined score of the losing team */
+  loserScore: number;
+  /** Ids of all players on the winning team */
+  winnerRoster: number[];
+  /** Ids of all players on the losing team */
+  loserRoster: number[];
 }
 
 export interface ProblemDetails {
@@ -8010,6 +8268,8 @@ but should have attention drawn to them during manual review */
   lastProcessingDate: Date;
   /** The API.DTOs.TournamentCompactDTO this match was played in */
   tournament: TournamentCompactDTO;
+  /** The participating !:Players */
+  players: PlayerCompactDTO[];
   /** List of games played during the match */
   games: GameDTO[];
   /** All associated admin notes */
@@ -8644,6 +8904,26 @@ export enum Ruleset {
   Mania4k = 4,
   /** osu! Mania 7k variant */
   Mania7k = 5,
+}
+
+/** Represents the judgement statistics of a score as a letter grade (See <a href="https://osu.ppy.sh/wiki/en/Gameplay/Grade">osu! Grade</a> Summaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset) */
+export enum ScoreGrade {
+  /** 100% accuracy with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight */
+  SSH = 0,
+  /** Over 90% 300s, less than 1% 50s and no misses with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight */
+  SH = 1,
+  /** 100% accuracy */
+  SS = 2,
+  /** Over 90% 300s, less than 1% 50s and no misses */
+  S = 3,
+  /** Over 80% 300s and no misses OR over 90% 300s */
+  A = 4,
+  /** Over 70% 300s and no misses OR over 80% 300s */
+  B = 5,
+  /** Over 60% 300s */
+  C = 6,
+  /** Anything else */
+  D = 7,
 }
 
 /** The status of a Database.Entities.GameScore in the processing flow */
