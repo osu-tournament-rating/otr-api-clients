@@ -7883,36 +7883,83 @@ export enum AuthorizationPolicies {
   AccessUserResources = "AccessUserResources",
 }
 
+/** Represents a beatmap's attributes */
+export interface BeatmapAttributesDTO {
+  /** Represents mod values */
+  mods: Mods;
+  /** Star rating with applied mods */
+  sr: number;
+}
+
 /** Represents a beatmap */
 export interface BeatmapDTO {
   /** Id of the beatmap */
   id: number;
-  /** Artist of the song */
-  artist: string;
   /** osu! id of the beatmap */
   osuId: number;
   /** Beats per minute */
   bpm?: number | undefined;
-  /** osu! id of the mapper */
-  mapperId: number;
-  /** osu! username of the mapper */
-  mapperName: string;
   /** Star rating */
   sr: number;
   /** Circle size */
   cs: number;
   /** Approach rate */
   ar: number;
-  /** Hp */
+  /** HP drain rate */
   hp: number;
   /** Overall difficulty */
   od: number;
   /** Song length */
-  length: number;
-  /** Title of the beatmap / song */
-  title: string;
+  totalLength: number;
   /** Name of the difficulty */
   diffName?: string | undefined;
+  /** Beatmapset id */
+  beatmapSetId?: number | undefined;
+  /** Beatmapset */
+  beatmapSet?: BeatmapSetCompactDTO | undefined;
+  /** Beatmap attributes */
+  attributes: BeatmapAttributesDTO[];
+  /** Beatmap creators */
+  creators: PlayerCompactDTO[];
+}
+
+/** Describes the ranked status of a Database.Entities.Beatmap */
+export enum BeatmapRankedStatus {
+  Pending = 0,
+  Ranked = 1,
+  Approved = 2,
+  Qualified = 3,
+  Loved = 4,
+  Graveyard = -2,
+  WorkInProgress = -1,
+}
+
+/** Represents a compact version of a beatmapset */
+export interface BeatmapSetCompactDTO {
+  /** Beatmapset id */
+  id: number;
+  /** osu! beatmapset id */
+  osuId: number;
+  /** Artist */
+  artist: string;
+  /** Title */
+  title: string;
+  /** Describes the ranked status of a Database.Entities.Beatmap */
+  rankedStatus: BeatmapRankedStatus;
+  /** Date of ranking, if applicable */
+  rankedDate?: Date | undefined;
+  /** Date of submission */
+  submittedDate?: Date | undefined;
+  /** Id of the Player who created the set */
+  creatorId: number;
+  /** The set creator */
+  creator?: PlayerCompactDTO | undefined;
+}
+
+/** A beatmapset with beatmaps included */
+export interface BeatmapSetDTO extends BeatmapSetCompactDTO {
+  /** Beatmaps which are part of this set */
+  beatmaps?: BeatmapDTO[];
 }
 
 /** Represents a newly created resource */

@@ -6405,20 +6405,42 @@
           "Policy that allows access from the user that owns the resource as well as any admin users"
         ]
       },
+      "BeatmapAttributesDTO": {
+        "required": [
+          "mods",
+          "sr"
+        ],
+        "type": "object",
+        "properties": {
+          "mods": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Mods"
+              }
+            ],
+            "description": "Represents mod values"
+          },
+          "sr": {
+            "type": "number",
+            "description": "Star rating with applied mods",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a beatmap's attributes"
+      },
       "BeatmapDTO": {
         "required": [
           "ar",
-          "artist",
+          "attributes",
+          "creators",
           "cs",
           "hp",
           "id",
-          "length",
-          "mapperId",
-          "mapperName",
           "od",
           "osuId",
           "sr",
-          "title"
+          "totalLength"
         ],
         "type": "object",
         "properties": {
@@ -6426,10 +6448,6 @@
             "type": "integer",
             "description": "Id of the beatmap",
             "format": "int32"
-          },
-          "artist": {
-            "type": "string",
-            "description": "Artist of the song"
           },
           "osuId": {
             "type": "integer",
@@ -6441,15 +6459,6 @@
             "description": "Beats per minute",
             "format": "double",
             "nullable": true
-          },
-          "mapperId": {
-            "type": "integer",
-            "description": "osu! id of the mapper",
-            "format": "int64"
-          },
-          "mapperName": {
-            "type": "string",
-            "description": "osu! username of the mapper"
           },
           "sr": {
             "type": "number",
@@ -6468,7 +6477,7 @@
           },
           "hp": {
             "type": "number",
-            "description": "Hp",
+            "description": "HP drain rate",
             "format": "double"
           },
           "od": {
@@ -6476,23 +6485,170 @@
             "description": "Overall difficulty",
             "format": "double"
           },
-          "length": {
-            "type": "number",
+          "totalLength": {
+            "type": "integer",
             "description": "Song length",
-            "format": "double"
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the beatmap / song"
+            "format": "int64"
           },
           "diffName": {
             "type": "string",
             "description": "Name of the difficulty",
             "nullable": true
+          },
+          "beatmapSetId": {
+            "type": "integer",
+            "description": "Beatmapset id",
+            "format": "int32",
+            "nullable": true
+          },
+          "beatmapSet": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BeatmapSetCompactDTO"
+              }
+            ],
+            "description": "Beatmapset",
+            "nullable": true
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BeatmapAttributesDTO"
+            },
+            "description": "Beatmap attributes"
+          },
+          "creators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerCompactDTO"
+            },
+            "description": "Beatmap creators"
           }
         },
         "additionalProperties": false,
         "description": "Represents a beatmap"
+      },
+      "BeatmapRankedStatus": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          -2,
+          -1
+        ],
+        "type": "integer",
+        "description": "Describes the ranked status of a Database.Entities.Beatmap",
+        "format": "int32",
+        "x-enumNames": [
+          "Pending",
+          "Ranked",
+          "Approved",
+          "Qualified",
+          "Loved",
+          "Graveyard",
+          "WorkInProgress"
+        ],
+        "x-enumDescriptions": [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      },
+      "BeatmapSetCompactDTO": {
+        "required": [
+          "artist",
+          "creatorId",
+          "id",
+          "osuId",
+          "rankedStatus",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Beatmapset id",
+            "format": "int32"
+          },
+          "osuId": {
+            "type": "integer",
+            "description": "osu! beatmapset id",
+            "format": "int64"
+          },
+          "artist": {
+            "maxLength": 512,
+            "type": "string",
+            "description": "Artist"
+          },
+          "title": {
+            "maxLength": 512,
+            "type": "string",
+            "description": "Title"
+          },
+          "rankedStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BeatmapRankedStatus"
+              }
+            ],
+            "description": "Describes the ranked status of a Database.Entities.Beatmap"
+          },
+          "rankedDate": {
+            "type": "string",
+            "description": "Date of ranking, if applicable",
+            "format": "date-time",
+            "nullable": true
+          },
+          "submittedDate": {
+            "type": "string",
+            "description": "Date of submission",
+            "format": "date-time",
+            "nullable": true
+          },
+          "creatorId": {
+            "type": "integer",
+            "description": "Id of the Player who created the set",
+            "format": "int32"
+          },
+          "creator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerCompactDTO"
+              }
+            ],
+            "description": "The set creator",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a compact version of a beatmapset"
+      },
+      "BeatmapSetDTO": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BeatmapSetCompactDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "beatmaps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BeatmapDTO"
+                },
+                "description": "Beatmaps which are part of this set"
+              }
+            },
+            "additionalProperties": false
+          }
+        ],
+        "description": "A beatmapset with beatmaps included"
       },
       "CreatedResultBaseDTO": {
         "required": [
