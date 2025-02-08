@@ -1,4 +1,5 @@
-node_modules
-*.js
-*.d.ts
+Thumbs.db
 DS_STORE
+desktop.ini
+.vscode
+.idea
