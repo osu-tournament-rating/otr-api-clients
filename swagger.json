@@ -1799,7 +1799,7 @@
             "description": "Minimum number of matches played",
             "schema": {
               "maximum": 2147483647,
-              "minimum": 0,
+              "minimum": 1,
               "type": "integer",
               "format": "int32"
             }
@@ -1810,7 +1810,7 @@
             "description": "Maximum number of matches played",
             "schema": {
               "maximum": 2147483647,
-              "minimum": 0,
+              "minimum": 1,
               "type": "integer",
               "format": "int32"
             }
@@ -6495,16 +6495,16 @@
             "description": "Name of the difficulty",
             "nullable": true
           },
-          "beatmapSetId": {
+          "beatmapsetId": {
             "type": "integer",
             "description": "Beatmapset id",
             "format": "int32",
             "nullable": true
           },
-          "beatmapSet": {
+          "beatmapset": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/BeatmapSetCompactDTO"
+                "$ref": "#/components/schemas/BeatmapsetCompactDTO"
               }
             ],
             "description": "Beatmapset",
@@ -6560,7 +6560,7 @@
           ""
         ]
       },
-      "BeatmapSetCompactDTO": {
+      "BeatmapsetCompactDTO": {
         "required": [
           "artist",
           "creatorId",
@@ -6629,10 +6629,10 @@
         "additionalProperties": false,
         "description": "Represents a compact version of a beatmapset"
       },
-      "BeatmapSetDTO": {
+      "BeatmapsetDTO": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BeatmapSetCompactDTO"
+            "$ref": "#/components/schemas/BeatmapsetCompactDTO"
           },
           {
             "type": "object",
@@ -7109,46 +7109,64 @@
             "description": "Represents the judgement statistics of a score as a letter grade (See <a href=\"https://osu.ppy.sh/wiki/en/Gameplay/Grade\">osu! Grade</a>\r\nSummaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset)"
           },
           "score": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Total score",
             "format": "int32"
           },
           "placement": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Placement of the score compared to all others in the same game",
             "format": "int32"
           },
           "maxCombo": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Max combo",
             "format": "int32"
           },
           "count50": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of notes hit with a judgement of 50",
             "format": "int32"
           },
           "count100": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of notes hit with a judgement of 100",
             "format": "int32"
           },
           "count300": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of notes hit with a judgement of 300",
             "format": "int32"
           },
           "countKatu": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of notes hit with a judgement of Katu",
             "format": "int32"
           },
           "countGeki": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of notes hit with a judgement of Geki",
             "format": "int32"
           },
           "countMiss": {
+            "maximum": 2147483647,
+            "minimum": 0,
             "type": "integer",
             "description": "Count of missed notes",
             "format": "int32"
@@ -7488,6 +7506,7 @@
             "format": "int64"
           },
           "name": {
+            "minLength": 1,
             "type": "string",
             "description": "Title of the lobby"
           },
@@ -8058,9 +8077,9 @@
       "PlayerCompactDTO": {
         "required": [
           "country",
+          "defaultRuleset",
           "id",
           "osuId",
-          "ruleset",
           "username"
         ],
         "type": "object",
@@ -8083,7 +8102,7 @@
             "type": "string",
             "description": "osu! country code"
           },
-          "ruleset": {
+          "defaultRuleset": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/Ruleset"
@@ -9186,17 +9205,22 @@
             "format": "date-time"
           },
           "name": {
+            "minLength": 1,
             "type": "string",
             "description": "Full name"
           },
           "abbreviation": {
+            "minLength": 1,
             "type": "string"
           },
           "forumUrl": {
+            "minLength": 1,
             "type": "string",
             "description": "The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used)"
           },
           "rankRangeLowerBound": {
+            "maximum": 2147483647,
+            "minimum": 1,
             "type": "integer",
             "description": "Lowest rank a player can be to participate",
             "format": "int32"
@@ -9210,6 +9234,8 @@
             "description": "Represents osu! play modes"
           },
           "lobbySize": {
+            "maximum": 8,
+            "minimum": 1,
             "type": "integer",
             "description": "Expected in-match team size",
             "format": "int32"
@@ -9416,10 +9442,10 @@
           "The Database.Entities.Tournament is not rejected",
           "The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified",
           "The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a\r\nDatabase.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or\r\nDatabase.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total",
-          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
-          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
-          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
-          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \r\n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
+          "The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
+          "The Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
+          "The Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
+          "The Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
         ]
       },
       "TournamentSearchResultDTO": {
