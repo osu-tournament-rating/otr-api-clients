@@ -2151,6 +2151,10 @@ export type LeaderboardsGetRequestParams = {
    */
   chartType?: LeaderboardChartType | undefined;
   /**
+   * (optional) An optional country code to filter by (ChartType must be set to Country for this to apply)
+   */
+  country?: string | undefined;
+  /**
    * (optional) Rank floor (The "better" inclusive rank bound.
    * If given, only players with a rank greater than or equal to this value will be included)
    */
@@ -2259,6 +2263,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       pageSize,
       ruleset,
       chartType,
+      country,
       minRank,
       maxRank,
       minRating,
@@ -2294,6 +2299,10 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       throw new Error("The parameter 'chartType' cannot be null.");
     else if (chartType !== undefined)
       url_ += "chartType=" + encodeURIComponent("" + chartType) + "&";
+    if (country === null)
+      throw new Error("The parameter 'country' cannot be null.");
+    else if (country !== undefined)
+      url_ += "country=" + encodeURIComponent("" + country) + "&";
     if (minRank === null)
       throw new Error("The parameter 'minRank' cannot be null.");
     else if (minRank !== undefined)
@@ -3543,9 +3552,9 @@ export class MeWrapper extends OtrApiWrapperBase {
   /**
    * Get player stats for the currently logged in user
    *
-   * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
+   * If no ruleset is provided, the player's default is used. Common.Enums.Enums.Ruleset.Osu is used as a fallback.
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-   * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+   * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
    *
    * Requires Authorization:
@@ -3557,7 +3566,7 @@ export class MeWrapper extends OtrApiWrapperBase {
   public getStats(
     params: MeGetStatsRequestParams,
     cancelToken?: CancelToken,
-  ): Promise<OtrApiResponse<PlayerStatsDTO>> {
+  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const { ruleset, dateMin, dateMax } = params;
 
     let url_ = this.baseUrl + "/api/v1/me/stats?";
@@ -3607,7 +3616,7 @@ export class MeWrapper extends OtrApiWrapperBase {
 
   protected processGetStats(
     response: AxiosResponse,
-  ): Promise<OtrApiResponse<PlayerStatsDTO>> {
+  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === "object") {
@@ -3630,8 +3639,12 @@ export class MeWrapper extends OtrApiWrapperBase {
       let result200: any = null;
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(
-        new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200),
+      return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
+        new OtrApiResponse<PlayerDashboardStatsDTO>(
+          status,
+          _headers,
+          result200,
+        ),
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -3642,7 +3655,7 @@ export class MeWrapper extends OtrApiWrapperBase {
         _headers,
       );
     }
-    return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(
+    return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
       new OtrApiResponse(status, _headers, null as any),
     );
   }
@@ -4830,9 +4843,9 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * Get a player's stats
    *
    * Gets player by versatile search.
-   * If no ruleset is provided, the player's default is used. Database.Enums.Ruleset.Osu is used as a fallback.
+   * If no ruleset is provided, the player's default is used. Common.Enums.Enums.Ruleset.Osu is used as a fallback.
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-   * API.DTOs.PlayerStatsDTO.PlayerInfo will always be populated as long as a player is found.
+   * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
    *
    * Requires Authorization:
@@ -4844,7 +4857,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   public getStats(
     params: PlayersGetStatsRequestParams,
     cancelToken?: CancelToken,
-  ): Promise<OtrApiResponse<PlayerStatsDTO>> {
+  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const { key, ruleset, dateMin, dateMax } = params;
 
     let url_ = this.baseUrl + "/api/v1/players/{key}/stats?";
@@ -4897,7 +4910,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
 
   protected processGetStats(
     response: AxiosResponse,
-  ): Promise<OtrApiResponse<PlayerStatsDTO>> {
+  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === "object") {
@@ -4924,8 +4937,12 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let result200: any = null;
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(
-        new OtrApiResponse<PlayerStatsDTO>(status, _headers, result200),
+      return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
+        new OtrApiResponse<PlayerDashboardStatsDTO>(
+          status,
+          _headers,
+          result200,
+        ),
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -4936,7 +4953,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         _headers,
       );
     }
-    return Promise.resolve<OtrApiResponse<PlayerStatsDTO>>(
+    return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
       new OtrApiResponse(status, _headers, null as any),
     );
   }
@@ -6526,7 +6543,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   public update(
     params: TournamentsUpdateRequestParams,
     cancelToken?: CancelToken,
-  ): Promise<OtrApiResponse<TournamentDTO>> {
+  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
     const { id, body } = params;
 
     let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
@@ -6565,7 +6582,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   protected processUpdate(
     response: AxiosResponse,
-  ): Promise<OtrApiResponse<TournamentDTO>> {
+  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === "object") {
@@ -6604,8 +6621,8 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let result200: any = null;
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200),
+      return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
+        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200),
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -6616,7 +6633,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         _headers,
       );
     }
-    return Promise.resolve<OtrApiResponse<TournamentDTO>>(
+    return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
       new OtrApiResponse(status, _headers, null as any),
     );
   }
@@ -7853,10 +7870,6 @@ export interface AggregatePlayerMatchStatsDTO {
   readonly gameWinRate: number;
   /** A value between 0 and 1 representing the player's match win rate during the period */
   readonly matchWinRate: number;
-  /** The average rating of the player's teammates during the period. This average does not include the player's own rating */
-  averageTeammateRating?: number | undefined;
-  /** The average rating of the player's opponents during the period */
-  averageOpponentRating?: number | undefined;
   /** The most amount of matches won in a row during the period */
   bestWinStreak: number;
   /** Across all matches the player has played in, the average score across the entire lobby. This average includes
@@ -7885,7 +7898,7 @@ export enum AuthorizationPolicies {
 
 /** Represents a beatmap's attributes */
 export interface BeatmapAttributesDTO {
-  /** Represents mod values */
+  /** Mods applied */
   mods: Mods;
   /** Star rating with applied mods */
   sr: number;
@@ -7914,16 +7927,15 @@ export interface BeatmapDTO {
   /** Name of the difficulty */
   diffName?: string | undefined;
   /** Beatmapset id */
-  beatmapSetId?: number | undefined;
+  beatmapsetId?: number | undefined;
   /** Beatmapset */
-  beatmapSet?: BeatmapSetCompactDTO | undefined;
+  beatmapset?: BeatmapsetCompactDTO | undefined;
   /** Beatmap attributes */
   attributes: BeatmapAttributesDTO[];
   /** Beatmap creators */
   creators: PlayerCompactDTO[];
 }
 
-/** Describes the ranked status of a Database.Entities.Beatmap */
 export enum BeatmapRankedStatus {
   Pending = 0,
   Ranked = 1,
@@ -7935,7 +7947,7 @@ export enum BeatmapRankedStatus {
 }
 
 /** Represents a compact version of a beatmapset */
-export interface BeatmapSetCompactDTO {
+export interface BeatmapsetCompactDTO {
   /** Beatmapset id */
   id: number;
   /** osu! beatmapset id */
@@ -7944,7 +7956,7 @@ export interface BeatmapSetCompactDTO {
   artist: string;
   /** Title */
   title: string;
-  /** Describes the ranked status of a Database.Entities.Beatmap */
+  /** Ranked status */
   rankedStatus: BeatmapRankedStatus;
   /** Date of ranking, if applicable */
   rankedDate?: Date | undefined;
@@ -7957,7 +7969,7 @@ export interface BeatmapSetCompactDTO {
 }
 
 /** A beatmapset with beatmaps included */
-export interface BeatmapSetDTO extends BeatmapSetCompactDTO {
+export interface BeatmapsetDTO extends BeatmapsetCompactDTO {
   /** Beatmaps which are part of this set */
   beatmaps?: BeatmapDTO[];
 }
@@ -7970,39 +7982,20 @@ export interface CreatedResultBaseDTO {
   location: string;
 }
 
-/**
- * Explains why the player failed filtering
- *
- * Bitwise flag
- */
 export enum FilteringFailReason {
-  /** The player passed filtering, thus there is no failure reason */
   None = 0,
-  /** The player does not have a rating / profile in the o!TR database */
   NoData = 1,
-  /** The player's rating is below the minimum threshold */
   MinRating = 2,
-  /** The player's rating is above the maximum threshold */
   MaxRating = 4,
-  /**
-   * The player is provisional and the filtering criteria specifies
-   * exclusion of provisional players
-   */
   IsProvisional = 8,
-  /**
-   * The player has not played in the minimum specified
-   * amount of tournaments
-   */
   NotEnoughTournaments = 16,
-  /** The player's all-time peak rating is above the maximum allowed */
   PeakRatingTooHigh = 32,
-  /** The player has not played in the minimum specified amount of matches */
   NotEnoughMatches = 64,
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
 export interface FilteringRequestDTO {
-  /** Represents osu! play modes */
+  /** The ruleset by which data will be referenced, required */
   ruleset: Ruleset;
   /** Players with a current rating below this value will be filtered */
   minRating?: number | undefined;
@@ -8023,11 +8016,8 @@ this many matches */
   osuPlayerIds: number[];
 }
 
-/** Indicates whether a player passed or failed filtering */
 export enum FilteringResult {
-  /** Indicates the player passed filtering */
   Pass = 0,
-  /** Indicates the player failed filtering */
   Fail = 1,
 }
 
@@ -8048,26 +8038,23 @@ export interface GameDTO {
   id: number;
   /** osu! id */
   osuId: number;
-  /** Represents osu! play modes */
+  /** The ruleset */
   ruleset: Ruleset;
-  /** Represents the scoring method (win condition) for a Database.Entities.Game */
+  /** The scoring type used */
   scoringType: ScoringType;
-  /** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
+  /** The team type used */
   teamType: TeamType;
-  /** Represents mod values */
+  /** The mods enabled */
   mods: Mods;
   /** Denotes if the mod setting is "free mod" */
   isFreeMod: boolean;
-  /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+  /** The verification status */
   verificationStatus: VerificationStatus;
-  /** The status of a Database.Entities.Game in the processing flow */
+  /** The processing status */
   processingStatus: GameProcessingStatus;
-  /** Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
-but should have attention drawn to them during manual review */
+  /** Warning flags */
   warningFlags: GameWarningFlags;
-  /** The reason why a Database.Entities.Game is rejected */
+  /** The rejection reason */
   rejectionReason: GameRejectionReason;
   /** Timestamp of the beginning of the game */
   startTime: Date;
@@ -8076,7 +8063,7 @@ but should have attention drawn to them during manual review */
   /** The beatmap played */
   beatmap: BeatmapDTO;
   /** Win record */
-  winRecord?: GameWinRecordDTO | undefined;
+  rosters: GameRosterDTO[];
   /** All participating players (Will only be populated if the game is the highest order of entity requested) */
   players: PlayerCompactDTO[];
   /** All associated admin notes */
@@ -8085,69 +8072,38 @@ but should have attention drawn to them during manual review */
   scores: GameScoreDTO[];
 }
 
-/** The status of a Database.Entities.Game in the processing flow */
 export enum GameProcessingStatus {
-  /** The Database.Entities.Game needs automation checks */
   NeedsAutomationChecks = 0,
-  /**
-   * The Database.Entities.Game is awaiting verification from a
-   * Database.Entities.User with verifier permission
-   */
   NeedsVerification = 1,
-  /**
-   * The Database.Entities.Game needs stat calculation
-   *
-   * Generates the Database.Entities.GameWinRecord
-   */
   NeedsStatCalculation = 2,
-  /** The Database.Entities.Game has completed all processing steps */
   Done = 3,
 }
 
-/**
- * The reason why a Database.Entities.Game is rejected
- *
- * Bitwise flag
- */
 export enum GameRejectionReason {
-  /** The Database.Entities.Game is not rejected */
   None = 0,
-  /** The Database.Entities.Game's osu! API data did not contain any Database.Entities.GameScores */
   NoScores = 1,
-  /** The Database.Entities.Game has invalid mods applied */
   InvalidMods = 2,
-  /** The Database.Entities.Game's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament */
   RulesetMismatch = 4,
-  /** The Database.Entities.Game's Database.Enums.ScoringType is not Database.Enums.ScoringType.ScoreV2 */
   InvalidScoringType = 8,
-  /** The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs */
   InvalidTeamType = 16,
-  /**
-   * The Database.Entities.Game's Database.Enums.TeamType is not Database.Enums.TeamType.TeamVs
-   * and attempting Database.Enums.TeamType.TeamVs conversion was not successful
-   */
   FailedTeamVsConversion = 32,
-  /**
-   * The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
-   * of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is < 2
-   */
   NoValidScores = 64,
-  /**
-   * The Database.Entities.Game's number of Database.Entities.Game.Scores with a Database.Enums.Verification.VerificationStatus
-   * of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
-   * not equal to the Database.Entities.Tournament.LobbySize of the parent Database.Entities.Tournament
-   */
   LobbySizeMismatch = 128,
-  /** The Database.Entities.Game's Database.Entities.Game.EndTime could not be determined */
   NoEndTime = 256,
-  /** The Database.Entities.Match the Database.Entities.Game was played in was rejected */
   RejectedMatch = 512,
-  /**
-   * The Database.Entities.Tournament has a known collection of PooledBeatmaps
-   * and the Database.Entities.Beatmap played in the Database.Entities.Game is not present
-   * in said collection
-   */
   BeatmapNotPooled = 1024,
+}
+
+/** Represents aggregate statistics and roster for both teams in a game */
+export interface GameRosterDTO {
+  /** Id of the game */
+  gameId: number;
+  /** Winning team */
+  team: Team;
+  /** Combined score of the losing team */
+  score: number;
+  /** Ids of all players on the losing team */
+  roster: number[];
 }
 
 /** Represents a single score set in a game */
@@ -8156,12 +8112,11 @@ export interface GameScoreDTO {
   id: number;
   /** Id of the Player that set the score */
   playerId: number;
-  /** Represents osu! play modes */
+  /** Ruleset the score was set in */
   ruleset: Ruleset;
-  /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
+  /** Team the Player was on */
   team: Team;
-  /** Represents the judgement statistics of a score as a letter grade (See <a href="https://osu.ppy.sh/wiki/en/Gameplay/Grade">osu! Grade</a>
-Summaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset) */
+  /** Letter grade */
   grade: ScoreGrade;
   /** Total score */
   score: number;
@@ -8181,53 +8136,23 @@ Summaries are provided as per the Database.Enums.Ruleset.Osu requirements, but a
   countGeki: number;
   /** Count of missed notes */
   countMiss: number;
-  /** Represents mod values */
+  /** Applied mods */
   mods: Mods;
   /** Accuracy */
   accuracy: number;
-  /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+  /** The current state of verification */
   verificationStatus: VerificationStatus;
-  /** The status of a Database.Entities.GameScore in the processing flow */
+  /** The current state of processing */
   processingStatus: ScoreProcessingStatus;
-  /** The reason why a Database.Entities.GameScore is rejected */
+  /** The rejection reason */
   rejectionReason: ScoreRejectionReason;
   /** All associated admin notes */
   adminNotes: AdminNoteDTO[];
 }
 
-/**
- * Warnings for irregularities in Database.Entities.Game data that don't warrant an automatic Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected but should have attention drawn to them during manual review
- *
- * Bitwise flag
- */
 export enum GameWarningFlags {
-  /** The Database.Entities.Game has no warnings */
   None = 0,
-  /**
-   * If the parent Database.Entities.Tournament does not have a submitted pool of
-   * Database.Entities.Beatmaps, and the Database.Entities.Game's Database.Entities.Game.Beatmap
-   * is played only once throughout the entire Database.Entities.Tournament
-   */
   BeatmapUsedOnce = 1,
-}
-
-/** Represents aggregate statistics and roster for both teams in a game */
-export interface GameWinRecordDTO {
-  /** Id of the game */
-  gameId: number;
-  /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
-  winnerTeam: Team;
-  /** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
-  loserTeam: Team;
-  /** Combined score of the winning team */
-  winnerScore: number;
-  /** Combined score of the losing team */
-  loserScore: number;
-  /** Ids of all players on the winning team */
-  winnerRoster: number[];
-  /** Ids of all players on the losing team */
-  loserRoster: number[];
 }
 
 export interface ProblemDetails {
@@ -8252,11 +8177,10 @@ export enum LeaderboardChartType {
 }
 
 export interface LeaderboardDTO {
-  /** Represents osu! play modes */
   ruleset: Ruleset;
   totalPlayerCount: number;
   filterDefaults: LeaderboardFilterDefaultsDTO;
-  leaderboard: LeaderboardPlayerInfoDTO[];
+  leaderboard: PlayerRatingStatsDTO[];
 }
 
 export interface LeaderboardFilterDefaultsDTO {
@@ -8265,19 +8189,29 @@ export interface LeaderboardFilterDefaultsDTO {
   maxMatches: number;
 }
 
-/** Individual line items in the leaderboard */
-export interface LeaderboardPlayerInfoDTO {
-  playerId: number;
+export interface MatchCompactDTO {
+  /** Id */
+  id: number;
+  /** osu! id */
   osuId: number;
-  globalRank: number;
+  /** Title of the lobby */
   name: string;
-  tier: string;
-  rating: number;
-  matchesPlayed: number;
-  winRate: number;
-  /** Represents osu! play modes */
+  /** Ruleset */
   ruleset: Ruleset;
-  country?: string | undefined;
+  /** Start time */
+  startTime?: Date | undefined;
+  /** End time */
+  endTime?: Date | undefined;
+  /** Verification status */
+  verificationStatus: VerificationStatus;
+  /** Rejection reason */
+  rejectionReason: MatchRejectionReason;
+  /** Warning flags */
+  warningFlags: MatchWarningFlags;
+  /** Processing status */
+  processingStatus: MatchProcessingStatus;
+  /** Timestamp of the last time the match was processed */
+  lastProcessingDate: Date;
 }
 
 /** Represents a created match */
@@ -8287,119 +8221,43 @@ export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
 }
 
 /** Represents a played match */
-export interface MatchDTO {
-  /** Id */
-  id: number;
-  /** osu! id */
-  osuId: number;
-  /** Title of the lobby */
-  name: string;
-  /** Represents osu! play modes */
-  ruleset: Ruleset;
-  /** Start time */
-  startTime?: Date | undefined;
-  /** End time */
-  endTime?: Date | undefined;
-  /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
-  verificationStatus: VerificationStatus;
-  /** The reason why a Database.Entities.Match is rejected */
-  rejectionReason: MatchRejectionReason;
-  /** Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic
-Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected
-but should have attention drawn to them during manual review */
-  warningFlags: MatchWarningFlags;
-  /** The status of a Database.Entities.Match in the processing flow */
-  processingStatus: MatchProcessingStatus;
-  /** Timestamp of the last time the match was processed */
-  lastProcessingDate: Date;
+export interface MatchDTO extends MatchCompactDTO {
   /** The API.DTOs.TournamentCompactDTO this match was played in */
-  tournament: TournamentCompactDTO;
+  tournament?: TournamentCompactDTO;
   /** The participating !:Players */
-  players: PlayerCompactDTO[];
+  players?: PlayerCompactDTO[];
   /** List of games played during the match */
-  games: GameDTO[];
+  games?: GameDTO[];
   /** All associated admin notes */
-  adminNotes: AdminNoteDTO[];
+  adminNotes?: AdminNoteDTO[];
 }
 
-/** The status of a Database.Entities.Match in the processing flow */
 export enum MatchProcessingStatus {
-  /** The Database.Entities.Match needs data requested from the osu! API */
   NeedsData = 0,
-  /** The Database.Entities.Match needs automation checks */
   NeedsAutomationChecks = 1,
-  /**
-   * The Database.Entities.Match is awaiting verification from a
-   * Database.Entities.User with verifier permission
-   */
   NeedsVerification = 2,
-  /**
-   * The Database.Entities.Match needs stat calculation
-   *
-   * Generates the Database.Entities.MatchWinRecord and Database.Entities.PlayerMatchStats
-   */
   NeedsStatCalculation = 3,
-  /**
-   * The Database.Entities.Match is awaiting rating processor data
-   *
-   * Generates all Database.Entities.Processor.RatingAdjustments
-   */
   NeedsRatingProcessorData = 4,
-  /** The Database.Entities.Match has completed all processing steps */
   Done = 5,
 }
 
-/** Denotes which property a query for !:Database.Entities.Matches will be sorted by */
 export enum MatchQuerySortType {
-  /** Sort by primary key */
   Id = 0,
-  /** Sort by osu! id */
   OsuId = 1,
-  /** Sort by start time */
   StartTime = 2,
-  /** Sort by end time */
   EndTime = 3,
-  /** Sort by creation date */
   Created = 4,
 }
 
-/**
- * The reason why a Database.Entities.Match is rejected
- *
- * Bitwise flag
- */
 export enum MatchRejectionReason {
-  /** The Database.Entities.Match is not rejected */
   None = 0,
-  /** The osu! API returned invalid data or no data for the Database.Entities.Match */
   NoData = 1,
-  /** The osu! API returned no Database.Entities.Games for the Database.Entities.Match */
   NoGames = 2,
-  /**
-   * The Database.Entities.Match's Database.Entities.Match.Name does not start with the
-   * parent Database.Entities.Tournament's Database.Entities.Tournament.Abbreviation
-   */
   NamePrefixMismatch = 4,
-  /**
-   * The Database.Entities.Match's !:Entities.Games were eligible for Database.Enums.TeamType.TeamVs
-   * conversion and attempting Database.Enums.TeamType.TeamVs conversion was not successful
-   */
   FailedTeamVsConversion = 8,
-  /**
-   * The Database.Entities.Match has no Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-   * of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified
-   */
   NoValidGames = 16,
-  /**
-   * The Database.Entities.Match's number of Database.Entities.Match.Games with a Database.Enums.Verification.VerificationStatus
-   * of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified is not an odd number
-   * (does not satisfy "best of X")
-   */
   UnexpectedGameCount = 32,
-  /** The Database.Entities.Match's Database.Entities.Match.EndTime could not be determined */
   NoEndTime = 64,
-  /** The Database.Entities.Tournament the Database.Entities.Match was played in was rejected */
   RejectedTournament = 128,
 }
 
@@ -8429,181 +8287,49 @@ export interface MatchSubmissionStatusDTO {
   updated?: Date | undefined;
 }
 
-/**
- * Warnings for irregularities in Database.Entities.Match data that don't warrant an automatic Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.PreRejected but should have attention drawn to them during manual review
- *
- * Bitwise flag
- */
 export enum MatchWarningFlags {
-  /** The Database.Entities.Match has no warnings */
   None = 0,
-  /**
-   * The Database.Entities.Match's Database.Entities.Match.Name does not follow common tournament
-   * lobby title conventions
-   */
   UnexpectedNameFormat = 1,
-  /** The Database.Entities.Match's number of Database.Entities.Match.Games is exactly 3 or 4 */
   LowGameCount = 2,
-  /**
-   * The !:Match has 1 or more !:Games with a Database.Enums.Verification.GameRejectionReason
-   * of Database.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games
-   */
   UnexpectedBeatmapsFound = 4,
 }
 
-/** Represents some information about a player's mod stats. e.g. how many times has the player played/won with some mod? */
-export interface ModStatsDTO {
-  gamesPlayed: number;
-  gamesWon: number;
-  winRate: number;
-  normalizedAverageScore: number;
-}
-
-/**
- * Represents mod values
- *
- * Bitwise flag
- */
 export enum Mods {
-  /** No mods enabled */
   None = 0,
-  /** No fail (NF) */
   NoFail = 1,
-  /** Easy (EZ) */
   Easy = 2,
-  /** Touch Device (TD) */
   TouchDevice = 4,
-  /** Hidden (HD) */
   Hidden = 8,
-  /** Hard Rock (HR) */
   HardRock = 16,
-  /** Sudden Death (SD) */
   SuddenDeath = 32,
-  /** Double Time (DT) */
   DoubleTime = 64,
-  /** Relax (RX) */
   Relax = 128,
-  /** Half Time (HT) */
   HalfTime = 256,
-  /**
-   * Nightcore (NC)
-   *
-   * Only set along with DoubleTime. i.e: NC only gives 576
-   */
   Nightcore = 512,
-  /** Flashlight (FL) */
   Flashlight = 1024,
-  /** Autoplay (AT) */
   Autoplay = 2048,
-  /** Spun Out (SO) */
   SpunOut = 4096,
-  /**
-   * Autopilot (AP)
-   *
-   * Autopilot
-   */
   Relax2 = 8192,
-  /**
-   * Perfect (PF)
-   *
-   * Only set along with Database.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
-   */
   Perfect = 16384,
-  /**
-   * 4 key (4K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   InvalidMods = 22688,
-  /**
-   * 5 key (5K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key4 = 32768,
-  /**
-   * 6 key (6K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key5 = 65536,
-  /**
-   * 7 key (7K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key6 = 131072,
-  /**
-   * 8 key (8K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key7 = 262144,
-  /**
-   * Fade In (FI)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key8 = 524288,
-  /**
-   * Random (RD)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   FadeIn = 1048576,
-  /** Cinema (CM) */
   ScoreIncreaseMods = 1049688,
-  /** Target Practice (TP) */
   Random = 2097152,
-  /**
-   * 9 Key (9K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Cinema = 4194304,
-  /**
-   * Co-op (CO)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Target = 8388608,
-  /**
-   * 1 Key (1K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key9 = 16777216,
-  /**
-   * 3 Key (3K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   KeyCoop = 33554432,
-  /**
-   * 2 Key (2K)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key1 = 67108864,
-  /** Score v2 (SV2) */
   Key3 = 134217728,
-  /**
-   * Mirror (MR)
-   *
-   * Applicable only to Database.Enums.Ruleset.ManiaOther
-   */
   Key2 = 268435456,
-  /**
-   * Denotes mods that are Database.Enums.Ruleset.ManiaOther key modifiers
-   *
-   * See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
-   */
   KeyMod = 521109504,
-  /** Denotes mods that are available to use during Free Mod settings */
   FreeModAllowed = 522171579,
-  /** Denotes mods that directly impose a modifier on score */
   ScoreV2 = 536870912,
-  /** Denotes mods that are ineligible for ratings */
   Mirror = 1073741824,
 }
 
@@ -8656,10 +8382,30 @@ export interface PlayerCompactDTO {
   username: string;
   /** osu! country code */
   country: string;
-  /** Represents osu! play modes */
-  ruleset: Ruleset;
+  /** The player's primary osu! ruleset */
+  defaultRuleset: Ruleset;
   /** Id of the associated user, if available */
   userId?: number | undefined;
+}
+
+/** Represents a collection of statistics for a player in a ruleset */
+export interface PlayerDashboardStatsDTO {
+  /** Player info */
+  playerInfo: PlayerCompactDTO;
+  /** Ruleset the statistics were calculated for */
+  ruleset: Ruleset;
+  /** Base stats for the player */
+  rating?: PlayerRatingStatsDTO | undefined;
+  /** Match stats for the player */
+  matchStats?: AggregatePlayerMatchStatsDTO | undefined;
+  /** Mod stats for the player */
+  modStats?: PlayerModStatsDTO[] | undefined;
+  /** Tournament participation and performance stats for the player */
+  tournamentPerformanceStats?: PlayerTournamentPerformanceDTO | undefined;
+  /** List of frequencies of the player's teammates */
+  frequentTeammates?: PlayerFrequencyDTO[] | undefined;
+  /** List of frequencies of the player's opponents */
+  frequentOpponents?: PlayerFrequencyDTO[] | undefined;
 }
 
 /** Represents one player's filtering result */
@@ -8670,7 +8416,7 @@ export interface PlayerFilteringResultDTO {
   username?: string | undefined;
   /** The osu! id of the player */
   osuId: number;
-  /** Indicates whether a player passed or failed filtering */
+  /** The filtering result */
   filteringResult: FilteringResult;
   /** If the user failed filtering, the fail reason */
   filteringFailReason?: FilteringFailReason | undefined;
@@ -8682,79 +8428,25 @@ export interface PlayerFilteringResultDTO {
 
 /** Represents a player in the context of a teammate or opponent of another player */
 export interface PlayerFrequencyDTO {
-  /** Id of the teammate or opponent */
-  playerId: number;
-  /** osu! id of the teammate or opponent */
-  osuId: number;
-  /** osu! username of the teammate or opponent */
-  username?: string | undefined;
+  /** The player */
+  player: PlayerCompactDTO;
   /** Number of times this teammate or opponent has played with the player */
   frequency: number;
 }
 
 /** Represents counts of participation in games of differing mod combinations */
 export interface PlayerModStatsDTO {
-  /** Number of games played with no mods */
-  playedNM?: ModStatsDTO | undefined;
-  /** Number of games played with easy */
-  playedEZ?: ModStatsDTO | undefined;
-  /** Number of games played with half time */
-  playedHT?: ModStatsDTO | undefined;
-  /** Number of games played with hidden */
-  playedHD?: ModStatsDTO | undefined;
-  /** Number of games played with hard rock */
-  playedHR?: ModStatsDTO | undefined;
-  /** Number of games played with double time */
-  playedDT?: ModStatsDTO | undefined;
-  /** Number of games played with flashlight */
-  playedFL?: ModStatsDTO | undefined;
-  /** Number of games played with both hidden and hard rock */
-  playedHDHR?: ModStatsDTO | undefined;
-  /** Number of games played with both hidden and double time */
-  playedHDDT?: ModStatsDTO | undefined;
-  /** Number of games played with both hidden and easy */
-  playedHDEZ?: ModStatsDTO | undefined;
-}
-
-/** Represents data used to construct a rating delta chart for a player */
-export interface PlayerRatingChartDTO {
-  /** List of data points used to construct the chart */
-  chartData: PlayerRatingChartDataPointDTO[][];
-}
-
-/** Represents a data point used to construct a rating chart for a player */
-export interface PlayerRatingChartDataPointDTO {
-  /** Match name, if applicable */
-  name?: string | undefined;
-  /** Match id, if applicable */
-  matchId?: number | undefined;
-  /** osu! match id, if applicable */
-  matchOsuId?: number | undefined;
-  /** Match cost of the player, if applicable */
-  matchCost?: number | undefined;
-  /** Rating of the player before the adjustment */
-  ratingBefore: number;
-  /** Rating of the player after the adjustment */
-  ratingAfter: number;
-  /** Volatility of the player before this match occurred */
-  volatilityBefore: number;
-  /** Volatility of the player after this adjustment */
-  volatilityAfter: number;
-  /** Difference in rating between now and the previous adjustment */
-  readonly ratingChange: number;
-  /** Difference in volatility between now and the previous adjustment */
-  readonly volatilityChange: number;
-  /** Represents osu! play modes */
-  ruleset: Ruleset;
-  /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
-  ratingAdjustmentType: RatingAdjustmentType;
-  /** Match start time */
-  timestamp?: Date | undefined;
+  /** The combination of mods used */
+  mods: Mods;
+  /** The number of times the player participated with this mod combination */
+  count: number;
+  /** The average score achieved by the player with this mod combination. */
+  averageScore: number;
 }
 
 /** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
 export interface PlayerRatingDTO {
-  /** Represents osu! play modes */
+  /** Ruleset */
   ruleset: Ruleset;
   /** Rating */
   rating: number;
@@ -8766,8 +8458,8 @@ export interface PlayerRatingDTO {
   globalRank: number;
   /** Country rank */
   countryRank: number;
-  /** Player id */
-  playerId: number;
+  /** The player */
+  player: PlayerCompactDTO;
   /** A collection of adjustments that describe the changes resulting in the final rating */
   adjustments: RatingAdjustmentDTO[];
 }
@@ -8780,6 +8472,8 @@ export interface PlayerRatingStatsDTO extends PlayerRatingDTO {
   matchesPlayed?: number;
   /** Match win rate */
   winRate?: number;
+  /** Current tier */
+  readonly currentTier?: string;
   /** Rating tier progress information */
   rankProgress?: RankProgressDTO;
   /** Denotes the current rating as being provisional */
@@ -8804,28 +8498,6 @@ export interface PlayerSearchResultDTO {
   thumbnail: string;
 }
 
-/** Represents a collection of statistics for a player in a ruleset */
-export interface PlayerStatsDTO {
-  /** Player info */
-  playerInfo: PlayerCompactDTO;
-  /** Represents osu! play modes */
-  ruleset: Ruleset;
-  /** Base stats for the player */
-  rating?: PlayerRatingStatsDTO | undefined;
-  /** Match stats for the player */
-  matchStats?: AggregatePlayerMatchStatsDTO | undefined;
-  /** Mod stats for the player */
-  modStats?: PlayerModStatsDTO | undefined;
-  /** Tournament participation and performance stats for the player */
-  tournamentStats?: PlayerTournamentStatsDTO | undefined;
-  /** List of frequencies of the player's teammates */
-  frequentTeammates?: PlayerFrequencyDTO[] | undefined;
-  /** List of frequencies of the player's opponents */
-  frequentOpponents?: PlayerFrequencyDTO[] | undefined;
-  /** Rating chart for the player */
-  ratingChart?: PlayerRatingChartDTO | undefined;
-}
-
 /** Represents counts of participation in tournaments of differing team sizes */
 export interface PlayerTournamentLobbySizeCountDTO {
   /** Number of 1v1 tournaments played */
@@ -8840,30 +8512,43 @@ export interface PlayerTournamentLobbySizeCountDTO {
   countOther?: number | undefined;
 }
 
-/** Represents match cost data across an entire tournament for a player */
-export interface PlayerTournamentMatchCostDTO {
-  /** Id of the player */
-  playerId: number;
-  /** Id of the tournament */
-  tournamentId: number;
-  /** Name of the tournament */
-  tournamentName: string;
-  /** Abbreviated name of the tournament */
-  tournamentAcronym: string;
-  /** Represents osu! play modes */
-  ruleset: Ruleset;
-  /** Average match cost across the tournament for the player */
-  matchCost: number;
-}
-
 /** Represents statistics for a player regarding tournament participation and performance */
-export interface PlayerTournamentStatsDTO {
+export interface PlayerTournamentPerformanceDTO {
   /** Counts of participation in tournaments of differing team sizes for the player */
   lobbySizeCounts: PlayerTournamentLobbySizeCountDTO;
   /** List of best tournament performances for the player */
-  bestPerformances: PlayerTournamentMatchCostDTO[];
+  bestPerformances: PlayerTournamentStatsDTO[];
   /** List of recent tournament performances for the player */
-  recentPerformances: PlayerTournamentMatchCostDTO[];
+  recentPerformances: PlayerTournamentStatsDTO[];
+}
+
+export interface PlayerTournamentStatsDTO {
+  /** Average change in rating */
+  averageRatingDelta: number;
+  /** Average match cost */
+  averageMatchCost: number;
+  /** Average score */
+  averageScore: number;
+  /** Average placement */
+  averagePlacement: number;
+  /** Average accuracy */
+  averageAccuracy: number;
+  /** Total number of !:Matches played */
+  matchesPlayed: number;
+  /** Total number of !:Matches won */
+  matchesWon: number;
+  /** Total number of !:Matches lost */
+  matchesLost: number;
+  /** Total number of !:Games played */
+  gamesPlayed: number;
+  /** Total number of !:Games won */
+  gamesWon: number;
+  /** Total number of !:Games lost */
+  gamesLost: number;
+  /** The player who owns these stats */
+  player: PlayerCompactDTO;
+  /** Tournament */
+  tournament: TournamentCompactDTO;
 }
 
 /** Represents rating tier progress data */
@@ -8886,7 +8571,7 @@ export interface RankProgressDTO {
 
 /** Describes a single change to a PlayerRating */
 export interface RatingAdjustmentDTO {
-  /** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
+  /** The type of event that caused the adjustment */
   adjustmentType: RatingAdjustmentType;
   /** Timestamp of when the adjustment was applied */
   timestamp: Date;
@@ -8903,16 +8588,12 @@ export interface RatingAdjustmentDTO {
   /** Total change in rating volatility */
   volatilityDelta: number;
   /** Id of the match the adjustment was created for if available */
-  matchId?: number | undefined;
+  match?: MatchCompactDTO | undefined;
 }
 
-/** Represents the different types of events that result in the generation of a Database.Entities.Processor.RatingAdjustment */
 export enum RatingAdjustmentType {
-  /** The Database.Entities.Processor.RatingAdjustment is the initial rating */
   Initial = 0,
-  /** The Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay) */
   Decay = 1,
-  /** The Database.Entities.Processor.RatingAdjustment is the result of participation in a Database.Entities.Match */
   Match = 2,
 }
 
@@ -8932,87 +8613,44 @@ export enum Roles {
   Whitelist = "whitelist",
 }
 
-/** Represents osu! play modes */
 export enum Ruleset {
-  /** osu! (standard) */
   Osu = 0,
-  /** osu! Taiko */
   Taiko = 1,
-  /** osu! Catch (aka Fruits) */
   Catch = 2,
-  /**
-   * osu! Mania
-   *
-   * Encompasses all of the osu!mania ruleset and represents a ruleset that has
-   * not yet been identified as either Database.Enums.Ruleset.Mania4k or Database.Enums.Ruleset.Mania7k
-   */
   ManiaOther = 3,
-  /** osu! Mania 4k variant */
   Mania4k = 4,
-  /** osu! Mania 7k variant */
   Mania7k = 5,
 }
 
-/** Represents the judgement statistics of a score as a letter grade (See <a href="https://osu.ppy.sh/wiki/en/Gameplay/Grade">osu! Grade</a> Summaries are provided as per the Database.Enums.Ruleset.Osu requirements, but are calculated by Database.Enums.Ruleset) */
 export enum ScoreGrade {
-  /** 100% accuracy with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight */
   SSH = 0,
-  /** Over 90% 300s, less than 1% 50s and no misses with Database.Enums.Mods.Hidden and/or Database.Enums.Mods.Flashlight */
   SH = 1,
-  /** 100% accuracy */
   SS = 2,
-  /** Over 90% 300s, less than 1% 50s and no misses */
   S = 3,
-  /** Over 80% 300s and no misses OR over 90% 300s */
   A = 4,
-  /** Over 70% 300s and no misses OR over 80% 300s */
   B = 5,
-  /** Over 60% 300s */
   C = 6,
-  /** Anything else */
   D = 7,
 }
 
-/** The status of a Database.Entities.GameScore in the processing flow */
 export enum ScoreProcessingStatus {
-  /** The Database.Entities.GameScore needs automation checks */
   NeedsAutomationChecks = 0,
-  /**
-   * The Database.Entities.GameScore is awaiting verification from a
-   * Database.Entities.User with verifier permission
-   */
   NeedsVerification = 1,
-  /** The Database.Entities.GameScore has completed all processing steps */
   Done = 2,
 }
 
-/**
- * The reason why a Database.Entities.GameScore is rejected
- *
- * Bitwise flag
- */
 export enum ScoreRejectionReason {
-  /** The Database.Entities.GameScore is not rejected */
   None = 0,
-  /** The Database.Entities.GameScore's Database.Entities.GameScore.Score is below the minimum threshold */
   ScoreBelowMinimum = 1,
-  /** The Database.Entities.GameScore was set with any Database.Enums.Mods.InvalidMods */
   InvalidMods = 2,
-  /** The Database.Entities.GameScore's Database.Enums.Ruleset does not match that of the parent Database.Entities.Tournament */
   RulesetMismatch = 4,
-  /** The Database.Entities.Game the Database.Entities.GameScore was set in was rejected */
   RejectedGame = 8,
 }
 
-/** Represents the scoring method (win condition) for a Database.Entities.Game */
 export enum ScoringType {
-  /** Scoring based on Score v1 */
   Score = 0,
-  /** Scoring based on accuracy */
   Accuracy = 1,
-  /** Scoring based on combo */
   Combo = 2,
-  /** Scoring based on Score v2 */
   ScoreV2 = 3,
 }
 
@@ -9026,29 +8664,16 @@ export interface SearchResponseCollectionDTO {
   players: PlayerSearchResultDTO[];
 }
 
-/** Represents the team a Database.Entities.Player was on when a Database.Entities.GameScore was set */
 export enum Team {
-  /** No team */
   NoTeam = 0,
-  /** Team blue */
   Blue = 1,
-  /** Team red */
   Red = 2,
 }
 
-/** Represents the team type used for a Database.Entities.Game (See <a href="https://osu.ppy.sh/wiki/en/Client/Interface/Multiplayer"> osu! wiki - Multiplayer</a>) */
 export enum TeamType {
-  /** Free for all */
   HeadToHead = 0,
-  /**
-   * Free for all (Tag format)
-   *
-   * All players play tag on the same beatmap
-   */
   TagCoop = 1,
-  /** Team red vs team blue */
   TeamVs = 2,
-  /** Team red vs team blue (Tag format) */
   TagTeamVs = 3,
 }
 
@@ -9065,7 +8690,7 @@ export interface TournamentCompactDTO {
   forumUrl: string;
   /** Lowest rank a player can be to participate */
   rankRangeLowerBound: number;
-  /** Represents osu! play modes */
+  /** Ruleset in which all matches are played */
   ruleset: Ruleset;
   /** Expected in-match team size */
   lobbySize: number;
@@ -9073,12 +8698,11 @@ export interface TournamentCompactDTO {
   startTime: Date;
   /** The end date of the last match */
   endTime: Date;
-  /** The verification status of a Database.Entities.Tournament,
-Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
+  /** The state of verification */
   verificationStatus: VerificationStatus;
-  /** The status of a Database.Entities.Tournament in the processing flow */
+  /** The state of processing */
   processingStatus: TournamentProcessingStatus;
-  /** The reason why a Database.Entities.Tournament is rejected */
+  /** The rejection reason */
   rejectionReason: TournamentRejectionReason;
   /** The user that submitted the tournament */
   submittedByUser?: UserCompactDTO | undefined;
@@ -9105,102 +8729,31 @@ export interface TournamentDTO extends TournamentCompactDTO {
   adminNotes?: AdminNoteDTO[];
 }
 
-/** The status of a Database.Entities.Tournament in the processing flow */
 export enum TournamentProcessingStatus {
-  /**
-   * The Database.Entities.Tournament is awaiting approval from a
-   * Database.Entities.User with verifier permission
-   *
-   * Functions as the entry point to the processing flow. No entities owned by a Database.Entities.Tournament
-   * will advance through the processing flow until approved.
-   */
   NeedsApproval = 0,
-  /**
-   * The Database.Entities.Tournament has Database.Entities.Matches with a
-   * Database.Enums.Verification.MatchProcessingStatus of Database.Enums.Verification.MatchProcessingStatus.NeedsData
-   */
   NeedsMatchData = 1,
-  /** The Database.Entities.Tournament needs automation checks */
   NeedsAutomationChecks = 2,
-  /**
-   * The Database.Entities.Tournament is awaiting verification from a
-   * Database.Entities.User with verifier permission
-   */
   NeedsVerification = 3,
-  /** The Database.Entities.Tournament needs stat calculation */
   NeedsStatCalculation = 4,
-  /** The tournament has completed all processing steps */
   Done = 5,
 }
 
-/** Defines how to sort the results of fetching all tournaments */
 export enum TournamentQuerySortType {
-  /** Sort by primary key */
   Id = 0,
-  /** Sort by start date */
   StartTime = 1,
-  /** Sort by end date */
   EndTime = 2,
-  /** Sort by name */
   SearchQueryRelevance = 3,
-  /** Sort by created date */
   Created = 4,
-  /** Sort by lobby size */
   LobbySize = 5,
 }
 
-/**
- * The reason why a Database.Entities.Tournament is rejected
- *
- * Bitwise flag
- */
 export enum TournamentRejectionReason {
-  /** The Database.Entities.Tournament is not rejected */
   None = 0,
-  /**
-   * The Database.Entities.Tournament has no Database.Entities.Tournament.Matches with a
-   * Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or Database.Enums.Verification.VerificationStatus.PreVerified
-   */
   NoVerifiedMatches = 1,
-  /**
-   * The Database.Entities.Tournament's number of Database.Entities.Tournament.Matches with a
-   * Database.Enums.Verification.VerificationStatus of Database.Enums.Verification.VerificationStatus.Verified or
-   * Database.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
-   */
   NotEnoughVerifiedMatches = 2,
-  /**
-   * The Database.Entities.Tournament's win condition is not Database.Enums.ScoringType.ScoreV2
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as gimmicky win conditions, mixed win conditions, etc
-   */
   AbnormalWinCondition = 4,
-  /**
-   * The Database.Entities.Tournament's format is not suitable for ratings
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as excessive gimmicks, relax, multiple modes, etc
-   */
   AbnormalFormat = 8,
-  /**
-   * The Database.Entities.Tournament's lobby sizes are not consistent.
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc
-   */
   VaryingLobbySize = 16,
-  /**
-   * The Database.Entities.Tournament's data is incomplete or not recoverable
-   * Covers cases where match links are lost to time, private,
-   * main sheet is deleted, missing rounds, etc.
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc
-   */
   IncompleteData = 32,
 }
 
@@ -9208,7 +8761,7 @@ export enum TournamentRejectionReason {
 export interface TournamentSearchResultDTO {
   /** Id of the tournament */
   id: number;
-  /** Represents osu! play modes */
+  /** Ruleset of the tournament */
   ruleset: Ruleset;
   /** Expected in-match team size */
   lobbySize: number;
@@ -9228,7 +8781,7 @@ export interface TournamentSubmissionDTO {
   rankRangeLowerBound: number;
   /** Expected in-match team size */
   lobbySize: number;
-  /** Represents osu! play modes */
+  /** osu! ruleset */
   ruleset: Ruleset;
   /** Optional rejection reason. If set, the created tournament and all matches will be rejected
 for this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users) */
@@ -9259,23 +8812,17 @@ export interface UserDTO extends UserCompactDTO {
 
 /** Represents user controlled settings for otr-web */
 export interface UserSettingsDTO {
-  /** Represents osu! play modes */
+  /** Preferred ruleset of the associated user */
   ruleset: Ruleset;
   /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
   rulesetIsControlled: boolean;
 }
 
-/** The verification status of a Database.Entities.Tournament, Database.Entities.Match, Database.Entities.Game, or Database.Entities.GameScore */
 export enum VerificationStatus {
-  /** Verification status has not yet been assigned */
   None = 0,
-  /** The Data Worker has identified an issue during processing */
   PreRejected = 1,
-  /** The Data Worker has not identified any issues during processing */
   PreVerified = 2,
-  /** Determined to be unfit for ratings by manual review */
   Rejected = 3,
-  /** Determined to be fit for ratings by manual review */
   Verified = 4,
 }
 
