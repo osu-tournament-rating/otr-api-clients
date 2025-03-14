@@ -8,31 +8,39 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-import { CreateAxiosDefaults } from "axios";
-import axios, { AxiosError } from "axios";
+import { CreateAxiosDefaults } from 'axios';
+import axios, { AxiosError } from 'axios';
 import type {
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
   CancelToken,
-} from "axios";
+} from 'axios';
 
 export abstract class OtrApiWrapperBase {
   protected configuration: IOtrApiWrapperConfiguration;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
+  constructor(configuration?: IOtrApiWrapperConfiguration) {
+    configuration ??= defaults;
     this.configuration = configuration;
     this.configuration.clientConfiguration = {
-      transitional: {
-        forcedJSONParsing: false,
-        silentJSONParsing: false,
-      },
+      ...defaultAxiosClientConfiguration,
       ...this.configuration.clientConfiguration,
     };
   }
 
   protected getBaseUrl(..._: any[]): string {
     return this.configuration.baseUrl;
+  }
+
+  /**
+   * Exposes the underlying axios client for configuration
+   */
+  public async configureClient(
+    configure: (instance: AxiosInstance) => Promise<void> | void
+  ): Promise<void> {
+    // @ts-expect-error
+    return await configure(this.instance);
   }
 }
 
@@ -56,7 +64,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -72,20 +80,20 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
    * @return Returns all beatmaps
    */
   public list(
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<BeatmapDTO[]>> {
-    let url_ = this.baseUrl + "/api/v1/beatmaps";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/beatmaps';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -102,11 +110,11 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
   }
 
   protected processList(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<BeatmapDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -119,19 +127,19 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
-        new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200),
+        new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -148,25 +156,25 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: BeatmapsGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<BeatmapDTO>> {
     const { key } = params;
 
-    let url_ = this.baseUrl + "/api/v1/beatmaps/{key}";
+    let url_ = this.baseUrl + '/api/v1/beatmaps/{key}';
     if (key === undefined || key === null)
       throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace("{key}", encodeURIComponent("" + key));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{key}', encodeURIComponent('' + key));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -183,11 +191,11 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<BeatmapDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -200,11 +208,11 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A beatmap matching the given key does not exist",
+        'A beatmap matching the given key does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -212,19 +220,19 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<BeatmapDTO>>(
-        new OtrApiResponse<BeatmapDTO>(status, _headers, result200),
+        new OtrApiResponse<BeatmapDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<BeatmapDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -253,7 +261,7 @@ export class ClientsWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -271,29 +279,29 @@ export class ClientsWrapper extends OtrApiWrapperBase {
    */
   public patchRateLimit(
     params: ClientsPatchRateLimitRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<OAuthClientDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit";
+    let url_ = this.baseUrl + '/api/v1/clients/{id}/ratelimit';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -310,11 +318,11 @@ export class ClientsWrapper extends OtrApiWrapperBase {
   }
 
   protected processPatchRateLimit(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<OAuthClientDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -327,11 +335,11 @@ export class ClientsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A client matching the given id does not exist",
+        'A client matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -339,19 +347,19 @@ export class ClientsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(
-        new OtrApiResponse<OAuthClientDTO>(status, _headers, result200),
+        new OtrApiResponse<OAuthClientDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -366,7 +374,7 @@ export class DiagnosticsWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -378,16 +386,16 @@ export class DiagnosticsWrapper extends OtrApiWrapperBase {
    * @return The server is running
    */
   public ping(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-    let url_ = this.baseUrl + "/api/v1/diagnostics/ping";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/diagnostics/ping';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: false,
     };
-    (options_ as any).requiresAuth = false;
 
     return this.instance
       .request(options_)
@@ -404,11 +412,11 @@ export class DiagnosticsWrapper extends OtrApiWrapperBase {
   }
 
   protected processPing(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -418,19 +426,19 @@ export class DiagnosticsWrapper extends OtrApiWrapperBase {
     if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -455,7 +463,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -474,26 +482,26 @@ export class FilteringWrapper extends OtrApiWrapperBase {
    */
   public filter(
     params: FilteringFilterRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<FilteringResultDTO>> {
     const { body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/filtering";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/filtering';
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -510,11 +518,11 @@ export class FilteringWrapper extends OtrApiWrapperBase {
   }
 
   protected processFilter(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<FilteringResultDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -527,11 +535,11 @@ export class FilteringWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The request body is invalid",
+        'The request body is invalid',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -539,19 +547,19 @@ export class FilteringWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
-        new OtrApiResponse<FilteringResultDTO>(status, _headers, result200),
+        new OtrApiResponse<FilteringResultDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -657,7 +665,7 @@ export class GamesWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -675,29 +683,29 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public createAdminNote(
     params: GamesCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/games/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -714,11 +722,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -731,11 +739,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist",
+        'A game matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -743,11 +751,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The authorized user does not exist",
+        'The authorized user does not exist',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -755,19 +763,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -782,25 +790,25 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public listAdminNotes(
     params: GamesListAdminNotesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/games/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -817,11 +825,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processListAdminNotes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -834,11 +842,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist",
+        'A game matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -846,19 +854,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -873,32 +881,32 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public updateAdminNote(
     params: GamesUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/games/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -915,11 +923,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -932,11 +940,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -944,19 +952,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -971,28 +979,28 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public deleteAdminNote(
     params: GamesDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/games/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1009,11 +1017,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1026,11 +1034,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 403) {
       const _responseText = response.data;
@@ -1038,11 +1046,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData403 = _responseText;
       result403 = JSON.parse(resultData403);
       return throwException(
-        "Forbidden",
+        'Forbidden',
         status,
         _responseText,
         _headers,
-        result403,
+        result403
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1050,19 +1058,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1077,29 +1085,29 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: GamesGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<GameDTO>> {
     const { id, verified } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}?";
+    let url_ = this.baseUrl + '/api/v1/games/{id}?';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (verified === null)
       throw new Error("The parameter 'verified' cannot be null.");
     else if (verified !== undefined)
-      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1116,11 +1124,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<GameDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1133,11 +1141,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist",
+        'A game matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1145,19 +1153,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<GameDTO>>(
-        new OtrApiResponse<GameDTO>(status, _headers, result200),
+        new OtrApiResponse<GameDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<GameDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1172,29 +1180,29 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public update(
     params: GamesUpdateRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<GameDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}";
+    let url_ = this.baseUrl + '/api/v1/games/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1211,11 +1219,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdate(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<GameDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1228,11 +1236,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A game matching the given id does not exist",
+        'A game matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -1240,11 +1248,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The JsonPatch data is malformed",
+        'The JsonPatch data is malformed',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1252,19 +1260,19 @@ export class GamesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<GameDTO>>(
-        new OtrApiResponse<GameDTO>(status, _headers, result200),
+        new OtrApiResponse<GameDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<GameDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1279,23 +1287,23 @@ export class GamesWrapper extends OtrApiWrapperBase {
    */
   public delete(
     params: GamesDeleteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/games/{id}";
+    let url_ = this.baseUrl + '/api/v1/games/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1312,11 +1320,11 @@ export class GamesWrapper extends OtrApiWrapperBase {
   }
 
   protected processDelete(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1326,27 +1334,27 @@ export class GamesWrapper extends OtrApiWrapperBase {
     if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status === 404) {
       const _responseText = response.data;
       return throwException(
-        "A game matching the given id does not exist",
+        'A game matching the given id does not exist',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -1448,7 +1456,7 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -1466,29 +1474,29 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public createAdminNote(
     params: GameScoresCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1505,11 +1513,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1522,11 +1530,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist",
+        'A score matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -1534,11 +1542,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The authorized user does not exist",
+        'The authorized user does not exist',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1546,19 +1554,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1573,25 +1581,25 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public listAdminNotes(
     params: GameScoresListAdminNotesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1608,11 +1616,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processListAdminNotes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1625,11 +1633,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist",
+        'A score matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1637,19 +1645,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1664,32 +1672,32 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public updateAdminNote(
     params: GameScoresUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1706,11 +1714,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1723,11 +1731,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1735,19 +1743,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1762,28 +1770,28 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public deleteAdminNote(
     params: GameScoresDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1800,11 +1808,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1817,11 +1825,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1829,19 +1837,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1856,25 +1864,25 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: GameScoresGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<GameScoreDTO>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1891,11 +1899,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<GameScoreDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -1908,11 +1916,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist",
+        'A score matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -1920,19 +1928,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-        new OtrApiResponse<GameScoreDTO>(status, _headers, result200),
+        new OtrApiResponse<GameScoreDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -1947,29 +1955,29 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public update(
     params: GameScoresUpdateRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<GameScoreDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -1986,11 +1994,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdate(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<GameScoreDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2003,11 +2011,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist",
+        'A score matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -2015,11 +2023,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The JsonPatch data is malformed",
+        'The JsonPatch data is malformed',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -2027,19 +2035,19 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-        new OtrApiResponse<GameScoreDTO>(status, _headers, result200),
+        new OtrApiResponse<GameScoreDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -2054,23 +2062,23 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
    */
   public delete(
     params: GameScoresDeleteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2087,11 +2095,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
   }
 
   protected processDelete(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2104,28 +2112,28 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A score matching the given id does not exist",
+        'A score matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -2238,7 +2246,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -2256,7 +2264,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: LeaderboardsGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<LeaderboardDTO>> {
     const {
       page,
@@ -2283,105 +2291,105 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       eliteGrandmaster,
     } = params;
 
-    let url_ = this.baseUrl + "/api/v1/leaderboards?";
+    let url_ = this.baseUrl + '/api/v1/leaderboards?';
     if (page === null) throw new Error("The parameter 'page' cannot be null.");
     else if (page !== undefined)
-      url_ += "page=" + encodeURIComponent("" + page) + "&";
+      url_ += 'page=' + encodeURIComponent('' + page) + '&';
     if (pageSize === null)
       throw new Error("The parameter 'pageSize' cannot be null.");
     else if (pageSize !== undefined)
-      url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+      url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
     if (ruleset === null)
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
-      url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
     if (chartType === null)
       throw new Error("The parameter 'chartType' cannot be null.");
     else if (chartType !== undefined)
-      url_ += "chartType=" + encodeURIComponent("" + chartType) + "&";
+      url_ += 'chartType=' + encodeURIComponent('' + chartType) + '&';
     if (country === null)
       throw new Error("The parameter 'country' cannot be null.");
     else if (country !== undefined)
-      url_ += "country=" + encodeURIComponent("" + country) + "&";
+      url_ += 'country=' + encodeURIComponent('' + country) + '&';
     if (minRank === null)
       throw new Error("The parameter 'minRank' cannot be null.");
     else if (minRank !== undefined)
-      url_ += "minRank=" + encodeURIComponent("" + minRank) + "&";
+      url_ += 'minRank=' + encodeURIComponent('' + minRank) + '&';
     if (maxRank === null)
       throw new Error("The parameter 'maxRank' cannot be null.");
     else if (maxRank !== undefined)
-      url_ += "maxRank=" + encodeURIComponent("" + maxRank) + "&";
+      url_ += 'maxRank=' + encodeURIComponent('' + maxRank) + '&';
     if (minRating === null)
       throw new Error("The parameter 'minRating' cannot be null.");
     else if (minRating !== undefined)
-      url_ += "minRating=" + encodeURIComponent("" + minRating) + "&";
+      url_ += 'minRating=' + encodeURIComponent('' + minRating) + '&';
     if (maxRating === null)
       throw new Error("The parameter 'maxRating' cannot be null.");
     else if (maxRating !== undefined)
-      url_ += "maxRating=" + encodeURIComponent("" + maxRating) + "&";
+      url_ += 'maxRating=' + encodeURIComponent('' + maxRating) + '&';
     if (minMatches === null)
       throw new Error("The parameter 'minMatches' cannot be null.");
     else if (minMatches !== undefined)
-      url_ += "minMatches=" + encodeURIComponent("" + minMatches) + "&";
+      url_ += 'minMatches=' + encodeURIComponent('' + minMatches) + '&';
     if (maxMatches === null)
       throw new Error("The parameter 'maxMatches' cannot be null.");
     else if (maxMatches !== undefined)
-      url_ += "maxMatches=" + encodeURIComponent("" + maxMatches) + "&";
+      url_ += 'maxMatches=' + encodeURIComponent('' + maxMatches) + '&';
     if (minWinRate === null)
       throw new Error("The parameter 'minWinRate' cannot be null.");
     else if (minWinRate !== undefined)
-      url_ += "minWinRate=" + encodeURIComponent("" + minWinRate) + "&";
+      url_ += 'minWinRate=' + encodeURIComponent('' + minWinRate) + '&';
     if (maxWinRate === null)
       throw new Error("The parameter 'maxWinRate' cannot be null.");
     else if (maxWinRate !== undefined)
-      url_ += "maxWinRate=" + encodeURIComponent("" + maxWinRate) + "&";
+      url_ += 'maxWinRate=' + encodeURIComponent('' + maxWinRate) + '&';
     if (bronze === null)
       throw new Error("The parameter 'bronze' cannot be null.");
     else if (bronze !== undefined)
-      url_ += "bronze=" + encodeURIComponent("" + bronze) + "&";
+      url_ += 'bronze=' + encodeURIComponent('' + bronze) + '&';
     if (silver === null)
       throw new Error("The parameter 'silver' cannot be null.");
     else if (silver !== undefined)
-      url_ += "silver=" + encodeURIComponent("" + silver) + "&";
+      url_ += 'silver=' + encodeURIComponent('' + silver) + '&';
     if (gold === null) throw new Error("The parameter 'gold' cannot be null.");
     else if (gold !== undefined)
-      url_ += "gold=" + encodeURIComponent("" + gold) + "&";
+      url_ += 'gold=' + encodeURIComponent('' + gold) + '&';
     if (platinum === null)
       throw new Error("The parameter 'platinum' cannot be null.");
     else if (platinum !== undefined)
-      url_ += "platinum=" + encodeURIComponent("" + platinum) + "&";
+      url_ += 'platinum=' + encodeURIComponent('' + platinum) + '&';
     if (emerald === null)
       throw new Error("The parameter 'emerald' cannot be null.");
     else if (emerald !== undefined)
-      url_ += "emerald=" + encodeURIComponent("" + emerald) + "&";
+      url_ += 'emerald=' + encodeURIComponent('' + emerald) + '&';
     if (diamond === null)
       throw new Error("The parameter 'diamond' cannot be null.");
     else if (diamond !== undefined)
-      url_ += "diamond=" + encodeURIComponent("" + diamond) + "&";
+      url_ += 'diamond=' + encodeURIComponent('' + diamond) + '&';
     if (master === null)
       throw new Error("The parameter 'master' cannot be null.");
     else if (master !== undefined)
-      url_ += "master=" + encodeURIComponent("" + master) + "&";
+      url_ += 'master=' + encodeURIComponent('' + master) + '&';
     if (grandmaster === null)
       throw new Error("The parameter 'grandmaster' cannot be null.");
     else if (grandmaster !== undefined)
-      url_ += "grandmaster=" + encodeURIComponent("" + grandmaster) + "&";
+      url_ += 'grandmaster=' + encodeURIComponent('' + grandmaster) + '&';
     if (eliteGrandmaster === null)
       throw new Error("The parameter 'eliteGrandmaster' cannot be null.");
     else if (eliteGrandmaster !== undefined)
       url_ +=
-        "eliteGrandmaster=" + encodeURIComponent("" + eliteGrandmaster) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+        'eliteGrandmaster=' + encodeURIComponent('' + eliteGrandmaster) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2398,11 +2406,11 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<LeaderboardDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2415,19 +2423,19 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(
-        new OtrApiResponse<LeaderboardDTO>(status, _headers, result200),
+        new OtrApiResponse<LeaderboardDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -2588,7 +2596,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -2606,29 +2614,29 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public createAdminNote(
     params: MatchesCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2645,11 +2653,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2662,11 +2670,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist",
+        'A match matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -2674,11 +2682,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The authorized user does not exist",
+        'The authorized user does not exist',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -2686,19 +2694,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -2713,25 +2721,25 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public listAdminNotes(
     params: MatchesListAdminNotesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2748,11 +2756,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processListAdminNotes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2765,11 +2773,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist",
+        'A match matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -2777,19 +2785,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -2804,32 +2812,32 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public updateAdminNote(
     params: MatchesUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2846,11 +2854,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2863,11 +2871,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -2875,19 +2883,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -2902,28 +2910,28 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public deleteAdminNote(
     params: MatchesDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -2940,11 +2948,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -2957,11 +2965,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -2969,19 +2977,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -2998,7 +3006,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public list(
     params: MatchesListRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchDTO[]>> {
     const {
       page,
@@ -3016,81 +3024,81 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       descending,
     } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches?";
+    let url_ = this.baseUrl + '/api/v1/matches?';
     if (page === undefined || page === null)
       throw new Error(
-        "The parameter 'page' must be defined and cannot be null.",
+        "The parameter 'page' must be defined and cannot be null."
       );
-    else url_ += "page=" + encodeURIComponent("" + page) + "&";
+    else url_ += 'page=' + encodeURIComponent('' + page) + '&';
     if (pageSize === undefined || pageSize === null)
       throw new Error(
-        "The parameter 'pageSize' must be defined and cannot be null.",
+        "The parameter 'pageSize' must be defined and cannot be null."
       );
-    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    else url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
     if (ruleset === null)
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
-      url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
     if (name === null) throw new Error("The parameter 'name' cannot be null.");
     else if (name !== undefined)
-      url_ += "name=" + encodeURIComponent("" + name) + "&";
+      url_ += 'name=' + encodeURIComponent('' + name) + '&';
     if (dateMin === null)
       throw new Error("The parameter 'dateMin' cannot be null.");
     else if (dateMin !== undefined)
       url_ +=
-        "dateMin=" +
-        encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") +
-        "&";
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
     if (dateMax === null)
       throw new Error("The parameter 'dateMax' cannot be null.");
     else if (dateMax !== undefined)
       url_ +=
-        "dateMax=" +
-        encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") +
-        "&";
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
     if (verificationStatus === null)
       throw new Error("The parameter 'verificationStatus' cannot be null.");
     else if (verificationStatus !== undefined)
       url_ +=
-        "verificationStatus=" +
-        encodeURIComponent("" + verificationStatus) +
-        "&";
+        'verificationStatus=' +
+        encodeURIComponent('' + verificationStatus) +
+        '&';
     if (rejectionReason === null)
       throw new Error("The parameter 'rejectionReason' cannot be null.");
     else if (rejectionReason !== undefined)
       url_ +=
-        "rejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
+        'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
     if (processingStatus === null)
       throw new Error("The parameter 'processingStatus' cannot be null.");
     else if (processingStatus !== undefined)
       url_ +=
-        "processingStatus=" + encodeURIComponent("" + processingStatus) + "&";
+        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
     if (submittedBy === null)
       throw new Error("The parameter 'submittedBy' cannot be null.");
     else if (submittedBy !== undefined)
-      url_ += "submittedBy=" + encodeURIComponent("" + submittedBy) + "&";
+      url_ += 'submittedBy=' + encodeURIComponent('' + submittedBy) + '&';
     if (verifiedBy === null)
       throw new Error("The parameter 'verifiedBy' cannot be null.");
     else if (verifiedBy !== undefined)
-      url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+      url_ += 'verifiedBy=' + encodeURIComponent('' + verifiedBy) + '&';
     if (sort === null) throw new Error("The parameter 'sort' cannot be null.");
     else if (sort !== undefined)
-      url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+      url_ += 'sort=' + encodeURIComponent('' + sort) + '&';
     if (descending === null)
       throw new Error("The parameter 'descending' cannot be null.");
     else if (descending !== undefined)
-      url_ += "descending=" + encodeURIComponent("" + descending) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'descending=' + encodeURIComponent('' + descending) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3107,11 +3115,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processList(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<MatchDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3124,19 +3132,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-        new OtrApiResponse<MatchDTO[]>(status, _headers, result200),
+        new OtrApiResponse<MatchDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3151,29 +3159,29 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: MatchesGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchDTO>> {
     const { id, verified } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}?";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}?';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (verified === null)
       throw new Error("The parameter 'verified' cannot be null.");
     else if (verified !== undefined)
-      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3190,11 +3198,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<MatchDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3207,11 +3215,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist",
+        'A match matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -3219,19 +3227,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<MatchDTO>>(
-        new OtrApiResponse<MatchDTO>(status, _headers, result200),
+        new OtrApiResponse<MatchDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<MatchDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3246,29 +3254,29 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public update(
     params: MatchesUpdateRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3285,11 +3293,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdate(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<MatchDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3302,11 +3310,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist",
+        'A match matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -3314,11 +3322,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The JsonPatch data is malformed",
+        'The JsonPatch data is malformed',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -3326,19 +3334,19 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<MatchDTO>>(
-        new OtrApiResponse<MatchDTO>(status, _headers, result200),
+        new OtrApiResponse<MatchDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<MatchDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3353,23 +3361,23 @@ export class MatchesWrapper extends OtrApiWrapperBase {
    */
   public delete(
     params: MatchesDeleteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/matches/{id}";
+    let url_ = this.baseUrl + '/api/v1/matches/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3386,11 +3394,11 @@ export class MatchesWrapper extends OtrApiWrapperBase {
   }
 
   protected processDelete(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3403,28 +3411,28 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A match matching the given id does not exist",
+        'A match matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -3464,7 +3472,7 @@ export class MeWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -3480,18 +3488,18 @@ export class MeWrapper extends OtrApiWrapperBase {
    * @return Returns the currently logged in user
    */
   public get(cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
-    let url_ = this.baseUrl + "/api/v1/me";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/me';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3508,11 +3516,11 @@ export class MeWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<UserDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3522,10 +3530,10 @@ export class MeWrapper extends OtrApiWrapperBase {
     if (status === 302) {
       const _responseText = response.data;
       return throwException(
-        "Redirects to `GET` `/users/{id}`",
+        'Redirects to `GET` `/users/{id}`',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -3533,19 +3541,19 @@ export class MeWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200),
+        new OtrApiResponse<UserDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3565,40 +3573,40 @@ export class MeWrapper extends OtrApiWrapperBase {
    */
   public getStats(
     params: MeGetStatsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const { ruleset, dateMin, dateMax } = params;
 
-    let url_ = this.baseUrl + "/api/v1/me/stats?";
+    let url_ = this.baseUrl + '/api/v1/me/stats?';
     if (ruleset === null)
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
-      url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
     if (dateMin === null)
       throw new Error("The parameter 'dateMin' cannot be null.");
     else if (dateMin !== undefined)
       url_ +=
-        "dateMin=" +
-        encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") +
-        "&";
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
     if (dateMax === null)
       throw new Error("The parameter 'dateMax' cannot be null.");
     else if (dateMax !== undefined)
       url_ +=
-        "dateMax=" +
-        encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") +
-        "&";
-    url_ = url_.replace(/[?&]$/, "");
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3615,11 +3623,11 @@ export class MeWrapper extends OtrApiWrapperBase {
   }
 
   protected processGetStats(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3629,10 +3637,10 @@ export class MeWrapper extends OtrApiWrapperBase {
     if (status === 302) {
       const _responseText = response.data;
       return throwException(
-        "Redirects to `GET` `/players/{key}/stats`",
+        'Redirects to `GET` `/players/{key}/stats`',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -3640,23 +3648,19 @@ export class MeWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-        new OtrApiResponse<PlayerDashboardStatsDTO>(
-          status,
-          _headers,
-          result200,
-        ),
+        new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3671,25 +3675,25 @@ export class MeWrapper extends OtrApiWrapperBase {
    */
   public updateRuleset(
     params: MeUpdateRulesetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/me/settings/ruleset";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/me/settings/ruleset';
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
+        'Content-Type': 'application/json-patch+json',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3706,11 +3710,11 @@ export class MeWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateRuleset(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3720,10 +3724,10 @@ export class MeWrapper extends OtrApiWrapperBase {
     if (status === 308) {
       const _responseText = response.data;
       return throwException(
-        "Redirects to `PATCH` `/users/{id}/settings/ruleset`",
+        'Redirects to `PATCH` `/users/{id}/settings/ruleset`',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -3731,28 +3735,28 @@ export class MeWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The operation was not successful",
+        'The operation was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3765,16 +3769,16 @@ export class MeWrapper extends OtrApiWrapperBase {
    * @return The operation was successful
    */
   public syncRuleset(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-    let url_ = this.baseUrl + "/api/v1/me/settings/ruleset:sync";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/me/settings/ruleset:sync';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -3791,11 +3795,11 @@ export class MeWrapper extends OtrApiWrapperBase {
   }
 
   protected processSyncRuleset(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3805,10 +3809,10 @@ export class MeWrapper extends OtrApiWrapperBase {
     if (status === 308) {
       const _responseText = response.data;
       return throwException(
-        "Permanent Redirect",
+        'Permanent Redirect',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -3816,36 +3820,36 @@ export class MeWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The operation was not successful",
+        'The operation was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status === 307) {
       const _responseText = response.data;
       return throwException(
-        "Redirects to `POST` `/users/{id}/settings/ruleset:sync`",
+        'Redirects to `POST` `/users/{id}/settings/ruleset:sync`',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -3855,9 +3859,13 @@ export class MeWrapper extends OtrApiWrapperBase {
  */
 export type OAuthAuthorizeRequestParams = {
   /**
-   * (required) osu! authorization code
+   * (optional) osu! authorization code
    */
-  code: string;
+  code?: string | undefined;
+  /**
+   * (optional)
+   */
+  code_verifier?: string | undefined;
 };
 
 /**
@@ -3894,7 +3902,7 @@ export class OAuthWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -3908,27 +3916,31 @@ export class OAuthWrapper extends OtrApiWrapperBase {
    */
   public authorize(
     params: OAuthAuthorizeRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { code } = params;
+    const { code, code_verifier } = params;
 
-    let url_ = this.baseUrl + "/api/v1/oauth/authorize?";
-    if (code === undefined || code === null)
-      throw new Error(
-        "The parameter 'code' must be defined and cannot be null.",
-      );
-    else url_ += "code=" + encodeURIComponent("" + code) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/oauth/authorize';
+    url_ = url_.replace(/[?&]$/, '');
+
+    const content_ = new FormData();
+    if (code === null || code === undefined)
+      throw new Error("The parameter 'code' cannot be null.");
+    else content_.append('code', code.toString());
+    if (code_verifier === null || code_verifier === undefined)
+      throw new Error("The parameter 'code_verifier' cannot be null.");
+    else content_.append('code_verifier', code_verifier.toString());
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      data: content_,
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: false,
     };
-    (options_ as any).requiresAuth = false;
 
     return this.instance
       .request(options_)
@@ -3945,11 +3957,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
   }
 
   protected processAuthorize(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -3962,11 +3974,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData401 = _responseText;
       result401 = JSON.parse(resultData401);
       return throwException(
-        "There was an error during authorization",
+        'There was an error during authorization',
         status,
         _responseText,
         _headers,
-        result401,
+        result401
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -3974,19 +3986,19 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200),
+        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -3997,32 +4009,32 @@ export class OAuthWrapper extends OtrApiWrapperBase {
    */
   public authorizeClient(
     params: OAuthAuthorizeClientRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
     const { clientId, clientSecret } = params;
 
-    let url_ = this.baseUrl + "/api/v1/oauth/token?";
+    let url_ = this.baseUrl + '/api/v1/oauth/token?';
     if (clientId === undefined || clientId === null)
       throw new Error(
-        "The parameter 'clientId' must be defined and cannot be null.",
+        "The parameter 'clientId' must be defined and cannot be null."
       );
-    else url_ += "clientId=" + encodeURIComponent("" + clientId) + "&";
+    else url_ += 'clientId=' + encodeURIComponent('' + clientId) + '&';
     if (clientSecret === undefined || clientSecret === null)
       throw new Error(
-        "The parameter 'clientSecret' must be defined and cannot be null.",
+        "The parameter 'clientSecret' must be defined and cannot be null."
       );
-    else url_ += "clientSecret=" + encodeURIComponent("" + clientSecret) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+    else url_ += 'clientSecret=' + encodeURIComponent('' + clientSecret) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: false,
     };
-    (options_ as any).requiresAuth = false;
 
     return this.instance
       .request(options_)
@@ -4039,11 +4051,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
   }
 
   protected processAuthorizeClient(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4056,11 +4068,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "There was an error during authorization",
+        'There was an error during authorization',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4068,19 +4080,19 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200),
+        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4096,20 +4108,20 @@ export class OAuthWrapper extends OtrApiWrapperBase {
    * @return Returns created client credentials
    */
   public createClient(
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    let url_ = this.baseUrl + "/api/v1/oauth/client";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/oauth/client';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4126,11 +4138,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateClient(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4143,19 +4155,19 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200),
+        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4168,27 +4180,27 @@ export class OAuthWrapper extends OtrApiWrapperBase {
    */
   public refresh(
     params: OAuthRefreshRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
     const { refreshToken } = params;
 
-    let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
+    let url_ = this.baseUrl + '/api/v1/oauth/refresh?';
     if (refreshToken === undefined || refreshToken === null)
       throw new Error(
-        "The parameter 'refreshToken' must be defined and cannot be null.",
+        "The parameter 'refreshToken' must be defined and cannot be null."
       );
-    else url_ += "refreshToken=" + encodeURIComponent("" + refreshToken) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+    else url_ += 'refreshToken=' + encodeURIComponent('' + refreshToken) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: false,
     };
-    (options_ as any).requiresAuth = false;
 
     return this.instance
       .request(options_)
@@ -4205,11 +4217,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
   }
 
   protected processRefresh(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4222,11 +4234,11 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The refresh token is invalid or there was an error during authorization",
+        'The refresh token is invalid or there was an error during authorization',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4234,19 +4246,19 @@ export class OAuthWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200),
+        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -4349,7 +4361,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -4367,29 +4379,29 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public createAdminNote(
     params: PlayersCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/players/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4406,11 +4418,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4423,11 +4435,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A player matching the given id does not exist",
+        'A player matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -4435,11 +4447,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The authorized user does not exist",
+        'The authorized user does not exist',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4447,19 +4459,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4474,25 +4486,25 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public listAdminNotes(
     params: PlayersListAdminNotesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/players/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4509,11 +4521,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processListAdminNotes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4526,11 +4538,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A player matching the given id does not exist",
+        'A player matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4538,19 +4550,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4565,32 +4577,32 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public updateAdminNote(
     params: PlayersUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/players/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4607,11 +4619,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4624,11 +4636,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist",
+        'If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4636,19 +4648,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4663,28 +4675,28 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public deleteAdminNote(
     params: PlayersDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/players/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4701,11 +4713,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4718,11 +4730,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A player matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A player matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4730,19 +4742,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4759,25 +4771,25 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: PlayersGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<PlayerCompactDTO>> {
     const { key } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{key}";
+    let url_ = this.baseUrl + '/api/v1/players/{key}';
     if (key === undefined || key === null)
       throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace("{key}", encodeURIComponent("" + key));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{key}', encodeURIComponent('' + key));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4794,11 +4806,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<PlayerCompactDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4811,11 +4823,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A player matching the given key does not exist",
+        'A player matching the given key does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4823,19 +4835,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(
-        new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200),
+        new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -4856,43 +4868,43 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    */
   public getStats(
     params: PlayersGetStatsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const { key, ruleset, dateMin, dateMax } = params;
 
-    let url_ = this.baseUrl + "/api/v1/players/{key}/stats?";
+    let url_ = this.baseUrl + '/api/v1/players/{key}/stats?';
     if (key === undefined || key === null)
       throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace("{key}", encodeURIComponent("" + key));
+    url_ = url_.replace('{key}', encodeURIComponent('' + key));
     if (ruleset === null)
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
-      url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
     if (dateMin === null)
       throw new Error("The parameter 'dateMin' cannot be null.");
     else if (dateMin !== undefined)
       url_ +=
-        "dateMin=" +
-        encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") +
-        "&";
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
     if (dateMax === null)
       throw new Error("The parameter 'dateMax' cannot be null.");
     else if (dateMax !== undefined)
       url_ +=
-        "dateMax=" +
-        encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") +
-        "&";
-    url_ = url_.replace(/[?&]$/, "");
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -4909,11 +4921,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   protected processGetStats(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -4926,11 +4938,11 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A player matching the given search key does not exist",
+        'A player matching the given search key does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -4938,23 +4950,19 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-        new OtrApiResponse<PlayerDashboardStatsDTO>(
-          status,
-          _headers,
-          result200,
-        ),
+        new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -4979,7 +4987,7 @@ export class SearchWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -4999,27 +5007,27 @@ export class SearchWrapper extends OtrApiWrapperBase {
    */
   public search(
     params: SearchSearchRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
     const { searchKey } = params;
 
-    let url_ = this.baseUrl + "/api/v1/search?";
+    let url_ = this.baseUrl + '/api/v1/search?';
     if (searchKey === undefined || searchKey === null)
       throw new Error(
-        "The parameter 'searchKey' must be defined and cannot be null.",
+        "The parameter 'searchKey' must be defined and cannot be null."
       );
-    else url_ += "searchKey=" + encodeURIComponent("" + searchKey) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+    else url_ += 'searchKey=' + encodeURIComponent('' + searchKey) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5036,11 +5044,11 @@ export class SearchWrapper extends OtrApiWrapperBase {
   }
 
   protected processSearch(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5056,20 +5064,20 @@ export class SearchWrapper extends OtrApiWrapperBase {
         new OtrApiResponse<SearchResponseCollectionDTO>(
           status,
           _headers,
-          result200,
-        ),
+          result200
+        )
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -5323,7 +5331,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -5342,27 +5350,27 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public acceptPreVerificationStatuses(
     params: TournamentsAcceptPreVerificationStatusesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentDTO>> {
     const { id } = params;
 
     let url_ =
       this.baseUrl +
-      "/api/v1/tournaments/{id}:accept-pre-verification-statuses";
+      '/api/v1/tournaments/{id}:accept-pre-verification-statuses';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5379,11 +5387,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processAcceptPreVerificationStatuses(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<TournamentDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5396,11 +5404,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "If a tournament matching the given id does not exist",
+        'If a tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -5408,19 +5416,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200),
+        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5435,28 +5443,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public rerunAutomationChecks(
     params: TournamentsRerunAutomationChecksRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id, force } = params;
 
     let url_ =
-      this.baseUrl + "/api/v1/tournaments/{id}:reset-automation-statuses?";
+      this.baseUrl + '/api/v1/tournaments/{id}:reset-automation-statuses?';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (force === null)
       throw new Error("The parameter 'force' cannot be null.");
     else if (force !== undefined)
-      url_ += "force=" + encodeURIComponent("" + force) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'force=' + encodeURIComponent('' + force) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5473,11 +5481,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processRerunAutomationChecks(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5490,28 +5498,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "If a tournament matching the given id does not exist",
+        'If a tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5526,29 +5534,29 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public createAdminNote(
     params: TournamentsCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5565,11 +5573,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5582,11 +5590,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "If a tournament matching the given id does not exist",
+        'If a tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -5594,11 +5602,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "If the authorized user does not exist",
+        'If the authorized user does not exist',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -5606,19 +5614,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5633,25 +5641,25 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public listAdminNotes(
     params: TournamentsListAdminNotesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5668,11 +5676,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processListAdminNotes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5685,11 +5693,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -5697,19 +5705,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5724,32 +5732,32 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public updateAdminNote(
     params: TournamentsUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5766,11 +5774,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5783,11 +5791,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -5795,19 +5803,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5822,28 +5830,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public deleteAdminNote(
     params: TournamentsDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { id, noteId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/notes/{noteId}";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes/{noteId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (noteId === undefined || noteId === null)
       throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5860,11 +5868,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteAdminNote(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5877,11 +5885,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist",
+        'A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -5889,19 +5897,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200),
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -5916,28 +5924,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public insertBeatmaps(
     params: TournamentsInsertBeatmapsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
+        'Content-Type': 'application/json-patch+json',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -5954,11 +5962,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processInsertBeatmaps(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -5971,28 +5979,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6008,28 +6016,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public deleteBeatmaps(
     params: TournamentsDeleteBeatmapsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
+        'Content-Type': 'application/json-patch+json',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6046,11 +6054,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteBeatmaps(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6063,28 +6071,28 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6099,23 +6107,23 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public getBeatmaps(
     params: TournamentsGetBeatmapsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6132,11 +6140,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processGetBeatmaps(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6146,7 +6154,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status === 404) {
       const _responseText = response.data;
@@ -6154,23 +6162,23 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6187,7 +6195,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public list(
     params: TournamentsListRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentDTO[]>> {
     const {
       page,
@@ -6207,90 +6215,90 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       descending,
     } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments?";
+    let url_ = this.baseUrl + '/api/v1/tournaments?';
     if (page === undefined || page === null)
       throw new Error(
-        "The parameter 'page' must be defined and cannot be null.",
+        "The parameter 'page' must be defined and cannot be null."
       );
-    else url_ += "page=" + encodeURIComponent("" + page) + "&";
+    else url_ += 'page=' + encodeURIComponent('' + page) + '&';
     if (pageSize === undefined || pageSize === null)
       throw new Error(
-        "The parameter 'pageSize' must be defined and cannot be null.",
+        "The parameter 'pageSize' must be defined and cannot be null."
       );
-    else url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+    else url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
     if (verified === null)
       throw new Error("The parameter 'verified' cannot be null.");
     else if (verified !== undefined)
-      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
     if (ruleset === null)
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
-      url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
     if (searchQuery === null)
       throw new Error("The parameter 'searchQuery' cannot be null.");
     else if (searchQuery !== undefined)
-      url_ += "searchQuery=" + encodeURIComponent("" + searchQuery) + "&";
+      url_ += 'searchQuery=' + encodeURIComponent('' + searchQuery) + '&';
     if (dateMin === null)
       throw new Error("The parameter 'dateMin' cannot be null.");
     else if (dateMin !== undefined)
       url_ +=
-        "dateMin=" +
-        encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") +
-        "&";
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
     if (dateMax === null)
       throw new Error("The parameter 'dateMax' cannot be null.");
     else if (dateMax !== undefined)
       url_ +=
-        "dateMax=" +
-        encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") +
-        "&";
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
     if (verificationStatus === null)
       throw new Error("The parameter 'verificationStatus' cannot be null.");
     else if (verificationStatus !== undefined)
       url_ +=
-        "verificationStatus=" +
-        encodeURIComponent("" + verificationStatus) +
-        "&";
+        'verificationStatus=' +
+        encodeURIComponent('' + verificationStatus) +
+        '&';
     if (rejectionReason === null)
       throw new Error("The parameter 'rejectionReason' cannot be null.");
     else if (rejectionReason !== undefined)
       url_ +=
-        "rejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
+        'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
     if (processingStatus === null)
       throw new Error("The parameter 'processingStatus' cannot be null.");
     else if (processingStatus !== undefined)
       url_ +=
-        "processingStatus=" + encodeURIComponent("" + processingStatus) + "&";
+        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
     if (submittedBy === null)
       throw new Error("The parameter 'submittedBy' cannot be null.");
     else if (submittedBy !== undefined)
-      url_ += "submittedBy=" + encodeURIComponent("" + submittedBy) + "&";
+      url_ += 'submittedBy=' + encodeURIComponent('' + submittedBy) + '&';
     if (verifiedBy === null)
       throw new Error("The parameter 'verifiedBy' cannot be null.");
     else if (verifiedBy !== undefined)
-      url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+      url_ += 'verifiedBy=' + encodeURIComponent('' + verifiedBy) + '&';
     if (lobbySize === null)
       throw new Error("The parameter 'lobbySize' cannot be null.");
     else if (lobbySize !== undefined)
-      url_ += "lobbySize=" + encodeURIComponent("" + lobbySize) + "&";
+      url_ += 'lobbySize=' + encodeURIComponent('' + lobbySize) + '&';
     if (sort === null) throw new Error("The parameter 'sort' cannot be null.");
     else if (sort !== undefined)
-      url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+      url_ += 'sort=' + encodeURIComponent('' + sort) + '&';
     if (descending === null)
       throw new Error("The parameter 'descending' cannot be null.");
     else if (descending !== undefined)
-      url_ += "descending=" + encodeURIComponent("" + descending) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'descending=' + encodeURIComponent('' + descending) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6307,11 +6315,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processList(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<TournamentDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6324,19 +6332,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(
-        new OtrApiResponse<TournamentDTO[]>(status, _headers, result200),
+        new OtrApiResponse<TournamentDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6351,26 +6359,26 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public create(
     params: TournamentsCreateRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
     const { body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments";
-    url_ = url_.replace(/[?&]$/, "");
+    let url_ = this.baseUrl + '/api/v1/tournaments';
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6387,11 +6395,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processCreate(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6404,11 +6412,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists",
+        'The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 201) {
       const _responseText = response.data;
@@ -6419,20 +6427,20 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         new OtrApiResponse<TournamentCreatedResultDTO>(
           status,
           _headers,
-          result201,
-        ),
+          result201
+        )
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6447,29 +6455,29 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: TournamentsGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentDTO>> {
     const { id, verified } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}?";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}?';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (verified === null)
       throw new Error("The parameter 'verified' cannot be null.");
     else if (verified !== undefined)
-      url_ += "verified=" + encodeURIComponent("" + verified) + "&";
-    url_ = url_.replace(/[?&]$/, "");
+      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6486,11 +6494,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<TournamentDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6503,11 +6511,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -6515,19 +6523,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200),
+        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6542,29 +6550,29 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public update(
     params: TournamentsUpdateRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentCompactDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6581,11 +6589,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdate(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<TournamentCompactDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6598,11 +6606,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -6610,11 +6618,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "JsonPatch data is malformed",
+        'JsonPatch data is malformed',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -6622,19 +6630,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200),
+        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6649,23 +6657,23 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public delete(
     params: TournamentsDeleteRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6682,11 +6690,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processDelete(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6696,27 +6704,27 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status === 404) {
       const _responseText = response.data;
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -6731,25 +6739,25 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    */
   public listMatches(
     params: TournamentsListMatchesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/tournaments/{id}/matches";
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/matches';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6766,11 +6774,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   }
 
   protected processListMatches(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<MatchDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6783,11 +6791,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A tournament matching the given id does not exist",
+        'A tournament matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -6795,19 +6803,19 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-        new OtrApiResponse<MatchDTO[]>(status, _headers, result200),
+        new OtrApiResponse<MatchDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -6928,7 +6936,7 @@ export class UsersWrapper extends OtrApiWrapperBase {
     super(configuration);
 
     this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl("");
+    this.baseUrl = this.getBaseUrl('');
 
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
@@ -6946,25 +6954,25 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public get(
     params: UsersGetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<UserDTO>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}";
+    let url_ = this.baseUrl + '/api/v1/users/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -6981,11 +6989,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processGet(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<UserDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -6998,11 +7006,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7010,19 +7018,19 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200),
+        new OtrApiResponse<UserDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7037,29 +7045,29 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public updateScopes(
     params: UsersUpdateScopesRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<UserDTO>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/scopes";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/scopes';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
-        Accept: "text/plain",
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7076,11 +7084,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateScopes(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<UserDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7093,11 +7101,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -7105,11 +7113,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "A given scope is invalid, or the update was not successful",
+        'A given scope is invalid, or the update was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7117,19 +7125,19 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200),
+        new OtrApiResponse<UserDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7144,25 +7152,25 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public getSubmissions(
     params: UsersGetSubmissionsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/submissions";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/submissions';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7179,11 +7187,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processGetSubmissions(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7196,11 +7204,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7211,20 +7219,20 @@ export class UsersWrapper extends OtrApiWrapperBase {
         new OtrApiResponse<MatchSubmissionStatusDTO[]>(
           status,
           _headers,
-          result200,
-        ),
+          result200
+        )
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7239,23 +7247,23 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public rejectSubmissions(
     params: UsersRejectSubmissionsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/submissions:reject";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/submissions:reject';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7272,11 +7280,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processRejectSubmissions(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7289,36 +7297,36 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status === 400) {
       const _responseText = response.data;
       return throwException(
-        "The operation was not successful",
+        'The operation was not successful',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7333,25 +7341,25 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public getClients(
     params: UsersGetClientsRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<OAuthClientDTO[]>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/clients";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/clients';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "GET",
+      method: 'GET',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7368,11 +7376,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processGetClients(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<OAuthClientDTO[]>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7385,11 +7393,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7397,19 +7405,19 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(
-        new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200),
+        new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7424,26 +7432,26 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public deleteClient(
     params: UsersDeleteClientRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id, clientId } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/clients/{clientId}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (clientId === undefined || clientId === null)
       throw new Error("The parameter 'clientId' must be defined.");
-    url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{clientId}', encodeURIComponent('' + clientId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "DELETE",
+      method: 'DELETE',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7460,11 +7468,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processDeleteClient(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7477,11 +7485,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user",
+        'A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -7489,28 +7497,28 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The deletion was not successful",
+        'The deletion was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7525,29 +7533,29 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public resetClientSecret(
     params: UsersResetClientSecretRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
     const { id, clientId } = params;
 
     let url_ =
-      this.baseUrl + "/api/v1/users/{id}/clients/{clientId}/secret:reset";
+      this.baseUrl + '/api/v1/users/{id}/clients/{clientId}/secret:reset';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
     if (clientId === undefined || clientId === null)
       throw new Error("The parameter 'clientId' must be defined.");
-    url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{clientId}', encodeURIComponent('' + clientId));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {
-        Accept: "text/plain",
+        Accept: 'text/plain',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7564,11 +7572,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processResetClientSecret(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7581,11 +7589,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user",
+        'A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7593,19 +7601,19 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200),
+        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7624,28 +7632,28 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public updateRuleset(
     params: UsersUpdateRulesetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id, body } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/settings/ruleset';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     const content_ = JSON.stringify(body);
 
     let options_: AxiosRequestConfig = {
       data: content_,
-      method: "PATCH",
+      method: 'PATCH',
       url: url_,
       headers: {
-        "Content-Type": "application/json-patch+json",
+        'Content-Type': 'application/json-patch+json',
       },
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7662,11 +7670,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processUpdateRuleset(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7679,11 +7687,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -7691,28 +7699,28 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The operation was not successful",
+        'The operation was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 
@@ -7730,23 +7738,23 @@ export class UsersWrapper extends OtrApiWrapperBase {
    */
   public syncRuleset(
     params: UsersSyncRulesetRequestParams,
-    cancelToken?: CancelToken,
+    cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
     const { id } = params;
 
-    let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset:sync";
+    let url_ = this.baseUrl + '/api/v1/users/{id}/settings/ruleset:sync';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace("{id}", encodeURIComponent("" + id));
-    url_ = url_.replace(/[?&]$/, "");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
-      method: "POST",
+      method: 'POST',
       url: url_,
       headers: {},
       cancelToken,
+      requiresAuthorization: true,
     };
-    (options_ as any).requiresAuth = true;
 
     return this.instance
       .request(options_)
@@ -7763,11 +7771,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
   }
 
   protected processSyncRuleset(
-    response: AxiosResponse,
+    response: AxiosResponse
   ): Promise<OtrApiResponse<void>> {
     const status = response.status;
     let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
+    if (response.headers && typeof response.headers === 'object') {
       for (const k in response.headers) {
         if (response.headers.hasOwnProperty(k)) {
           _headers[k] = response.headers[k];
@@ -7780,11 +7788,11 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData404 = _responseText;
       result404 = JSON.parse(resultData404);
       return throwException(
-        "A user matching the given id does not exist",
+        'A user matching the given id does not exist',
         status,
         _responseText,
         _headers,
-        result404,
+        result404
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -7792,28 +7800,28 @@ export class UsersWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        "The operation was not successful",
+        'The operation was not successful',
         status,
         _responseText,
         _headers,
-        result400,
+        result400
       );
     } else if (status === 200) {
       const _responseText = response.data;
       return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any),
+        new OtrApiResponse<void>(status, _headers, null as any)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
-        "An unexpected server error occurred.",
+        'An unexpected server error occurred.',
         status,
         _responseText,
-        _headers,
+        _headers
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any),
+      new OtrApiResponse(status, _headers, null as any)
     );
   }
 }
@@ -7821,13 +7829,13 @@ export class UsersWrapper extends OtrApiWrapperBase {
 /** Represents access credentials and their expiry */
 export interface AccessCredentialsDTO {
   /** Access token */
-  accessToken?: string | undefined;
+  accessToken: string;
   /** Refresh token */
-  refreshToken?: string | undefined;
+  refreshToken: string;
   /** Lifetime of the access token in seconds */
-  accessExpiration?: number | undefined;
-  /** Lifetime of the refresh token in seconds */
-  refreshExpiration?: number | undefined;
+  expiresIn: number;
+  /** Token type */
+  tokenType: string;
 }
 
 /** Represents a note for an entity created by an admin */
@@ -7893,7 +7901,7 @@ A top-score is 1, bottom score would be team size * 2 */
 /** The possible authorization policies enforced on a route. Authorization policies differ from Roles as they may require special conditions to be satisfied. See the description of a policy for more information. */
 export enum AuthorizationPolicies {
   /** Policy that allows access from the user that owns the resource as well as any admin users */
-  AccessUserResources = "AccessUserResources",
+  AccessUserResources = 'AccessUserResources',
 }
 
 /** Represents a beatmap's attributes */
@@ -7983,13 +7991,27 @@ export interface CreatedResultBaseDTO {
 }
 
 export enum FilteringFailReason {
+  /** The player passed filtering, thus there is no failure reason */
   None = 0,
+  /** The player does not have a rating / profile in the o!TR database */
   NoData = 1,
+  /** The player's rating is below the minimum threshold */
   MinRating = 2,
+  /** The player's rating is above the maximum threshold */
   MaxRating = 4,
+  /**
+   * The player is provisional and the filtering criteria specifies
+   * exclusion of provisional players
+   */
   IsProvisional = 8,
+  /**
+   * The player has not played in the minimum specified
+   * amount of tournaments
+   */
   NotEnoughTournaments = 16,
+  /** The player's all-time peak rating is above the maximum allowed */
   PeakRatingTooHigh = 32,
+  /** The player has not played in the minimum specified amount of matches */
   NotEnoughMatches = 64,
 }
 
@@ -8017,7 +8039,9 @@ this many matches */
 }
 
 export enum FilteringResult {
+  /** Indicates the player passed filtering */
   Pass = 0,
+  /** Indicates the player failed filtering */
   Fail = 1,
 }
 
@@ -8073,24 +8097,61 @@ export interface GameDTO {
 }
 
 export enum GameProcessingStatus {
+  /** The !:Database.Entities.Game needs automation checks */
   NeedsAutomationChecks = 0,
+  /**
+   * The !:Database.Entities.Game is awaiting verification from a
+   * !:Database.Entities.User with verifier permission
+   */
   NeedsVerification = 1,
+  /**
+   * The !:Database.Entities.Game needs stat calculation
+   *
+   * Generates the !:Database.Entities.GameRoster
+   */
   NeedsStatCalculation = 2,
+  /** The !:Database.Entities.Game has completed all processing steps */
   Done = 3,
 }
 
 export enum GameRejectionReason {
+  /** The !:Database.Entities.Game is not rejected */
   None = 0,
+  /** The !:Database.Entities.Game's osu! API data did not contain any !:Database.Entities.GameScores */
   NoScores = 1,
+  /** The !:Database.Entities.Game has invalid mods applied */
   InvalidMods = 2,
+  /** The !:Database.Entities.Game's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
   RulesetMismatch = 4,
+  /** The !:Database.Entities.Game's Common.Enums.Enums.ScoringType is not Common.Enums.Enums.ScoringType.ScoreV2 */
   InvalidScoringType = 8,
+  /** The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs */
   InvalidTeamType = 16,
+  /**
+   * The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs
+   * and attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful
+   */
   FailedTeamVsConversion = 32,
+  /**
+   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus
+   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is < 2
+   */
   NoValidScores = 64,
+  /**
+   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus
+   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
+   * not equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament
+   */
   LobbySizeMismatch = 128,
+  /** The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined */
   NoEndTime = 256,
+  /** The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected */
   RejectedMatch = 512,
+  /**
+   * The !:Database.Entities.Tournament has a known collection of PooledBeatmaps
+   * and the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present
+   * in said collection
+   */
   BeatmapNotPooled = 1024,
 }
 
@@ -8151,7 +8212,13 @@ export interface GameScoreDTO {
 }
 
 export enum GameWarningFlags {
+  /** The !:Database.Entities.Game has no warnings */
   None = 0,
+  /**
+   * If the parent !:Database.Entities.Tournament does not have a submitted pool of
+   * !:Database.Entities.Beatmaps, and the !:Database.Entities.Game's !:Database.Entities.Game.Beatmap
+   * is played only once throughout the entire !:Database.Entities.Tournament
+   */
   BeatmapUsedOnce = 1,
 }
 
@@ -8233,31 +8300,75 @@ export interface MatchDTO extends MatchCompactDTO {
 }
 
 export enum MatchProcessingStatus {
+  /** The !:Database.Entities.Match needs data requested from the osu! API */
   NeedsData = 0,
+  /** The !:Database.Entities.Match needs automation checks */
   NeedsAutomationChecks = 1,
+  /**
+   * The !:Database.Entities.Match is awaiting verification from a
+   * !:Database.Entities.User with verifier permission
+   */
   NeedsVerification = 2,
+  /**
+   * The !:Database.Entities.Match needs stat calculation
+   *
+   * Generates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats
+   */
   NeedsStatCalculation = 3,
+  /**
+   * The !:Database.Entities.Match is awaiting rating processor data
+   *
+   * Generates all !:Database.Entities.Processor.RatingAdjustments
+   */
   NeedsRatingProcessorData = 4,
+  /** The !:Database.Entities.Match has completed all processing steps */
   Done = 5,
 }
 
 export enum MatchQuerySortType {
+  /** Sort by primary key */
   Id = 0,
+  /** Sort by osu! id */
   OsuId = 1,
+  /** Sort by start time */
   StartTime = 2,
+  /** Sort by end time */
   EndTime = 3,
+  /** Sort by creation date */
   Created = 4,
 }
 
 export enum MatchRejectionReason {
+  /** The !:Database.Entities.Match is not rejected */
   None = 0,
+  /** The osu! API returned invalid data or no data for the !:Database.Entities.Match */
   NoData = 1,
+  /** The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match */
   NoGames = 2,
+  /**
+   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the
+   * parent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation
+   */
   NamePrefixMismatch = 4,
+  /**
+   * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.Enums.TeamType.TeamVs
+   * conversion and attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful
+   */
   FailedTeamVsConversion = 8,
+  /**
+   * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus
+   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified
+   */
   NoValidGames = 16,
+  /**
+   * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus
+   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is not an odd number
+   * (does not satisfy "best of X")
+   */
   UnexpectedGameCount = 32,
+  /** The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined */
   NoEndTime = 64,
+  /** The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected */
   RejectedTournament = 128,
 }
 
@@ -8288,48 +8399,162 @@ export interface MatchSubmissionStatusDTO {
 }
 
 export enum MatchWarningFlags {
+  /** The !:Database.Entities.Match has no warnings */
   None = 0,
+  /**
+   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament
+   * lobby title conventions
+   */
   UnexpectedNameFormat = 1,
+  /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
   LowGameCount = 2,
+  /**
+   * The !:Match has 1 or more !:Games with a Common.Enums.Enums.Verification.GameRejectionReason
+   * of Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games
+   */
   UnexpectedBeatmapsFound = 4,
 }
 
 export enum Mods {
+  /** No mods enabled */
   None = 0,
+  /** No fail (NF) */
   NoFail = 1,
+  /** Easy (EZ) */
   Easy = 2,
+  /** Touch Device (TD) */
   TouchDevice = 4,
+  /** Hidden (HD) */
   Hidden = 8,
+  /** Hard Rock (HR) */
   HardRock = 16,
+  /** Sudden Death (SD) */
   SuddenDeath = 32,
+  /** Double Time (DT) */
   DoubleTime = 64,
+  /** Relax (RX) */
   Relax = 128,
+  /** Half Time (HT) */
   HalfTime = 256,
+  /**
+   * Nightcore (NC)
+   *
+   * Only set along with DoubleTime. i.e: NC only gives 576
+   */
   Nightcore = 512,
+  /** Flashlight (FL) */
   Flashlight = 1024,
+  /** Autoplay (AT) */
   Autoplay = 2048,
+  /** Spun Out (SO) */
   SpunOut = 4096,
+  /**
+   * Autopilot (AP)
+   *
+   * Autopilot
+   */
   Relax2 = 8192,
+  /**
+   * Perfect (PF)
+   *
+   * Only set along with Common.Enums.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
+   */
   Perfect = 16384,
+  /**
+   * 4 key (4K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   InvalidMods = 22688,
+  /**
+   * 5 key (5K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key4 = 32768,
+  /**
+   * 6 key (6K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key5 = 65536,
+  /**
+   * 7 key (7K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key6 = 131072,
+  /**
+   * 8 key (8K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key7 = 262144,
+  /**
+   * Fade In (FI)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key8 = 524288,
+  /**
+   * Random (RD)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   FadeIn = 1048576,
+  /** Cinema (CM) */
   ScoreIncreaseMods = 1049688,
+  /** Target Practice (TP) */
   Random = 2097152,
+  /**
+   * 9 Key (9K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Cinema = 4194304,
+  /**
+   * Co-op (CO)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Target = 8388608,
+  /**
+   * 1 Key (1K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key9 = 16777216,
+  /**
+   * 3 Key (3K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   KeyCoop = 33554432,
+  /**
+   * 2 Key (2K)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key1 = 67108864,
+  /** Score v2 (SV2) */
   Key3 = 134217728,
+  /**
+   * Mirror (MR)
+   *
+   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   */
   Key2 = 268435456,
+  /**
+   * Denotes mods that are Common.Enums.Enums.Ruleset.ManiaOther key modifiers
+   *
+   * See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
+   */
   KeyMod = 521109504,
+  /** Denotes mods that are available to use during Free Mod settings */
   FreeModAllowed = 522171579,
+  /** Denotes mods that directly impose a modifier on score */
   ScoreV2 = 536870912,
+  /** Denotes mods that are ineligible for ratings */
   Mirror = 1073741824,
 }
 
@@ -8361,12 +8586,19 @@ export interface Operation extends OperationBase {
 }
 
 export enum OperationType {
+  /**  */
   Add = 0,
+  /**  */
   Remove = 1,
+  /**  */
   Replace = 2,
+  /**  */
   Move = 3,
+  /**  */
   Copy = 4,
+  /**  */
   Test = 5,
+  /**  */
   Invalid = 6,
 }
 
@@ -8592,65 +8824,102 @@ export interface RatingAdjustmentDTO {
 }
 
 export enum RatingAdjustmentType {
+  /** The !:Database.Entities.Processor.RatingAdjustment is the initial rating */
   Initial = 0,
+  /** The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay) */
   Decay = 1,
+  /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match */
   Match = 2,
 }
 
 /** The possible roles assignable to a user or client */
 export enum Roles {
   /** Role granted to all users. */
-  User = "user",
+  User = 'user',
   /** Role granted to all clients. */
-  Client = "client",
+  Client = 'client',
   /** Role granted to privileged users. */
-  Admin = "admin",
+  Admin = 'admin',
   /** Role granted to users with permission to verify submission data. */
-  Verifier = "verifier",
+  Verifier = 'verifier',
   /** Role granted to users with permission to submit tournament data. */
-  Submit = "submit",
+  Submit = 'submit',
   /** Role granted to users and clients to allow access during times of restricted use. */
-  Whitelist = "whitelist",
+  Whitelist = 'whitelist',
 }
 
 export enum Ruleset {
+  /** osu! (standard) */
   Osu = 0,
+  /** osu! Taiko */
   Taiko = 1,
+  /** osu! Catch (aka Fruits) */
   Catch = 2,
+  /**
+   * osu! Mania
+   *
+   * Encompasses all of the osu!mania ruleset and represents a ruleset that has
+   * not yet been identified as either Common.Enums.Enums.Ruleset.Mania4k or Common.Enums.Enums.Ruleset.Mania7k
+   */
   ManiaOther = 3,
+  /** osu! Mania 4k variant */
   Mania4k = 4,
+  /** osu! Mania 7k variant */
   Mania7k = 5,
 }
 
 export enum ScoreGrade {
+  /** 100% accuracy with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight */
   SSH = 0,
+  /** Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight */
   SH = 1,
+  /** 100% accuracy */
   SS = 2,
+  /** Over 90% 300s, less than 1% 50s and no misses */
   S = 3,
+  /** Over 80% 300s and no misses OR over 90% 300s */
   A = 4,
+  /** Over 70% 300s and no misses OR over 80% 300s */
   B = 5,
+  /** Over 60% 300s */
   C = 6,
+  /** Anything else */
   D = 7,
 }
 
 export enum ScoreProcessingStatus {
+  /** The !:Database.Entities.GameScore needs automation checks */
   NeedsAutomationChecks = 0,
+  /**
+   * The !:Database.Entities.GameScore is awaiting verification from a
+   * !:Database.Entities.User with verifier permission
+   */
   NeedsVerification = 1,
+  /** The !:Database.Entities.GameScore has completed all processing steps */
   Done = 2,
 }
 
 export enum ScoreRejectionReason {
+  /** The !:Database.Entities.GameScore is not rejected */
   None = 0,
+  /** The !:Database.Entities.GameScore's !:Database.Entities.GameScore.Score is below the minimum threshold */
   ScoreBelowMinimum = 1,
+  /** The !:Database.Entities.GameScore was set with any Common.Enums.Enums.Mods.InvalidMods */
   InvalidMods = 2,
+  /** The !:Database.Entities.GameScore's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
   RulesetMismatch = 4,
+  /** The !:Database.Entities.Game the !:Database.Entities.GameScore was set in was rejected */
   RejectedGame = 8,
 }
 
 export enum ScoringType {
+  /** Scoring based on Score v1 */
   Score = 0,
+  /** Scoring based on accuracy */
   Accuracy = 1,
+  /** Scoring based on combo */
   Combo = 2,
+  /** Scoring based on Score v2 */
   ScoreV2 = 3,
 }
 
@@ -8665,15 +8934,26 @@ export interface SearchResponseCollectionDTO {
 }
 
 export enum Team {
+  /** No team */
   NoTeam = 0,
+  /** Team blue */
   Blue = 1,
+  /** Team red */
   Red = 2,
 }
 
 export enum TeamType {
+  /** Free for all */
   HeadToHead = 0,
+  /**
+   * Free for all (Tag format)
+   *
+   * All players play tag on the same beatmap
+   */
   TagCoop = 1,
+  /** Team red vs team blue */
   TeamVs = 2,
+  /** Team red vs team blue (Tag format) */
   TagTeamVs = 3,
 }
 
@@ -8730,30 +9010,94 @@ export interface TournamentDTO extends TournamentCompactDTO {
 }
 
 export enum TournamentProcessingStatus {
+  /**
+   * The !:Database.Entities.Tournament is awaiting approval from a
+   * !:Database.Entities.User with verifier permission
+   *
+   * Functions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament
+   * will advance through the processing flow until approved.
+   */
   NeedsApproval = 0,
+  /**
+   * The !:Database.Entities.Tournament has !:Database.Entities.Matches with a
+   * Common.Enums.Enums.Verification.MatchProcessingStatus of Common.Enums.Enums.Verification.MatchProcessingStatus.NeedsData
+   */
   NeedsMatchData = 1,
+  /** The !:Database.Entities.Tournament needs automation checks */
   NeedsAutomationChecks = 2,
+  /**
+   * The !:Database.Entities.Tournament is awaiting verification from a
+   * !:Database.Entities.User with verifier permission
+   */
   NeedsVerification = 3,
+  /** The !:Database.Entities.Tournament needs stat calculation */
   NeedsStatCalculation = 4,
+  /** The tournament has completed all processing steps */
   Done = 5,
 }
 
 export enum TournamentQuerySortType {
+  /** Sort by primary key */
   Id = 0,
+  /** Sort by start date */
   StartTime = 1,
+  /** Sort by end date */
   EndTime = 2,
+  /** Sort by name */
   SearchQueryRelevance = 3,
+  /** Sort by created date */
   Created = 4,
+  /** Sort by lobby size */
   LobbySize = 5,
 }
 
 export enum TournamentRejectionReason {
+  /** The !:Database.Entities.Tournament is not rejected */
   None = 0,
+  /**
+   * The !:Database.Entities.Tournament has no !:Database.Entities.Tournament.Matches with a
+   * Common.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified
+   */
   NoVerifiedMatches = 1,
+  /**
+   * The !:Database.Entities.Tournament's number of !:Database.Entities.Tournament.Matches with a
+   * Common.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or
+   * Common.Enums.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
+   */
   NotEnoughVerifiedMatches = 2,
+  /**
+   * The !:Database.Entities.Tournament's win condition is not Common.Enums.Enums.ScoringType.ScoreV2
+   *
+   * Only assigned via a "rejected submission".
+   *
+   * Covers cases such as gimmicky win conditions, mixed win conditions, etc
+   */
   AbnormalWinCondition = 4,
+  /**
+   * The !:Database.Entities.Tournament's format is not suitable for ratings
+   *
+   * Only assigned via a "rejected submission".
+   *
+   * Covers cases such as excessive gimmicks, relax, multiple modes, etc
+   */
   AbnormalFormat = 8,
+  /**
+   * The !:Database.Entities.Tournament's lobby sizes are not consistent.
+   *
+   * Only assigned via a "rejected submission".
+   *
+   * Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc
+   */
   VaryingLobbySize = 16,
+  /**
+   * The !:Database.Entities.Tournament's data is incomplete or not recoverable
+   * Covers cases where match links are lost to time, private,
+   * main sheet is deleted, missing rounds, etc.
+   *
+   * Only assigned via a "rejected submission".
+   *
+   * Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc
+   */
   IncompleteData = 32,
 }
 
@@ -8819,10 +9163,15 @@ export interface UserSettingsDTO {
 }
 
 export enum VerificationStatus {
+  /** Verification status has not yet been assigned */
   None = 0,
+  /** The Data Worker has identified an issue during processing */
   PreRejected = 1,
+  /** The Data Worker has not identified any issues during processing */
   PreVerified = 2,
+  /** Determined to be unfit for ratings by manual review */
   Rejected = 3,
+  /** Determined to be fit for ratings by manual review */
   Verified = 4,
 }
 
@@ -8834,7 +9183,7 @@ export class OtrApiResponse<TResult> {
   constructor(
     status: number,
     headers: { [key: string]: any },
-    result: TResult,
+    result: TResult
   ) {
     this.status = status;
     this.headers = headers;
@@ -8854,7 +9203,7 @@ export class OtrApiError extends Error {
     status: number,
     response: string,
     headers: { [key: string]: any },
-    result: any,
+    result: any
   ) {
     super();
 
@@ -8877,7 +9226,7 @@ function throwException(
   status: number,
   response: string,
   headers: { [key: string]: any },
-  result?: any,
+  result?: any
 ): any {
   if (result !== null && result !== undefined) throw result;
   else throw new OtrApiError(message, status, response, headers, null);
@@ -8885,6 +9234,15 @@ function throwException(
 
 function isAxiosError(obj: any): obj is AxiosError {
   return obj && obj.isAxiosError === true;
+}
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /**
+     * Denotes if the route requires authorization to access
+     */
+    requiresAuthorization?: boolean;
+  }
 }
 
 /** Configuration required for o!TR API Wrappers */
@@ -8898,3 +9256,19 @@ export interface IOtrApiWrapperConfiguration {
   /** Function to configure the inner axios client after creation . Called during creation of the wrapper */
   postConfigureClientMethod?: (instance: AxiosInstance) => void;
 }
+
+const defaultAxiosClientConfiguration: CreateAxiosDefaults = {
+  transitional: {
+    forcedJSONParsing: false,
+    silentJSONParsing: false,
+  },
+};
+
+/** Default configuration used to create wrapper instances */
+export const defaults: IOtrApiWrapperConfiguration = {
+  baseUrl: 'https://otr.stagec.xyz',
+
+  clientConfiguration: defaultAxiosClientConfiguration,
+
+  postConfigureClientMethod: undefined,
+};

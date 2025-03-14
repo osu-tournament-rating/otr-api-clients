@@ -3086,17 +3086,36 @@
         ],
         "summary": "Authorize using an osu! authorization code",
         "operationId": "OAuth_authorize",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "query",
-            "description": "osu! authorization code",
-            "required": true,
-            "schema": {
-              "type": "string"
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "code",
+                  "code_verifier"
+                ],
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "osu! authorization code"
+                  },
+                  "code_verifier": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "code": {
+                  "style": "form"
+                },
+                "code_verifier": {
+                  "style": "form"
+                }
+              }
             }
           }
-        ],
+        },
         "responses": {
           "401": {
             "description": "There was an error during authorization",
@@ -6180,29 +6199,30 @@
   "components": {
     "schemas": {
       "AccessCredentialsDTO": {
+        "required": [
+          "accessToken",
+          "expiresIn",
+          "refreshToken",
+          "tokenType"
+        ],
         "type": "object",
         "properties": {
           "accessToken": {
             "type": "string",
-            "description": "Access token",
-            "nullable": true
+            "description": "Access token"
           },
           "refreshToken": {
             "type": "string",
-            "description": "Refresh token",
-            "nullable": true
+            "description": "Refresh token"
           },
-          "accessExpiration": {
+          "expiresIn": {
             "type": "integer",
             "description": "Lifetime of the access token in seconds",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           },
-          "refreshExpiration": {
-            "type": "integer",
-            "description": "Lifetime of the refresh token in seconds",
-            "format": "int32",
-            "nullable": true
+          "tokenType": {
+            "type": "string",
+            "description": "Token type"
           }
         },
         "additionalProperties": false,
@@ -6683,14 +6703,14 @@
           "NotEnoughMatches"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The player passed filtering, thus there is no failure reason",
+          "The player does not have a rating / profile in the o!TR database",
+          "The player's rating is below the minimum threshold",
+          "The player's rating is above the maximum threshold",
+          "The player is provisional and the filtering criteria specifies\r\nexclusion of provisional players",
+          "The player has not played in the minimum specified\r\namount of tournaments",
+          "The player's all-time peak rating is above the maximum allowed",
+          "The player has not played in the minimum specified amount of matches"
         ]
       },
       "FilteringRequestDTO": {
@@ -6779,8 +6799,8 @@
           "Fail"
         ],
         "x-enumDescriptions": [
-          "",
-          ""
+          "Indicates the player passed filtering",
+          "Indicates the player failed filtering"
         ]
       },
       "FilteringResultDTO": {
@@ -6979,10 +6999,10 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Game needs automation checks",
+          "The !:Database.Entities.Game is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
+          "The !:Database.Entities.Game needs stat calculation\n\nGenerates the !:Database.Entities.GameRoster",
+          "The !:Database.Entities.Game has completed all processing steps"
         ]
       },
       "GameRejectionReason": {
@@ -7018,18 +7038,18 @@
           "BeatmapNotPooled"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Game is not rejected",
+          "The !:Database.Entities.Game's osu! API data did not contain any !:Database.Entities.GameScores",
+          "The !:Database.Entities.Game has invalid mods applied",
+          "The !:Database.Entities.Game's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament",
+          "The !:Database.Entities.Game's Common.Enums.Enums.ScoringType is not Common.Enums.Enums.ScoringType.ScoreV2",
+          "The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs",
+          "The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs\r\nand attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful",
+          "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is < 2",
+          "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament",
+          "The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined",
+          "The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected",
+          "The !:Database.Entities.Tournament has a known collection of PooledBeatmaps\r\nand the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present\r\nin said collection"
         ]
       },
       "GameRosterDTO": {
@@ -7254,8 +7274,8 @@
           "BeatmapUsedOnce"
         ],
         "x-enumDescriptions": [
-          "",
-          ""
+          "The !:Database.Entities.Game has no warnings",
+          "If the parent !:Database.Entities.Tournament does not have a submitted pool of\r\n!:Database.Entities.Beatmaps, and the !:Database.Entities.Game's !:Database.Entities.Game.Beatmap\r\nis played only once throughout the entire !:Database.Entities.Tournament"
         ]
       },
       "HttpValidationProblemDetails": {
@@ -7526,12 +7546,12 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Match needs data requested from the osu! API",
+          "The !:Database.Entities.Match needs automation checks",
+          "The !:Database.Entities.Match is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
+          "The !:Database.Entities.Match needs stat calculation\n\nGenerates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats",
+          "The !:Database.Entities.Match is awaiting rating processor data\n\nGenerates all !:Database.Entities.Processor.RatingAdjustments",
+          "The !:Database.Entities.Match has completed all processing steps"
         ]
       },
       "MatchQuerySortType": {
@@ -7552,11 +7572,11 @@
           "Created"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          ""
+          "Sort by primary key",
+          "Sort by osu! id",
+          "Sort by start time",
+          "Sort by end time",
+          "Sort by creation date"
         ]
       },
       "MatchRejectionReason": {
@@ -7586,15 +7606,15 @@
           "RejectedTournament"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Match is not rejected",
+          "The osu! API returned invalid data or no data for the !:Database.Entities.Match",
+          "The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match",
+          "The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the\r\nparent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation",
+          "The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.Enums.TeamType.TeamVs\r\nconversion and attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful",
+          "The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified",
+          "The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\")",
+          "The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined",
+          "The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected"
         ]
       },
       "MatchSearchResultDTO": {
@@ -7687,10 +7707,10 @@
           "UnexpectedBeatmapsFound"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Match has no warnings",
+          "The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
+          "The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4",
+          "The !:Match has 1 or more !:Games with a Common.Enums.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games"
         ]
       },
       "Mods": {
@@ -7774,42 +7794,42 @@
           "Mirror"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "No mods enabled",
+          "No fail (NF)",
+          "Easy (EZ)",
+          "Touch Device (TD)",
+          "Hidden (HD)",
+          "Hard Rock (HR)",
+          "Sudden Death (SD)",
+          "Double Time (DT)",
+          "Relax (RX)",
+          "Half Time (HT)",
+          "Nightcore (NC)\n\nOnly set along with DoubleTime. i.e: NC only gives 576",
+          "Flashlight (FL)",
+          "Autoplay (AT)",
+          "Spun Out (SO)",
+          "Autopilot (AP)\n\nAutopilot",
+          "Perfect (PF)\n\nOnly set along with Common.Enums.Enums.Mods.SuddenDeath. i.e: PF only gives 16416",
+          "4 key (4K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "5 key (5K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "6 key (6K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "7 key (7K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "8 key (8K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Fade In (FI)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Random (RD)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Cinema (CM)",
+          "Target Practice (TP)",
+          "9 Key (9K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Co-op (CO)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "1 Key (1K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "3 Key (3K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "2 Key (2K)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Score v2 (SV2)",
+          "Mirror (MR)\n\nApplicable only to Common.Enums.Enums.Ruleset.ManiaOther",
+          "Denotes mods that are Common.Enums.Enums.Ruleset.ManiaOther key modifiers\n\nSee https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK",
+          "Denotes mods that are available to use during Free Mod settings",
+          "Denotes mods that directly impose a modifier on score",
+          "Denotes mods that are ineligible for ratings"
         ]
       },
       "OAuthClientCreatedDTO": {
@@ -7924,15 +7944,6 @@
           "Copy",
           "Test",
           "Invalid"
-        ],
-        "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
         ]
       },
       "Operation`1": {
@@ -8662,9 +8673,9 @@
           "Match"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Processor.RatingAdjustment is the initial rating",
+          "The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay)",
+          "The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match"
         ]
       },
       "Roles": {
@@ -8715,12 +8726,12 @@
           "Mania7k"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "osu! (standard)",
+          "osu! Taiko",
+          "osu! Catch (aka Fruits)",
+          "osu! Mania\n\nEncompasses all of the osu!mania ruleset and represents a ruleset that has\r\nnot yet been identified as either Common.Enums.Enums.Ruleset.Mania4k or Common.Enums.Enums.Ruleset.Mania7k",
+          "osu! Mania 4k variant",
+          "osu! Mania 7k variant"
         ]
       },
       "ScoreGrade": {
@@ -8747,14 +8758,14 @@
           "D"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "100% accuracy with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight",
+          "Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight",
+          "100% accuracy",
+          "Over 90% 300s, less than 1% 50s and no misses",
+          "Over 80% 300s and no misses OR over 90% 300s",
+          "Over 70% 300s and no misses OR over 80% 300s",
+          "Over 60% 300s",
+          "Anything else"
         ]
       },
       "ScoreProcessingStatus": {
@@ -8771,9 +8782,9 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          ""
+          "The !:Database.Entities.GameScore needs automation checks",
+          "The !:Database.Entities.GameScore is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
+          "The !:Database.Entities.GameScore has completed all processing steps"
         ]
       },
       "ScoreRejectionReason": {
@@ -8795,11 +8806,11 @@
           "RejectedGame"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.GameScore is not rejected",
+          "The !:Database.Entities.GameScore's !:Database.Entities.GameScore.Score is below the minimum threshold",
+          "The !:Database.Entities.GameScore was set with any Common.Enums.Enums.Mods.InvalidMods",
+          "The !:Database.Entities.GameScore's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament",
+          "The !:Database.Entities.Game the !:Database.Entities.GameScore was set in was rejected"
         ]
       },
       "ScoringType": {
@@ -8818,10 +8829,10 @@
           "ScoreV2"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          ""
+          "Scoring based on Score v1",
+          "Scoring based on accuracy",
+          "Scoring based on combo",
+          "Scoring based on Score v2"
         ]
       },
       "SearchResponseCollectionDTO": {
@@ -8871,9 +8882,9 @@
           "Red"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          ""
+          "No team",
+          "Team blue",
+          "Team red"
         ]
       },
       "TeamType": {
@@ -8892,10 +8903,10 @@
           "TagTeamVs"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          ""
+          "Free for all",
+          "Free for all (Tag format)\n\nAll players play tag on the same beatmap",
+          "Team red vs team blue",
+          "Team red vs team blue (Tag format)"
         ]
       },
       "TournamentCompactDTO": {
@@ -9099,12 +9110,12 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Tournament is awaiting approval from a\r\n!:Database.Entities.User with verifier permission\n\nFunctions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament\r\nwill advance through the processing flow until approved.",
+          "The !:Database.Entities.Tournament has !:Database.Entities.Matches with a\r\nCommon.Enums.Enums.Verification.MatchProcessingStatus of Common.Enums.Enums.Verification.MatchProcessingStatus.NeedsData",
+          "The !:Database.Entities.Tournament needs automation checks",
+          "The !:Database.Entities.Tournament is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
+          "The !:Database.Entities.Tournament needs stat calculation",
+          "The tournament has completed all processing steps"
         ]
       },
       "TournamentQuerySortType": {
@@ -9127,12 +9138,12 @@
           "LobbySize"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "Sort by primary key",
+          "Sort by start date",
+          "Sort by end date",
+          "Sort by name",
+          "Sort by created date",
+          "Sort by lobby size"
         ]
       },
       "TournamentRejectionReason": {
@@ -9158,13 +9169,13 @@
           "IncompleteData"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          ""
+          "The !:Database.Entities.Tournament is not rejected",
+          "The !:Database.Entities.Tournament has no !:Database.Entities.Tournament.Matches with a\r\nCommon.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified",
+          "The !:Database.Entities.Tournament's number of !:Database.Entities.Tournament.Matches with a\r\nCommon.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or\r\nCommon.Enums.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total",
+          "The !:Database.Entities.Tournament's win condition is not Common.Enums.Enums.ScoringType.ScoreV2\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as gimmicky win conditions, mixed win conditions, etc",
+          "The !:Database.Entities.Tournament's format is not suitable for ratings\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as excessive gimmicks, relax, multiple modes, etc",
+          "The !:Database.Entities.Tournament's lobby sizes are not consistent.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc",
+          "The !:Database.Entities.Tournament's data is incomplete or not recoverable\r\nCovers cases where match links are lost to time, private,\r\nmain sheet is deleted, missing rounds, etc.\n\nOnly assigned via a \"rejected submission\". \n\r\nCovers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc"
         ]
       },
       "TournamentSearchResultDTO": {
@@ -9382,11 +9393,11 @@
           "Verified"
         ],
         "x-enumDescriptions": [
-          "",
-          "",
-          "",
-          "",
-          ""
+          "Verification status has not yet been assigned",
+          "The Data Worker has identified an issue during processing",
+          "The Data Worker has not identified any issues during processing",
+          "Determined to be unfit for ratings by manual review",
+          "Determined to be fit for ratings by manual review"
         ]
       }
     },

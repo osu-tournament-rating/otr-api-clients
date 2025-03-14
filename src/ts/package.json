@@ -1,14 +1,16 @@
 {
   "name": "@osu-tournament-rating/otr-api-client",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Client code for interacting with the o!TR API",
+  "main": "index.js",
+  "types": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts"
   ],
   "scripts": {
     "build": "tsc",
-    "format": "npx prettier ./index.ts --write"
+    "format": "npx prettier . --write --ignore-unknown"
   },
   "repository": {
     "type": "git",
@@ -24,12 +26,12 @@
     "url": "https://github.com/osu-tournament-rating/otr-api-clients/issues"
   },
   "homepage": "https://github.com/osu-tournament-rating/otr-api-clients#readme",
+  "dependencies": {
+    "axios": "^1.7.7"
+  },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.7",
     "prettier": "3.4.2",
     "typescript": "^5.6.2"
-  },
-  "dependencies": {
-    "axios": "^1.7.7"
   }
 }

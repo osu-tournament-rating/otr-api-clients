@@ -71,10 +71,10 @@
 {%-    if UseAbortSignal -%}
             signal
 {%-     else -%}
-            cancelToken
+            cancelToken,
 {%-     endif -%}
+            requiresAuthorization: {% if operation.ExtensionData.x-requiresAuthorization %}true{% else %}false{% endif %}
         };
-        (options_ as any).requiresAuth = {% if operation.ExtensionData.x-requiresAuthorization %}true{% else %}false{% endif %}
 
 {%     if UseTransformOptionsMethod -%}
         return this.transformOptions(options_).then(transformedOptions_ => {

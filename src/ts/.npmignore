@@ -1,4 +1,5 @@
-node_modules
-tsconfig.json
-*.ts
-.prettierrc
+**/*
+!index.js
+!index.d.ts
+!LICENSE
+!README.md
