@@ -6,6 +6,34 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/notes/{entity}": {
+      "get": {
+        "tags": [
+          "AdminNotes"
+        ],
+        "operationId": "AdminNotes_getNotes",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/AdminNoteRouteTarget"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-requiresAuthorization": false
+      }
+    },
     "/api/v1/beatmaps": {
       "get": {
         "tags": [
@@ -1704,6 +1732,7 @@
           {
             "name": "page",
             "in": "query",
+            "description": "The one-indexed page number",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1715,12 +1744,13 @@
           {
             "name": "pageSize",
             "in": "query",
+            "description": "The number of elements on each page (Minimum 10, maximum 100)",
             "schema": {
               "maximum": 100,
               "minimum": 10,
               "type": "integer",
               "format": "int32",
-              "default": 50
+              "default": 25
             }
           },
           {
@@ -1737,31 +1767,18 @@
             }
           },
           {
-            "name": "chartType",
-            "in": "query",
-            "description": "Defines whether the leaderboard should be global or filtered by country",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/LeaderboardChartType"
-                }
-              ],
-              "default": 0
-            }
-          },
-          {
             "name": "country",
             "in": "query",
-            "description": "An optional country code to filter by (ChartType must be set to Country for this to apply)",
+            "description": "An optional country code to filter by (Returns the global leaderboard if not provided)",
             "schema": {
               "type": "string",
               "default": null
             }
           },
           {
-            "name": "minRank",
+            "name": "minOsuRank",
             "in": "query",
-            "description": "Rank floor (The \"better\" inclusive rank bound.\r\nIf given, only players with a rank greater than or equal to this value will be included)",
+            "description": "osu! rank floor (The \"better\" inclusive rank bound.\r\nIf given, only players with a rank greater than or equal to this value will be included)",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1770,9 +1787,9 @@
             }
           },
           {
-            "name": "maxRank",
+            "name": "maxOsuRank",
             "in": "query",
-            "description": "Rank ceiling (The \"worse\" inclusive rank bound.\r\nIf given, only players with a rank less than or equal to this value will be included)",
+            "description": "osu! rank ceiling (The \"worse\" inclusive rank bound.\r\nIf given, only players with a rank less than or equal to this value will be included)",
             "schema": {
               "maximum": 2147483647,
               "minimum": 1,
@@ -1889,7 +1906,7 @@
           {
             "name": "diamond",
             "in": "query",
-            "description": "Explicitly include emerald players",
+            "description": "Explicitly include diamond players",
             "schema": {
               "type": "boolean"
             }
@@ -6275,6 +6292,10 @@
         "additionalProperties": false,
         "description": "Represents a note for an entity created by an admin"
       },
+      "AdminNoteRouteTarget": {
+        "type": "object",
+        "additionalProperties": false
+      },
       "AggregatePlayerMatchStatsDTO": {
         "required": [
           "averageGamesPlayedAggregate",
@@ -7046,7 +7067,7 @@
           "The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs",
           "The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs\r\nand attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful",
           "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is < 2",
-          "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament",
+          "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus\r\nof Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament\r\nin case of Common.Enums.Enums.TeamType.HeadToHead!:Database.Entities.Games.\r\nIn the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.",
           "The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined",
           "The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected",
           "The !:Database.Entities.Tournament has a known collection of PooledBeatmaps\r\nand the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present\r\nin said collection"
@@ -7300,28 +7321,10 @@
           }
         ]
       },
-      "LeaderboardChartType": {
-        "enum": [
-          0,
-          1
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "Global",
-          "Country"
-        ],
-        "x-enumDescriptions": [
-          "",
-          ""
-        ]
-      },
       "LeaderboardDTO": {
         "required": [
-          "filterDefaults",
           "leaderboard",
-          "ruleset",
-          "totalPlayerCount"
+          "ruleset"
         ],
         "type": "object",
         "properties": {
@@ -7332,45 +7335,11 @@
               }
             ]
           },
-          "totalPlayerCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "filterDefaults": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LeaderboardFilterDefaultsDTO"
-              }
-            ]
-          },
           "leaderboard": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PlayerRatingStatsDTO"
             }
-          }
-        },
-        "additionalProperties": false
-      },
-      "LeaderboardFilterDefaultsDTO": {
-        "required": [
-          "maxMatches",
-          "maxRank",
-          "maxRating"
-        ],
-        "type": "object",
-        "properties": {
-          "maxRank": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maxRating": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxMatches": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -7695,7 +7664,8 @@
           0,
           1,
           2,
-          4
+          4,
+          8
         ],
         "type": "integer",
         "format": "int32",
@@ -7704,13 +7674,15 @@
           "None",
           "UnexpectedNameFormat",
           "LowGameCount",
-          "UnexpectedBeatmapsFound"
+          "UnexpectedBeatmapsFound",
+          "OverlappingRosters"
         ],
         "x-enumDescriptions": [
           "The !:Database.Entities.Match has no warnings",
           "The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
           "The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4",
-          "The !:Match has 1 or more !:Games with a Common.Enums.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games"
+          "The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games",
+          "At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match"
         ]
       },
       "Mods": {
@@ -8294,7 +8266,8 @@
               },
               "isProvisional": {
                 "type": "boolean",
-                "description": "Denotes the current rating as being provisional"
+                "description": "Denotes the current rating as being provisional",
+                "readOnly": true
               }
             },
             "additionalProperties": false
