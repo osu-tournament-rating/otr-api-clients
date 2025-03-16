@@ -45,6 +45,101 @@ export abstract class OtrApiWrapperBase {
 }
 
 /**
+ * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.getNotes | api/v1/notes/[entity]}
+ */
+export type AdminNotesGetNotesRequestParams = {
+  entity: AdminNoteRouteTarget;
+};
+
+export class AdminNotesWrapper extends OtrApiWrapperBase {
+  protected instance: AxiosInstance;
+  protected baseUrl: string;
+  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
+    undefined;
+
+  constructor(configuration: IOtrApiWrapperConfiguration) {
+    super(configuration);
+
+    this.instance = axios.create(this.configuration.clientConfiguration);
+    this.baseUrl = this.getBaseUrl('');
+
+    if (this.configuration.postConfigureClientMethod) {
+      this.configuration.postConfigureClientMethod(this.instance);
+    }
+  }
+
+  /**
+   * Undocumented
+   * @param params Request parameters (see {@link AdminNotesGetNotesRequestParams})
+   * @return OK
+   */
+  public getNotes(
+    params: AdminNotesGetNotesRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { entity } = params;
+
+    let url_ = this.baseUrl + '/api/v1/notes/{entity}';
+    if (entity === undefined || entity === null)
+      throw new Error("The parameter 'entity' must be defined.");
+    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: false,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetNotes(_response);
+      });
+  }
+
+  protected processGetNotes(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+}
+
+/**
  * Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
  */
 export type BeatmapsGetRequestParams = {
@@ -2143,11 +2238,11 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
  */
 export type LeaderboardsGetRequestParams = {
   /**
-   * (optional)
+   * (optional) The one-indexed page number
    */
   page?: number | undefined;
   /**
-   * (optional)
+   * (optional) The number of elements on each page (Minimum 10, maximum 100)
    */
   pageSize?: number | undefined;
   /**
@@ -2155,23 +2250,19 @@ export type LeaderboardsGetRequestParams = {
    */
   ruleset?: Ruleset | undefined;
   /**
-   * (optional) Defines whether the leaderboard should be global or filtered by country
-   */
-  chartType?: LeaderboardChartType | undefined;
-  /**
-   * (optional) An optional country code to filter by (ChartType must be set to Country for this to apply)
+   * (optional) An optional country code to filter by (Returns the global leaderboard if not provided)
    */
   country?: string | undefined;
   /**
-   * (optional) Rank floor (The "better" inclusive rank bound.
+   * (optional) osu! rank floor (The "better" inclusive rank bound.
    * If given, only players with a rank greater than or equal to this value will be included)
    */
-  minRank?: number | undefined;
+  minOsuRank?: number | undefined;
   /**
-   * (optional) Rank ceiling (The "worse" inclusive rank bound.
+   * (optional) osu! rank ceiling (The "worse" inclusive rank bound.
    * If given, only players with a rank less than or equal to this value will be included)
    */
-  maxRank?: number | undefined;
+  maxOsuRank?: number | undefined;
   /**
    * (optional) Rating floor (The "worse" inclusive rating bound.
    * If given, only players with a rating greater than or equal to this value will be included)
@@ -2219,7 +2310,7 @@ export type LeaderboardsGetRequestParams = {
    */
   emerald?: boolean | undefined;
   /**
-   * (optional) Explicitly include emerald players
+   * (optional) Explicitly include diamond players
    */
   diamond?: boolean | undefined;
   /**
@@ -2270,10 +2361,9 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       page,
       pageSize,
       ruleset,
-      chartType,
       country,
-      minRank,
-      maxRank,
+      minOsuRank,
+      maxOsuRank,
       minRating,
       maxRating,
       minMatches,
@@ -2303,22 +2393,18 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
       throw new Error("The parameter 'ruleset' cannot be null.");
     else if (ruleset !== undefined)
       url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (chartType === null)
-      throw new Error("The parameter 'chartType' cannot be null.");
-    else if (chartType !== undefined)
-      url_ += 'chartType=' + encodeURIComponent('' + chartType) + '&';
     if (country === null)
       throw new Error("The parameter 'country' cannot be null.");
     else if (country !== undefined)
       url_ += 'country=' + encodeURIComponent('' + country) + '&';
-    if (minRank === null)
-      throw new Error("The parameter 'minRank' cannot be null.");
-    else if (minRank !== undefined)
-      url_ += 'minRank=' + encodeURIComponent('' + minRank) + '&';
-    if (maxRank === null)
-      throw new Error("The parameter 'maxRank' cannot be null.");
-    else if (maxRank !== undefined)
-      url_ += 'maxRank=' + encodeURIComponent('' + maxRank) + '&';
+    if (minOsuRank === null)
+      throw new Error("The parameter 'minOsuRank' cannot be null.");
+    else if (minOsuRank !== undefined)
+      url_ += 'minOsuRank=' + encodeURIComponent('' + minOsuRank) + '&';
+    if (maxOsuRank === null)
+      throw new Error("The parameter 'maxOsuRank' cannot be null.");
+    else if (maxOsuRank !== undefined)
+      url_ += 'maxOsuRank=' + encodeURIComponent('' + maxOsuRank) + '&';
     if (minRating === null)
       throw new Error("The parameter 'minRating' cannot be null.");
     else if (minRating !== undefined)
@@ -7854,6 +7940,8 @@ export interface AdminNoteDTO {
   note: string;
 }
 
+export interface AdminNoteRouteTarget {}
+
 /** Represents an aggregate of match statistics for a player during a period of time */
 export interface AggregatePlayerMatchStatsDTO {
   /** The player's average match cost during the period */
@@ -8141,6 +8229,8 @@ export enum GameRejectionReason {
    * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus
    * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
    * not equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament
+   * in case of Common.Enums.Enums.TeamType.HeadToHead!:Database.Entities.Games.
+   * In the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.
    */
   LobbySizeMismatch = 128,
   /** The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined */
@@ -8238,22 +8328,9 @@ export interface HttpValidationProblemDetails extends ProblemDetails {
   [key: string]: any;
 }
 
-export enum LeaderboardChartType {
-  Global = 0,
-  Country = 1,
-}
-
 export interface LeaderboardDTO {
   ruleset: Ruleset;
-  totalPlayerCount: number;
-  filterDefaults: LeaderboardFilterDefaultsDTO;
   leaderboard: PlayerRatingStatsDTO[];
-}
-
-export interface LeaderboardFilterDefaultsDTO {
-  maxRank: number;
-  maxRating: number;
-  maxMatches: number;
 }
 
 export interface MatchCompactDTO {
@@ -8409,10 +8486,12 @@ export enum MatchWarningFlags {
   /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
   LowGameCount = 2,
   /**
-   * The !:Match has 1 or more !:Games with a Common.Enums.Enums.Verification.GameRejectionReason
-   * of Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Games
+   * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Enums.Verification.GameRejectionReason
+   * of Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
    */
   UnexpectedBeatmapsFound = 4,
+  /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
+  OverlappingRosters = 8,
 }
 
 export enum Mods {
@@ -8709,7 +8788,7 @@ export interface PlayerRatingStatsDTO extends PlayerRatingDTO {
   /** Rating tier progress information */
   rankProgress?: RankProgressDTO;
   /** Denotes the current rating as being provisional */
-  isProvisional?: boolean;
+  readonly isProvisional?: boolean;
 }
 
 /** Represents a search result for a player for a given ruleset */
