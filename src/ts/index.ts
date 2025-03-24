@@ -45,6 +45,511 @@ export abstract class OtrApiWrapperBase {
 }
 
 /**
+ * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.createNote | api/v1/[entity]/[entityId]/notes}
+ */
+export type AdminNotesCreateNoteRequestParams = {
+  /**
+   * (required) Entity id
+   */
+  entityId: number;
+  /**
+   * (required) Type of entity to target for admin note actions
+   */
+  entity: AdminNoteRouteTarget;
+  /**
+   * (required) Content of the admin note
+   */
+  body: string;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.listNotes | api/v1/[entity]/[entityId]/notes}
+ */
+export type AdminNotesListNotesRequestParams = {
+  /**
+   * (required) Entity id
+   */
+  entityId: number;
+  /**
+   * (required) Type of entity to target for admin note actions
+   */
+  entity: AdminNoteRouteTarget;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.updateNote | api/v1/[entity]/notes/[noteId]}
+ */
+export type AdminNotesUpdateNoteRequestParams = {
+  /**
+   * (required) Admin note id
+   */
+  noteId: number;
+  /**
+   * (required) Type of entity to target for admin note actions
+   */
+  entity: AdminNoteRouteTarget;
+  /**
+   * (required) New content of the admin note
+   */
+  body: string;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.deleteNote | api/v1/[entity]/notes/[noteId]}
+ */
+export type AdminNotesDeleteNoteRequestParams = {
+  /**
+   * (required) Admin note id
+   */
+  noteId: number;
+  /**
+   * (required) Type of entity to target for admin note actions
+   */
+  entity: AdminNoteRouteTarget;
+};
+
+export class AdminNotesWrapper extends OtrApiWrapperBase {
+  protected instance: AxiosInstance;
+  protected baseUrl: string;
+  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
+    undefined;
+
+  constructor(configuration: IOtrApiWrapperConfiguration) {
+    super(configuration);
+
+    this.instance = axios.create(this.configuration.clientConfiguration);
+    this.baseUrl = this.getBaseUrl('');
+
+    if (this.configuration.postConfigureClientMethod) {
+      this.configuration.postConfigureClientMethod(this.instance);
+    }
+  }
+
+  /**
+   * Create an admin note for an entity
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link AdminNotesCreateNoteRequestParams})
+   * @return Returns the created admin note
+   */
+  public createNote(
+    params: AdminNotesCreateNoteRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<AdminNoteDTO>> {
+    const { entityId, entity, body } = params;
+
+    let url_ = this.baseUrl + '/api/v1/{entity}/{entityId}/notes';
+    if (entityId === undefined || entityId === null)
+      throw new Error("The parameter 'entityId' must be defined.");
+    url_ = url_.replace('{entityId}', encodeURIComponent('' + entityId));
+    if (entity === undefined || entity === null)
+      throw new Error("The parameter 'entity' must be defined.");
+    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
+    url_ = url_.replace(/[?&]$/, '');
+
+    const content_ = JSON.stringify(body);
+
+    let options_: AxiosRequestConfig = {
+      data: content_,
+      method: 'POST',
+      url: url_,
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processCreateNote(_response);
+      });
+  }
+
+  protected processCreateNote(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<AdminNoteDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'An entity matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'The authorized user does not exist',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status === 201) {
+      const _responseText = response.data;
+      let result201: any = null;
+      let resultData201 = _responseText;
+      result201 = JSON.parse(resultData201);
+      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result201)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * List admin notes for an entity
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user, client
+   * @param params Request parameters (see {@link AdminNotesListNotesRequestParams})
+   * @return Returns all admin notes for the entity
+   */
+  public listNotes(
+    params: AdminNotesListNotesRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    const { entityId, entity } = params;
+
+    let url_ = this.baseUrl + '/api/v1/{entity}/{entityId}/notes';
+    if (entityId === undefined || entityId === null)
+      throw new Error("The parameter 'entityId' must be defined.");
+    url_ = url_.replace('{entityId}', encodeURIComponent('' + entityId));
+    if (entity === undefined || entity === null)
+      throw new Error("The parameter 'entity' must be defined.");
+    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processListNotes(_response);
+      });
+  }
+
+  protected processListNotes(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'An entity matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
+        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Update an admin note
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link AdminNotesUpdateNoteRequestParams})
+   * @return Returns the updated admin note
+   */
+  public updateNote(
+    params: AdminNotesUpdateNoteRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { noteId, entity, body } = params;
+
+    let url_ = this.baseUrl + '/api/v1/{entity}/notes/{noteId}';
+    if (noteId === undefined || noteId === null)
+      throw new Error("The parameter 'noteId' must be defined.");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    if (entity === undefined || entity === null)
+      throw new Error("The parameter 'entity' must be defined.");
+    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
+    url_ = url_.replace(/[?&]$/, '');
+
+    const content_ = JSON.stringify(body);
+
+    let options_: AxiosRequestConfig = {
+      data: content_,
+      method: 'PATCH',
+      url: url_,
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processUpdateNote(_response);
+      });
+  }
+
+  protected processUpdateNote(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'An admin note matching the given noteId does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'The update was not successful',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status === 201) {
+      const _responseText = response.data;
+      let result201: any = null;
+      let resultData201 = _responseText;
+      result201 = JSON.parse(resultData201);
+      return throwException(
+        'Created',
+        status,
+        _responseText,
+        _headers,
+        result201
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Delete an admin note
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link AdminNotesDeleteNoteRequestParams})
+   * @return The admin note was deleted
+   */
+  public deleteNote(
+    params: AdminNotesDeleteNoteRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { noteId, entity } = params;
+
+    let url_ = this.baseUrl + '/api/v1/{entity}/notes/{noteId}';
+    if (noteId === undefined || noteId === null)
+      throw new Error("The parameter 'noteId' must be defined.");
+    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
+    if (entity === undefined || entity === null)
+      throw new Error("The parameter 'entity' must be defined.");
+    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'DELETE',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDeleteNote(_response);
+      });
+  }
+
+  protected processDeleteNote(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'An admin note matching the given noteId does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'The deletion was not successful',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status === 204) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+}
+
+/**
  * Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
  */
 export type BeatmapsGetRequestParams = {
@@ -565,62 +1070,6 @@ export class FilteringWrapper extends OtrApiWrapperBase {
 }
 
 /**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.createAdminNote | api/v1/games/[id]/notes}
- */
-export type GamesCreateAdminNoteRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.listAdminNotes | api/v1/games/[id]/notes}
- */
-export type GamesListAdminNotesRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-};
-
-/**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.updateAdminNote | api/v1/games/[id]/notes/[noteId]}
- */
-export type GamesUpdateAdminNoteRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.deleteAdminNote | api/v1/games/[id]/notes/[noteId]}
- */
-export type GamesDeleteAdminNoteRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-};
-
-/**
  * Request parameters available for use when requesting {@link GamesWrapper.prototype.get | api/v1/games/[id]}
  */
 export type GamesGetRequestParams = {
@@ -670,408 +1119,6 @@ export class GamesWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
-  }
-
-  /**
-   * Create an admin note for a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GamesCreateAdminNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createAdminNote(
-    params: GamesCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/games/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateAdminNote(_response);
-      });
-  }
-
-  protected processCreateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * List all admin notes from a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link GamesListAdminNotesRequestParams})
-   * @return Returns all admin notes from a game
-   */
-  public listAdminNotes(
-    params: GamesListAdminNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/games/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListAdminNotes(_response);
-      });
-  }
-
-  protected processListAdminNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Update an admin note for a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GamesUpdateAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateAdminNote(
-    params: GamesUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/games/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateAdminNote(_response);
-      });
-  }
-
-  protected processUpdateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete an admin note for a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GamesDeleteAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public deleteAdminNote(
-    params: GamesDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId } = params;
-
-    let url_ = this.baseUrl + '/api/v1/games/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteAdminNote(_response);
-      });
-  }
-
-  protected processDeleteAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 403) {
-      const _responseText = response.data;
-      let result403: any = null;
-      let resultData403 = _responseText;
-      result403 = JSON.parse(resultData403);
-      return throwException(
-        'Forbidden',
-        status,
-        _responseText,
-        _headers,
-        result403
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
   }
 
   /**
@@ -1360,62 +1407,6 @@ export class GamesWrapper extends OtrApiWrapperBase {
 }
 
 /**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.createAdminNote | api/v1/gamescores/[id]/notes}
- */
-export type GameScoresCreateAdminNoteRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.listAdminNotes | api/v1/gamescores/[id]/notes}
- */
-export type GameScoresListAdminNotesRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-};
-
-/**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.updateAdminNote | api/v1/gamescores/[id]/notes/[noteId]}
- */
-export type GameScoresUpdateAdminNoteRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.deleteAdminNote | api/v1/gamescores/[id]/notes/[noteId]}
- */
-export type GameScoresDeleteAdminNoteRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-};
-
-/**
  * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.get | api/v1/gamescores/[id]}
  */
 export type GameScoresGetRequestParams = {
@@ -1461,396 +1452,6 @@ export class GameScoresWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
-  }
-
-  /**
-   * Create an admin note for a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresCreateAdminNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createAdminNote(
-    params: GameScoresCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateAdminNote(_response);
-      });
-  }
-
-  protected processCreateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * List all admin notes for a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link GameScoresListAdminNotesRequestParams})
-   * @return Returns all admin notes from a score
-   */
-  public listAdminNotes(
-    params: GameScoresListAdminNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListAdminNotes(_response);
-      });
-  }
-
-  protected processListAdminNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Update an admin note for a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresUpdateAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateAdminNote(
-    params: GameScoresUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateAdminNote(_response);
-      });
-  }
-
-  protected processUpdateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete an admin note for a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresDeleteAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public deleteAdminNote(
-    params: GameScoresDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId } = params;
-
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteAdminNote(_response);
-      });
-  }
-
-  protected processDeleteAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
   }
 
   /**
@@ -2432,62 +2033,6 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
 }
 
 /**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.createAdminNote | api/v1/matches/[id]/notes}
- */
-export type MatchesCreateAdminNoteRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.listAdminNotes | api/v1/matches/[id]/notes}
- */
-export type MatchesListAdminNotesRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-};
-
-/**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.updateAdminNote | api/v1/matches/[id]/notes/[noteId]}
- */
-export type MatchesUpdateAdminNoteRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.deleteAdminNote | api/v1/matches/[id]/notes/[noteId]}
- */
-export type MatchesDeleteAdminNoteRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-};
-
-/**
  * Request parameters available for use when requesting {@link MatchesWrapper.prototype.list | api/v1/matches}
  */
 export type MatchesListRequestParams = {
@@ -2592,396 +2137,6 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
-  }
-
-  /**
-   * Create an admin note for a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link MatchesCreateAdminNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createAdminNote(
-    params: MatchesCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateAdminNote(_response);
-      });
-  }
-
-  protected processCreateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * List all admin notes from a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link MatchesListAdminNotesRequestParams})
-   * @return Returns all admin notes from a match
-   */
-  public listAdminNotes(
-    params: MatchesListAdminNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListAdminNotes(_response);
-      });
-  }
-
-  protected processListAdminNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Update an admin note for a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link MatchesUpdateAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateAdminNote(
-    params: MatchesUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateAdminNote(_response);
-      });
-  }
-
-  protected processUpdateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete an admin note for a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link MatchesDeleteAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public deleteAdminNote(
-    params: MatchesDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteAdminNote(_response);
-      });
-  }
-
-  protected processDeleteAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
   }
 
   /**
@@ -3551,7 +2706,7 @@ export class MeWrapper extends OtrApiWrapperBase {
   /**
    * Get player stats for the currently logged in user
    *
-   * If no ruleset is provided, the player's default is used. Common.Enums.Enums.Ruleset.Osu is used as a fallback.
+   * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
@@ -4255,62 +3410,6 @@ export class OAuthWrapper extends OtrApiWrapperBase {
 }
 
 /**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.createAdminNote | api/v1/players/[id]/notes}
- */
-export type PlayersCreateAdminNoteRequestParams = {
-  /**
-   * (required) Player id
-   */
-  id: number;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.listAdminNotes | api/v1/players/[id]/notes}
- */
-export type PlayersListAdminNotesRequestParams = {
-  /**
-   * (required) Player id
-   */
-  id: number;
-};
-
-/**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.updateAdminNote | api/v1/players/[id]/notes/[noteId]}
- */
-export type PlayersUpdateAdminNoteRequestParams = {
-  /**
-   * (required) Player id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.deleteAdminNote | api/v1/players/[id]/notes/[noteId]}
- */
-export type PlayersDeleteAdminNoteRequestParams = {
-  /**
-   * (required) Player id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-};
-
-/**
  * Request parameters available for use when requesting {@link PlayersWrapper.prototype.get | api/v1/players/[key]}
  */
 export type PlayersGetRequestParams = {
@@ -4357,396 +3456,6 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
-  }
-
-  /**
-   * Create an admin note for a player
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link PlayersCreateAdminNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createAdminNote(
-    params: PlayersCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/players/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateAdminNote(_response);
-      });
-  }
-
-  protected processCreateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A player matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * List all admin notes for a player
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link PlayersListAdminNotesRequestParams})
-   * @return Returns all admin notes from a player
-   */
-  public listAdminNotes(
-    params: PlayersListAdminNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/players/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListAdminNotes(_response);
-      });
-  }
-
-  protected processListAdminNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A player matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Update an admin note for a player
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link PlayersUpdateAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateAdminNote(
-    params: PlayersUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/players/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateAdminNote(_response);
-      });
-  }
-
-  protected processUpdateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'If a player matching the given id does not exist.\r\nIf an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete an admin note for a player
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link PlayersDeleteAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public deleteAdminNote(
-    params: PlayersDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId } = params;
-
-    let url_ = this.baseUrl + '/api/v1/players/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteAdminNote(_response);
-      });
-  }
-
-  protected processDeleteAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A player matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
   }
 
   /**
@@ -4846,7 +3555,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * Get a player's stats
    *
    * Gets player by versatile search.
-   * If no ruleset is provided, the player's default is used. Common.Enums.Enums.Ruleset.Osu is used as a fallback.
+   * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
@@ -5074,6 +3783,47 @@ export class SearchWrapper extends OtrApiWrapperBase {
 }
 
 /**
+ * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.delete | api/v1/tournaments/[id]}
+ */
+export type TournamentsDeleteRequestParams = {
+  /**
+   * (required) Tournament id
+   */
+  id: number;
+};
+
+/**
+ * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.get | api/v1/tournaments/[id]}
+ */
+export type TournamentsGetRequestParams = {
+  /**
+   * (required) Tournament id
+   */
+  id: number;
+  /**
+   * (optional) If true, specifically includes verified match data. If false,
+   * includes all data, regardless of verification status.
+   * Also includes all child navigations if false.
+   * Default true (strictly verified data with limited navigation properties)
+   */
+  verified?: boolean | undefined;
+};
+
+/**
+ * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.update | api/v1/tournaments/[id]}
+ */
+export type TournamentsUpdateRequestParams = {
+  /**
+   * (required) Tournament id
+   */
+  id: number;
+  /**
+   * (optional) JsonPatch data
+   */
+  body?: Operation[] | undefined;
+};
+
+/**
  * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.acceptPreVerificationStatuses | api/v1/tournaments/[id]:accept-pre-verification-statuses}
  */
 export type TournamentsAcceptPreVerificationStatusesRequestParams = {
@@ -5095,62 +3845,6 @@ export type TournamentsRerunAutomationChecksRequestParams = {
    * (optional) Whether to overwrite data which has already been Verified or Rejected
    */
   force?: boolean | undefined;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.createAdminNote | api/v1/tournaments/[id]/notes}
- */
-export type TournamentsCreateAdminNoteRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listAdminNotes | api/v1/tournaments/[id]/notes}
- */
-export type TournamentsListAdminNotesRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.updateAdminNote | api/v1/tournaments/[id]/notes/[noteId]}
- */
-export type TournamentsUpdateAdminNoteRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.deleteAdminNote | api/v1/tournaments/[id]/notes/[noteId]}
- */
-export type TournamentsDeleteAdminNoteRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
 };
 
 /**
@@ -5262,47 +3956,6 @@ export type TournamentsCreateRequestParams = {
 };
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.get | api/v1/tournaments/[id]}
- */
-export type TournamentsGetRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) If true, specifically includes verified match data. If false,
-   * includes all data, regardless of verification status.
-   * Also includes all child navigations if false.
-   * Default true (strictly verified data with limited navigation properties)
-   */
-  verified?: boolean | undefined;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.update | api/v1/tournaments/[id]}
- */
-export type TournamentsUpdateRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) JsonPatch data
-   */
-  body?: Operation[] | undefined;
-};
-
-/**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.delete | api/v1/tournaments/[id]}
- */
-export type TournamentsDeleteRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
-
-/**
  * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listMatches | api/v1/tournaments/[id]/matches}
  */
 export type TournamentsListMatchesRequestParams = {
@@ -5327,6 +3980,290 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
+  }
+
+  /**
+   * Delete a tournament
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link TournamentsDeleteRequestParams})
+   * @return The tournament was deleted successfully
+   */
+  public delete(
+    params: TournamentsDeleteRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { id } = params;
+
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'DELETE',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDelete(_response);
+      });
+  }
+
+  protected processDelete(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 204) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status === 404) {
+      const _responseText = response.data;
+      return throwException(
+        'A tournament matching the given id does not exist',
+        status,
+        _responseText,
+        _headers
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get a tournament
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user, client
+   * @param params Request parameters (see {@link TournamentsGetRequestParams})
+   * @return Returns a tournament
+   */
+  public get(
+    params: TournamentsGetRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<TournamentDTO>> {
+    const { id, verified } = params;
+
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}?';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    if (verified === null)
+      throw new Error("The parameter 'verified' cannot be null.");
+    else if (verified !== undefined)
+      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGet(_response);
+      });
+  }
+
+  protected processGet(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<TournamentDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'A tournament matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<TournamentDTO>>(
+        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<TournamentDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Amend tournament data
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
+   * @return Returns the updated tournament
+   */
+  public update(
+    params: TournamentsUpdateRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
+    const { id, body } = params;
+
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
+
+    const content_ = JSON.stringify(body);
+
+    let options_: AxiosRequestConfig = {
+      data: content_,
+      method: 'PATCH',
+      url: url_,
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processUpdate(_response);
+      });
+  }
+
+  protected processUpdate(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'A tournament matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'JsonPatch data is malformed',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
+        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
   }
 
   /**
@@ -5510,396 +4447,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Create an admin note for a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsCreateAdminNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createAdminNote(
-    params: TournamentsCreateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateAdminNote(_response);
-      });
-  }
-
-  protected processCreateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'If a tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'If the authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * List all admin notes from a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsListAdminNotesRequestParams})
-   * @return Returns all admin notes from a tournament
-   */
-  public listAdminNotes(
-    params: TournamentsListAdminNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListAdminNotes(_response);
-      });
-  }
-
-  protected processListAdminNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Update an admin note for a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsUpdateAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateAdminNote(
-    params: TournamentsUpdateAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateAdminNote(_response);
-      });
-  }
-
-  protected processUpdateAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete an admin note for a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsDeleteAdminNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public deleteAdminNote(
-    params: TournamentsDeleteAdminNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { id, noteId } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/notes/{noteId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteAdminNote(_response);
-      });
-  }
-
-  protected processDeleteAdminNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist\r\nor an admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -6431,290 +4978,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Get a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsGetRequestParams})
-   * @return Returns a tournament
-   */
-  public get(
-    params: TournamentsGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const { id, verified } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}?';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
-
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Amend tournament data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
-   * @return Returns the updated tournament
-   */
-  public update(
-    params: TournamentsUpdateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdate(_response);
-      });
-  }
-
-  protected processUpdate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'JsonPatch data is malformed',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Delete a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsDeleteRequestParams})
-   * @return The tournament was deleted successfully
-   */
-  public delete(
-    params: TournamentsDeleteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDelete(_response);
-      });
-  }
-
-  protected processDelete(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 404) {
-      const _responseText = response.data;
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -7845,6 +6108,22 @@ export interface AdminNoteDTO {
   note: string;
 }
 
+/** Type of entity to target for admin note actions */
+export enum AdminNoteRouteTarget {
+  /**  */
+  Game = 'game',
+  /**  */
+  GameScore = 'gamescore',
+  /**  */
+  Match = 'match',
+  /**  */
+  OAuthClient = 'oauthclient',
+  /**  */
+  Player = 'player',
+  /**  */
+  Tournament = 'tournament',
+}
+
 /** Represents an aggregate of match statistics for a player during a period of time */
 export interface AggregatePlayerMatchStatsDTO {
   /** The player's average match cost during the period */
@@ -8112,27 +6391,27 @@ export enum GameRejectionReason {
   NoScores = 1,
   /** The !:Database.Entities.Game has invalid mods applied */
   InvalidMods = 2,
-  /** The !:Database.Entities.Game's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
+  /** The !:Database.Entities.Game's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
   RulesetMismatch = 4,
-  /** The !:Database.Entities.Game's Common.Enums.Enums.ScoringType is not Common.Enums.Enums.ScoringType.ScoreV2 */
+  /** The !:Database.Entities.Game's Common.Enums.ScoringType is not Common.Enums.ScoringType.ScoreV2 */
   InvalidScoringType = 8,
-  /** The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs */
+  /** The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs */
   InvalidTeamType = 16,
   /**
-   * The !:Database.Entities.Game's Common.Enums.Enums.TeamType is not Common.Enums.Enums.TeamType.TeamVs
-   * and attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful
+   * The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs
+   * and attempting Common.Enums.TeamType.TeamVs conversion was not successful
    */
   FailedTeamVsConversion = 32,
   /**
-   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus
-   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is < 2
+   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
+   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is < 2
    */
   NoValidScores = 64,
   /**
-   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Enums.Verification.VerificationStatus
-   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
+   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
+   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
    * not equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament
-   * in case of Common.Enums.Enums.TeamType.HeadToHead!:Database.Entities.Games.
+   * in case of Common.Enums.TeamType.HeadToHead!:Database.Entities.Games.
    * In the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.
    */
   LobbySizeMismatch = 128,
@@ -8333,18 +6612,18 @@ export enum MatchRejectionReason {
    */
   NamePrefixMismatch = 4,
   /**
-   * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.Enums.TeamType.TeamVs
-   * conversion and attempting Common.Enums.Enums.TeamType.TeamVs conversion was not successful
+   * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs
+   * conversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful
    */
   FailedTeamVsConversion = 8,
   /**
-   * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus
-   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified
+   * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
    */
   NoValidGames = 16,
   /**
-   * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Enums.Verification.VerificationStatus
-   * of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified is not an odd number
+   * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number
    * (does not satisfy "best of X")
    */
   UnexpectedGameCount = 32,
@@ -8391,8 +6670,8 @@ export enum MatchWarningFlags {
   /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
   LowGameCount = 2,
   /**
-   * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Enums.Verification.GameRejectionReason
-   * of Common.Enums.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
+   * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason
+   * of Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
    */
   UnexpectedBeatmapsFound = 4,
   /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
@@ -8441,49 +6720,49 @@ export enum Mods {
   /**
    * Perfect (PF)
    *
-   * Only set along with Common.Enums.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
+   * Only set along with Common.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
    */
   Perfect = 16384,
   /**
    * 4 key (4K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   InvalidMods = 22688,
   /**
    * 5 key (5K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key4 = 32768,
   /**
    * 6 key (6K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key5 = 65536,
   /**
    * 7 key (7K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key6 = 131072,
   /**
    * 8 key (8K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key7 = 262144,
   /**
    * Fade In (FI)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key8 = 524288,
   /**
    * Random (RD)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   FadeIn = 1048576,
   /** Cinema (CM) */
@@ -8493,31 +6772,31 @@ export enum Mods {
   /**
    * 9 Key (9K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Cinema = 4194304,
   /**
    * Co-op (CO)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Target = 8388608,
   /**
    * 1 Key (1K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key9 = 16777216,
   /**
    * 3 Key (3K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   KeyCoop = 33554432,
   /**
    * 2 Key (2K)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key1 = 67108864,
   /** Score v2 (SV2) */
@@ -8525,11 +6804,11 @@ export enum Mods {
   /**
    * Mirror (MR)
    *
-   * Applicable only to Common.Enums.Enums.Ruleset.ManiaOther
+   * Applicable only to Common.Enums.Ruleset.ManiaOther
    */
   Key2 = 268435456,
   /**
-   * Denotes mods that are Common.Enums.Enums.Ruleset.ManiaOther key modifiers
+   * Denotes mods that are Common.Enums.Ruleset.ManiaOther key modifiers
    *
    * See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
    */
@@ -8843,7 +7122,7 @@ export enum Ruleset {
    * osu! Mania
    *
    * Encompasses all of the osu!mania ruleset and represents a ruleset that has
-   * not yet been identified as either Common.Enums.Enums.Ruleset.Mania4k or Common.Enums.Enums.Ruleset.Mania7k
+   * not yet been identified as either Common.Enums.Ruleset.Mania4k or Common.Enums.Ruleset.Mania7k
    */
   ManiaOther = 3,
   /** osu! Mania 4k variant */
@@ -8853,9 +7132,9 @@ export enum Ruleset {
 }
 
 export enum ScoreGrade {
-  /** 100% accuracy with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight */
+  /** 100% accuracy with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
   SSH = 0,
-  /** Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Enums.Mods.Hidden and/or Common.Enums.Enums.Mods.Flashlight */
+  /** Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
   SH = 1,
   /** 100% accuracy */
   SS = 2,
@@ -8888,9 +7167,9 @@ export enum ScoreRejectionReason {
   None = 0,
   /** The !:Database.Entities.GameScore's !:Database.Entities.GameScore.Score is below the minimum threshold */
   ScoreBelowMinimum = 1,
-  /** The !:Database.Entities.GameScore was set with any Common.Enums.Enums.Mods.InvalidMods */
+  /** The !:Database.Entities.GameScore was set with any Common.Enums.Mods.InvalidMods */
   InvalidMods = 2,
-  /** The !:Database.Entities.GameScore's Common.Enums.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
+  /** The !:Database.Entities.GameScore's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
   RulesetMismatch = 4,
   /** The !:Database.Entities.Game the !:Database.Entities.GameScore was set in was rejected */
   RejectedGame = 8,
@@ -9004,7 +7283,7 @@ export enum TournamentProcessingStatus {
   NeedsApproval = 0,
   /**
    * The !:Database.Entities.Tournament has !:Database.Entities.Matches with a
-   * Common.Enums.Enums.Verification.MatchProcessingStatus of Common.Enums.Enums.Verification.MatchProcessingStatus.NeedsData
+   * Common.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData
    */
   NeedsMatchData = 1,
   /** The !:Database.Entities.Tournament needs automation checks */
@@ -9040,17 +7319,17 @@ export enum TournamentRejectionReason {
   None = 0,
   /**
    * The !:Database.Entities.Tournament has no !:Database.Entities.Tournament.Matches with a
-   * Common.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or Common.Enums.Enums.Verification.VerificationStatus.PreVerified
+   * Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
    */
   NoVerifiedMatches = 1,
   /**
    * The !:Database.Entities.Tournament's number of !:Database.Entities.Tournament.Matches with a
-   * Common.Enums.Enums.Verification.VerificationStatus of Common.Enums.Enums.Verification.VerificationStatus.Verified or
-   * Common.Enums.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
+   * Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or
+   * Common.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
    */
   NotEnoughVerifiedMatches = 2,
   /**
-   * The !:Database.Entities.Tournament's win condition is not Common.Enums.Enums.ScoringType.ScoreV2
+   * The !:Database.Entities.Tournament's win condition is not Common.Enums.ScoringType.ScoreV2
    *
    * Only assigned via a "rejected submission".
    *
