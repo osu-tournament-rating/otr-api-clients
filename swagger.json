@@ -6679,6 +6679,9 @@
             "$ref": "#/components/schemas/PlayerRatingDTO"
           },
           {
+            "required": [
+              "tierProgress"
+            ],
             "type": "object",
             "properties": {
               "tournamentsPlayed": {
@@ -6696,15 +6699,10 @@
                 "description": "Match win rate",
                 "format": "double"
               },
-              "currentTier": {
-                "type": "string",
-                "description": "Current tier",
-                "readOnly": true
-              },
-              "rankProgress": {
+              "tierProgress": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/RankProgressDTO"
+                    "$ref": "#/components/schemas/TierProgressDTO"
                   }
                 ],
                 "description": "Rating tier progress information"
@@ -6958,55 +6956,6 @@
           }
         },
         "additionalProperties": { }
-      },
-      "RankProgressDTO": {
-        "required": [
-          "currentTier",
-          "ratingForNextMajorTier",
-          "ratingForNextTier"
-        ],
-        "type": "object",
-        "properties": {
-          "currentTier": {
-            "type": "string",
-            "description": "Current tier"
-          },
-          "currentSubTier": {
-            "type": "integer",
-            "description": "Current sub tier",
-            "format": "int32",
-            "nullable": true
-          },
-          "ratingForNextTier": {
-            "type": "number",
-            "description": "Rating required to reach next sub tier",
-            "format": "double"
-          },
-          "ratingForNextMajorTier": {
-            "type": "number",
-            "description": "Rating required to reach next major tier",
-            "format": "double"
-          },
-          "nextMajorTier": {
-            "type": "string",
-            "description": "Next major tier following current tier",
-            "nullable": true
-          },
-          "subTierFillPercentage": {
-            "type": "number",
-            "description": "Progress to the next sub tier as a percentage",
-            "format": "double",
-            "nullable": true
-          },
-          "majorTierFillPercentage": {
-            "type": "number",
-            "description": "Progress to the next major tier as a percentage",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Represents rating tier progress data"
       },
       "RatingAdjustmentDTO": {
         "required": [
@@ -7326,6 +7275,55 @@
           "Team red vs team blue",
           "Team red vs team blue (Tag format)"
         ]
+      },
+      "TierProgressDTO": {
+        "required": [
+          "currentTier",
+          "ratingForNextMajorTier",
+          "ratingForNextTier"
+        ],
+        "type": "object",
+        "properties": {
+          "currentTier": {
+            "type": "string",
+            "description": "Current tier"
+          },
+          "currentSubTier": {
+            "type": "integer",
+            "description": "Current sub tier",
+            "format": "int32",
+            "nullable": true
+          },
+          "ratingForNextTier": {
+            "type": "number",
+            "description": "Rating required to reach next sub tier",
+            "format": "double"
+          },
+          "ratingForNextMajorTier": {
+            "type": "number",
+            "description": "Rating required to reach next major tier",
+            "format": "double"
+          },
+          "nextMajorTier": {
+            "type": "string",
+            "description": "Next major tier following current tier",
+            "nullable": true
+          },
+          "subTierFillPercentage": {
+            "type": "number",
+            "description": "Progress to the next sub tier as a percentage",
+            "format": "double",
+            "nullable": true
+          },
+          "majorTierFillPercentage": {
+            "type": "number",
+            "description": "Progress to the next major tier as a percentage",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents rating tier progress data"
       },
       "TournamentCompactDTO": {
         "required": [

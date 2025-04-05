@@ -8,14 +8,8 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-import { CreateAxiosDefaults } from 'axios';
-import axios, { AxiosError } from 'axios';
-import type {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  CancelToken,
-} from 'axios';
+import { CreateAxiosDefaults } from 'axios';import axios, { AxiosError } from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelToken } from 'axios';
 
 export abstract class OtrApiWrapperBase {
   protected configuration: IOtrApiWrapperConfiguration;
@@ -45,7458 +39,6426 @@ export abstract class OtrApiWrapperBase {
 }
 
 /**
- * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.createNote | api/v1/[entity]/[entityId]/notes}
- */
+* Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.createNote | api/v1/[entity]/[entityId]/notes}
+*/
 export type AdminNotesCreateNoteRequestParams = {
-  /**
-   * (required) Entity id
-   */
-  entityId: number;
-  /**
-   * (required) Type of entity to target for admin note actions
-   */
-  entity: AdminNoteRouteTarget;
-  /**
-   * (required) Content of the admin note
-   */
-  body: string;
-};
+    /**
+    * (required) Entity id
+    */
+    entityId: number;
+    /**
+    * (required) Type of entity to target for admin note actions
+    */
+    entity: AdminNoteRouteTarget;
+    /**
+    * (required) Content of the admin note
+    */
+    body: string;
+}
 
 /**
- * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.listNotes | api/v1/[entity]/[entityId]/notes}
- */
+* Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.listNotes | api/v1/[entity]/[entityId]/notes}
+*/
 export type AdminNotesListNotesRequestParams = {
-  /**
-   * (required) Entity id
-   */
-  entityId: number;
-  /**
-   * (required) Type of entity to target for admin note actions
-   */
-  entity: AdminNoteRouteTarget;
-};
+    /**
+    * (required) Entity id
+    */
+    entityId: number;
+    /**
+    * (required) Type of entity to target for admin note actions
+    */
+    entity: AdminNoteRouteTarget;
+}
 
 /**
- * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.updateNote | api/v1/[entity]/notes/[noteId]}
- */
+* Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.updateNote | api/v1/[entity]/notes/[noteId]}
+*/
 export type AdminNotesUpdateNoteRequestParams = {
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) Type of entity to target for admin note actions
-   */
-  entity: AdminNoteRouteTarget;
-  /**
-   * (required) New content of the admin note
-   */
-  body: string;
-};
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (required) Type of entity to target for admin note actions
+    */
+    entity: AdminNoteRouteTarget;
+    /**
+    * (required) New content of the admin note
+    */
+    body: string;
+}
 
 /**
- * Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.deleteNote | api/v1/[entity]/notes/[noteId]}
- */
+* Request parameters available for use when requesting {@link AdminNotesWrapper.prototype.deleteNote | api/v1/[entity]/notes/[noteId]}
+*/
 export type AdminNotesDeleteNoteRequestParams = {
-  /**
-   * (required) Admin note id
-   */
-  noteId: number;
-  /**
-   * (required) Type of entity to target for admin note actions
-   */
-  entity: AdminNoteRouteTarget;
-};
+    /**
+    * (required) Admin note id
+    */
+    noteId: number;
+    /**
+    * (required) Type of entity to target for admin note actions
+    */
+    entity: AdminNoteRouteTarget;
+}
 
 export class AdminNotesWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Create an admin note for an entity
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link AdminNotesCreateNoteRequestParams})
-   * @return Returns the created admin note
-   */
-  public createNote(
-    params: AdminNotesCreateNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const { entityId, entity, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/{entity}/{entityId}/notes';
-    if (entityId === undefined || entityId === null)
-      throw new Error("The parameter 'entityId' must be defined.");
-    url_ = url_.replace('{entityId}', encodeURIComponent('' + entityId));
-    if (entity === undefined || entity === null)
-      throw new Error("The parameter 'entity' must be defined.");
-    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateNote(_response);
-      });
-  }
+    }
 
-  protected processCreateNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Create an admin note for an entity
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link AdminNotesCreateNoteRequestParams})
+    * @return Returns the created admin note
+    */
+    public createNote(params: AdminNotesCreateNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const {
+            entityId, 
+            entity, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/{entity}/{entityId}/notes";
+        if (entityId === undefined || entityId === null)
+            throw new Error("The parameter 'entityId' must be defined.");
+        url_ = url_.replace("{entityId}", encodeURIComponent("" + entityId));
+        if (entity === undefined || entity === null)
+            throw new Error("The parameter 'entity' must be defined.");
+        url_ = url_.replace("{entity}", encodeURIComponent("" + entity));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCreateNote(_response);
+        });
+    }
+
+    protected processCreateNote(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'An entity matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The authorized user does not exist',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 201) {
-      const _responseText = response.data;
-      let result201: any = null;
-      let resultData201 = _responseText;
-      result201 = JSON.parse(resultData201);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-        new OtrApiResponse<AdminNoteDTO>(status, _headers, result201)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("An entity matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * List admin notes for an entity
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link AdminNotesListNotesRequestParams})
-   * @return Returns all admin notes for the entity
-   */
-  public listNotes(
-    params: AdminNotesListNotesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const { entityId, entity } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The authorized user does not exist", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/{entity}/{entityId}/notes';
-    if (entityId === undefined || entityId === null)
-      throw new Error("The parameter 'entityId' must be defined.");
-    url_ = url_.replace('{entityId}', encodeURIComponent('' + entityId));
-    if (entity === undefined || entity === null)
-      throw new Error("The parameter 'entity' must be defined.");
-    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 201) {
+            const _responseText = response.data;
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = JSON.parse(resultData201);
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse<AdminNoteDTO>(status, _headers, result201));
 
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListNotes(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processListNotes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AdminNoteDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * List admin notes for an entity
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link AdminNotesListNotesRequestParams})
+    * @return Returns all admin notes for the entity
+    */
+    public listNotes(params: AdminNotesListNotesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const {
+            entityId, 
+            entity
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/{entity}/{entityId}/notes";
+        if (entityId === undefined || entityId === null)
+            throw new Error("The parameter 'entityId' must be defined.");
+        url_ = url_.replace("{entityId}", encodeURIComponent("" + entityId));
+        if (entity === undefined || entity === null)
+            throw new Error("The parameter 'entity' must be defined.");
+        url_ = url_.replace("{entity}", encodeURIComponent("" + entity));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processListNotes(_response);
+        });
+    }
+
+    protected processListNotes(response: AxiosResponse): Promise<OtrApiResponse<AdminNoteDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'An entity matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-        new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("An entity matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Update an admin note
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link AdminNotesUpdateNoteRequestParams})
-   * @return Returns the updated admin note
-   */
-  public updateNote(
-    params: AdminNotesUpdateNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { noteId, entity, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse<AdminNoteDTO[]>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/{entity}/notes/{noteId}';
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    if (entity === undefined || entity === null)
-      throw new Error("The parameter 'entity' must be defined.");
-    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateNote(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<AdminNoteDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdateNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Update an admin note
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link AdminNotesUpdateNoteRequestParams})
+    * @return Returns the updated admin note
+    */
+    public updateNote(params: AdminNotesUpdateNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            noteId, 
+            entity, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/{entity}/notes/{noteId}";
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        if (entity === undefined || entity === null)
+            throw new Error("The parameter 'entity' must be defined.");
+        url_ = url_.replace("{entity}", encodeURIComponent("" + entity));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdateNote(_response);
+        });
+    }
+
+    protected processUpdateNote(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'An admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The update was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 201) {
-      const _responseText = response.data;
-      let result201: any = null;
-      let resultData201 = _responseText;
-      result201 = JSON.parse(resultData201);
-      return throwException(
-        'Created',
-        status,
-        _responseText,
-        _headers,
-        result201
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("An admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete an admin note
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link AdminNotesDeleteNoteRequestParams})
-   * @return The admin note was deleted
-   */
-  public deleteNote(
-    params: AdminNotesDeleteNoteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { noteId, entity } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The update was not successful", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/{entity}/notes/{noteId}';
-    if (noteId === undefined || noteId === null)
-      throw new Error("The parameter 'noteId' must be defined.");
-    url_ = url_.replace('{noteId}', encodeURIComponent('' + noteId));
-    if (entity === undefined || entity === null)
-      throw new Error("The parameter 'entity' must be defined.");
-    url_ = url_.replace('{entity}', encodeURIComponent('' + entity));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 201) {
+            const _responseText = response.data;
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = JSON.parse(resultData201);
+            return throwException("Created", status, _responseText, _headers, result201);
 
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteNote(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDeleteNote(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete an admin note
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link AdminNotesDeleteNoteRequestParams})
+    * @return The admin note was deleted
+    */
+    public deleteNote(params: AdminNotesDeleteNoteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            noteId, 
+            entity
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/{entity}/notes/{noteId}";
+        if (noteId === undefined || noteId === null)
+            throw new Error("The parameter 'noteId' must be defined.");
+        url_ = url_.replace("{noteId}", encodeURIComponent("" + noteId));
+        if (entity === undefined || entity === null)
+            throw new Error("The parameter 'entity' must be defined.");
+        url_ = url_.replace("{entity}", encodeURIComponent("" + entity));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDeleteNote(_response);
+        });
+    }
+
+    protected processDeleteNote(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("An admin note matching the given noteId does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The deletion was not successful", status, _responseText, _headers, result400);
+
+        } else if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'An admin note matching the given noteId does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The deletion was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
- */
+* Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
+*/
 export type BeatmapsGetRequestParams = {
-  /**
-   * (required) Search key (id or osu! id)
-   */
-  key: number;
-};
+    /**
+    * (required) Search key (id or osu! id)
+    */
+    key: number;
+}
 
 export class BeatmapsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * List all beatmaps
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @return Returns all beatmaps
-   */
-  public list(
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<BeatmapDTO[]>> {
-    let url_ = this.baseUrl + '/api/v1/beatmaps';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processList(_response);
-      });
-  }
+    }
 
-  protected processList(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<BeatmapDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * List all beatmaps
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @return Returns all beatmaps
+    */
+    public list( cancelToken?: CancelToken): Promise<OtrApiResponse<BeatmapDTO[]>> {
+
+        let url_ = this.baseUrl + "/api/v1/beatmaps";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processList(_response);
+        });
+    }
+
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<BeatmapDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
-        new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200));
 
-  /**
-   * Get a beatmap
-   *
-   * Get a beatmap searching first by id, then by osu! id
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link BeatmapsGetRequestParams})
-   * @return Returns a beatmap
-   */
-  public get(
-    params: BeatmapsGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<BeatmapDTO>> {
-    const { key } = params;
-
-    let url_ = this.baseUrl + '/api/v1/beatmaps/{key}';
-    if (key === undefined || key === null)
-      throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace('{key}', encodeURIComponent('' + key));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<BeatmapDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a beatmap
+    *
+    * Get a beatmap searching first by id, then by osu! id
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link BeatmapsGetRequestParams})
+    * @return Returns a beatmap
+    */
+    public get(params: BeatmapsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<BeatmapDTO>> {
+        const {
+            key
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/beatmaps/{key}";
+        if (key === undefined || key === null)
+            throw new Error("The parameter 'key' must be defined.");
+        url_ = url_.replace("{key}", encodeURIComponent("" + key));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<BeatmapDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A beatmap matching the given key does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<BeatmapDTO>>(new OtrApiResponse<BeatmapDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<BeatmapDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A beatmap matching the given key does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<BeatmapDTO>>(
-        new OtrApiResponse<BeatmapDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<BeatmapDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link ClientsWrapper.prototype.patchRateLimit | api/v1/clients/[id]/ratelimit}
- */
+* Request parameters available for use when requesting {@link ClientsWrapper.prototype.patchRateLimit | api/v1/clients/[id]/ratelimit}
+*/
 export type ClientsPatchRateLimitRequestParams = {
-  /**
-   * (required) Client id
-   */
-  id: number;
-  /**
-   * (required) The new rate limit for the client
-   */
-  body: number;
-};
+    /**
+    * (required) Client id
+    */
+    id: number;
+    /**
+    * (required) The new rate limit for the client
+    */
+    body: number;
+}
 
 export class ClientsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Set the rate limit for a client
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link ClientsPatchRateLimitRequestParams})
-   * @return Returns the updated client
-   */
-  public patchRateLimit(
-    params: ClientsPatchRateLimitRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<OAuthClientDTO>> {
-    const { id, body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/clients/{id}/ratelimit';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processPatchRateLimit(_response);
-      });
-  }
+    }
 
-  protected processPatchRateLimit(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<OAuthClientDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Set the rate limit for a client
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link ClientsPatchRateLimitRequestParams})
+    * @return Returns the updated client
+    */
+    public patchRateLimit(params: ClientsPatchRateLimitRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/clients/{id}/ratelimit";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processPatchRateLimit(_response);
+        });
+    }
+
+    protected processPatchRateLimit(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A client matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse<OAuthClientDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A client matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(
-        new OtrApiResponse<OAuthClientDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<OAuthClientDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 export class DiagnosticsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Allows clients to determine if the server is running
-   * @return The server is running
-   */
-  public ping(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-    let url_ = this.baseUrl + '/api/v1/diagnostics/ping';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processPing(_response);
-      });
-  }
+    }
 
-  protected processPing(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Allows clients to determine if the server is running
+    * @return The server is running
+    */
+    public ping( cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+
+        let url_ = this.baseUrl + "/api/v1/diagnostics/ping";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: false
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processPing(_response);
+        });
+    }
+
+    protected processPing(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link FilteringWrapper.prototype.filter | api/v1/filtering}
- */
+* Request parameters available for use when requesting {@link FilteringWrapper.prototype.filter | api/v1/filtering}
+*/
 export type FilteringFilterRequestParams = {
-  /**
-   * (required) The filtering request
-   */
-  body: FilteringRequestDTO;
-};
+    /**
+    * (required) The filtering request
+    */
+    body: FilteringRequestDTO;
+}
 
 export class FilteringWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Filter a list of users based on the criteria as described in
-   * API.DTOs.FilteringResultDTO
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link FilteringFilterRequestParams})
-   * @return The filtering result
-   */
-  public filter(
-    params: FilteringFilterRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<FilteringResultDTO>> {
-    const { body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/filtering';
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processFilter(_response);
-      });
-  }
+    }
 
-  protected processFilter(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<FilteringResultDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Filter a list of users based on the criteria as described in
+    * API.DTOs.FilteringResultDTO
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link FilteringFilterRequestParams})
+    * @return The filtering result
+    */
+    public filter(params: FilteringFilterRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<FilteringResultDTO>> {
+        const {
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/filtering";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processFilter(_response);
+        });
+    }
+
+    protected processFilter(response: AxiosResponse): Promise<OtrApiResponse<FilteringResultDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The request body is invalid", status, _responseText, _headers, result400);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(new OtrApiResponse<FilteringResultDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The request body is invalid',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
-        new OtrApiResponse<FilteringResultDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.get | api/v1/games/[id]}
- */
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.get | api/v1/games/[id]}
+*/
 export type GamesGetRequestParams = {
-  id: number;
-  /**
-   * (optional) Whether the game's scores must be verified
-   */
-  verified?: boolean | undefined;
-};
+    id: number;
+    /**
+    * (optional) Whether the game's scores must be verified
+    */
+    verified?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.update | api/v1/games/[id]}
- */
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.update | api/v1/games/[id]}
+*/
 export type GamesUpdateRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-  /**
-   * (optional) JsonPatch data
-   */
-  body?: Operation[] | undefined;
-};
+    /**
+    * (required) Game id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link GamesWrapper.prototype.delete | api/v1/games/[id]}
- */
+* Request parameters available for use when requesting {@link GamesWrapper.prototype.delete | api/v1/games/[id]}
+*/
 export type GamesDeleteRequestParams = {
-  /**
-   * (required) Game id
-   */
-  id: number;
-};
+    /**
+    * (required) Game id
+    */
+    id: number;
+}
 
 export class GamesWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link GamesGetRequestParams})
-   * @return Returns a game
-   */
-  public get(
-    params: GamesGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<GameDTO>> {
-    const { id, verified } = params;
-
-    let url_ = this.baseUrl + '/api/v1/games/{id}?';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<GameDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link GamesGetRequestParams})
+    * @return Returns a game
+    */
+    public get(params: GamesGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameDTO>> {
+        const {
+            id, 
+            verified
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/games/{id}?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<GameDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<GameDTO>>(
-        new OtrApiResponse<GameDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<GameDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Amend game data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GamesUpdateRequestParams})
-   * @return Returns the updated game
-   */
-  public update(
-    params: GamesUpdateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<GameDTO>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse<GameDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/games/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdate(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<GameDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Amend game data
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GamesUpdateRequestParams})
+    * @return Returns the updated game
+    */
+    public update(params: GamesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/games/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdate(_response);
+        });
+    }
+
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<GameDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A game matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The JsonPatch data is malformed',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<GameDTO>>(
-        new OtrApiResponse<GameDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<GameDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete a game
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GamesDeleteRequestParams})
-   * @return The game was deleted successfully
-   */
-  public delete(
-    params: GamesDeleteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/games/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse<GameDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDelete(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<GameDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDelete(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete a game
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GamesDeleteRequestParams})
+    * @return The game was deleted successfully
+    */
+    public delete(params: GamesDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/games/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            return throwException("A game matching the given id does not exist", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 404) {
-      const _responseText = response.data;
-      return throwException(
-        'A game matching the given id does not exist',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.get | api/v1/gamescores/[id]}
- */
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.get | api/v1/gamescores/[id]}
+*/
 export type GameScoresGetRequestParams = {
-  id: number;
-};
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.update | api/v1/gamescores/[id]}
- */
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.update | api/v1/gamescores/[id]}
+*/
 export type GameScoresUpdateRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-  /**
-   * (optional) JsonPatch data
-   */
-  body?: Operation[] | undefined;
-};
+    /**
+    * (required) Score id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link GameScoresWrapper.prototype.delete | api/v1/gamescores/[id]}
- */
+* Request parameters available for use when requesting {@link GameScoresWrapper.prototype.delete | api/v1/gamescores/[id]}
+*/
 export type GameScoresDeleteRequestParams = {
-  /**
-   * (required) Score id
-   */
-  id: number;
-};
+    /**
+    * (required) Score id
+    */
+    id: number;
+}
 
 export class GameScoresWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresGetRequestParams})
-   * @return Returns the score
-   */
-  public get(
-    params: GameScoresGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<GameScoreDTO>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<GameScoreDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GameScoresGetRequestParams})
+    * @return Returns the score
+    */
+    public get(params: GameScoresGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameScoreDTO>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<GameScoreDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-        new OtrApiResponse<GameScoreDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Amend score data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresUpdateRequestParams})
-   * @return Returns the updated score
-   */
-  public update(
-    params: GameScoresUpdateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<GameScoreDTO>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse<GameScoreDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdate(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<GameScoreDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Amend score data
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GameScoresUpdateRequestParams})
+    * @return Returns the updated score
+    */
+    public update(params: GameScoresUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<GameScoreDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdate(_response);
+        });
+    }
+
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<GameScoreDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The JsonPatch data is malformed',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-        new OtrApiResponse<GameScoreDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<GameScoreDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete a score
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link GameScoresDeleteRequestParams})
-   * @return The score was deleted successfully
-   */
-  public delete(
-    params: GameScoresDeleteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/gamescores/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse<GameScoreDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDelete(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<GameScoreDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDelete(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete a score
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link GameScoresDeleteRequestParams})
+    * @return The score was deleted successfully
+    */
+    public delete(params: GameScoresDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/gamescores/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A score matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A score matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link LeaderboardsWrapper.prototype.get | api/v1/leaderboards}
- */
+* Request parameters available for use when requesting {@link LeaderboardsWrapper.prototype.get | api/v1/leaderboards}
+*/
 export type LeaderboardsGetRequestParams = {
-  /**
-   * (optional)
-   */
-  page?: number | undefined;
-  /**
-   * (optional)
-   */
-  pageSize?: number | undefined;
-  /**
-   * (optional) Ruleset for leaderboard data
-   */
-  ruleset?: Ruleset | undefined;
-  /**
-   * (optional) ISO country code (Leaderboard will be global if not provided)
-   */
-  country?: string | undefined;
-  /**
-   * (optional) osu! rank floor (The "better" inclusive rank bound.
-   * If given, only players with a rank greater than or equal to this value will be included)
-   */
-  minOsuRank?: number | undefined;
-  /**
-   * (optional) osu! rank ceiling (The "worse" inclusive rank bound.
-   * If given, only players with a rank less than or equal to this value will be included)
-   */
-  maxOsuRank?: number | undefined;
-  /**
-   * (optional) Rating floor (The "worse" inclusive rating bound.
-   * If given, only players with a rating greater than or equal to this value will be included)
-   */
-  minRating?: number | undefined;
-  /**
-   * (optional) Rating ceiling (The "better" inclusive rating bound.
-   * If given, only players with a rating less than or equal to this value will be included)
-   */
-  maxRating?: number | undefined;
-  /**
-   * (optional) Minimum number of matches played
-   */
-  minMatches?: number | undefined;
-  /**
-   * (optional) Maximum number of matches played
-   */
-  maxMatches?: number | undefined;
-  /**
-   * (optional) Minimum win rate
-   */
-  minWinRate?: number | undefined;
-  /**
-   * (optional) Maximum win rate
-   */
-  maxWinRate?: number | undefined;
-  /**
-   * (optional) Explicitly include bronze players
-   */
-  bronze?: boolean | undefined;
-  /**
-   * (optional) Explicitly include silver players
-   */
-  silver?: boolean | undefined;
-  /**
-   * (optional) Explicitly include gold players
-   */
-  gold?: boolean | undefined;
-  /**
-   * (optional) Explicitly include platinum players
-   */
-  platinum?: boolean | undefined;
-  /**
-   * (optional) Explicitly include emerald players
-   */
-  emerald?: boolean | undefined;
-  /**
-   * (optional) Explicitly include diamond players
-   */
-  diamond?: boolean | undefined;
-  /**
-   * (optional) Explicitly include master players
-   */
-  master?: boolean | undefined;
-  /**
-   * (optional) Explicitly include grandmaster players
-   */
-  grandmaster?: boolean | undefined;
-  /**
-   * (optional) Explicitly include elite grandmaster players
-   */
-  eliteGrandmaster?: boolean | undefined;
-};
+    /**
+    * (optional) 
+    */
+    page?: number | undefined;
+    /**
+    * (optional) 
+    */
+    pageSize?: number | undefined;
+    /**
+    * (optional) Ruleset for leaderboard data
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) ISO country code (Leaderboard will be global if not provided)
+    */
+    country?: string | undefined;
+    /**
+    * (optional) osu! rank floor (The "better" inclusive rank bound.
+	* If given, only players with a rank greater than or equal to this value will be included)
+    */
+    minOsuRank?: number | undefined;
+    /**
+    * (optional) osu! rank ceiling (The "worse" inclusive rank bound.
+	* If given, only players with a rank less than or equal to this value will be included)
+    */
+    maxOsuRank?: number | undefined;
+    /**
+    * (optional) Rating floor (The "worse" inclusive rating bound.
+	* If given, only players with a rating greater than or equal to this value will be included)
+    */
+    minRating?: number | undefined;
+    /**
+    * (optional) Rating ceiling (The "better" inclusive rating bound.
+	* If given, only players with a rating less than or equal to this value will be included)
+    */
+    maxRating?: number | undefined;
+    /**
+    * (optional) Minimum number of matches played
+    */
+    minMatches?: number | undefined;
+    /**
+    * (optional) Maximum number of matches played
+    */
+    maxMatches?: number | undefined;
+    /**
+    * (optional) Minimum win rate
+    */
+    minWinRate?: number | undefined;
+    /**
+    * (optional) Maximum win rate
+    */
+    maxWinRate?: number | undefined;
+    /**
+    * (optional) Explicitly include bronze players
+    */
+    bronze?: boolean | undefined;
+    /**
+    * (optional) Explicitly include silver players
+    */
+    silver?: boolean | undefined;
+    /**
+    * (optional) Explicitly include gold players
+    */
+    gold?: boolean | undefined;
+    /**
+    * (optional) Explicitly include platinum players
+    */
+    platinum?: boolean | undefined;
+    /**
+    * (optional) Explicitly include emerald players
+    */
+    emerald?: boolean | undefined;
+    /**
+    * (optional) Explicitly include diamond players
+    */
+    diamond?: boolean | undefined;
+    /**
+    * (optional) Explicitly include master players
+    */
+    master?: boolean | undefined;
+    /**
+    * (optional) Explicitly include grandmaster players
+    */
+    grandmaster?: boolean | undefined;
+    /**
+    * (optional) Explicitly include elite grandmaster players
+    */
+    eliteGrandmaster?: boolean | undefined;
+}
 
 export class LeaderboardsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get a leaderboard of players which fit an optional request query
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
-   * @return Returns the leaderboard
-   */
-  public get(
-    params: LeaderboardsGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<LeaderboardDTO>> {
-    const {
-      page,
-      pageSize,
-      ruleset,
-      country,
-      minOsuRank,
-      maxOsuRank,
-      minRating,
-      maxRating,
-      minMatches,
-      maxMatches,
-      minWinRate,
-      maxWinRate,
-      bronze,
-      silver,
-      gold,
-      platinum,
-      emerald,
-      diamond,
-      master,
-      grandmaster,
-      eliteGrandmaster,
-    } = params;
-
-    let url_ = this.baseUrl + '/api/v1/leaderboards?';
-    if (page === null) throw new Error("The parameter 'page' cannot be null.");
-    else if (page !== undefined)
-      url_ += 'page=' + encodeURIComponent('' + page) + '&';
-    if (pageSize === null)
-      throw new Error("The parameter 'pageSize' cannot be null.");
-    else if (pageSize !== undefined)
-      url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
-    if (ruleset === null)
-      throw new Error("The parameter 'ruleset' cannot be null.");
-    else if (ruleset !== undefined)
-      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (country === null)
-      throw new Error("The parameter 'country' cannot be null.");
-    else if (country !== undefined)
-      url_ += 'country=' + encodeURIComponent('' + country) + '&';
-    if (minOsuRank === null)
-      throw new Error("The parameter 'minOsuRank' cannot be null.");
-    else if (minOsuRank !== undefined)
-      url_ += 'minOsuRank=' + encodeURIComponent('' + minOsuRank) + '&';
-    if (maxOsuRank === null)
-      throw new Error("The parameter 'maxOsuRank' cannot be null.");
-    else if (maxOsuRank !== undefined)
-      url_ += 'maxOsuRank=' + encodeURIComponent('' + maxOsuRank) + '&';
-    if (minRating === null)
-      throw new Error("The parameter 'minRating' cannot be null.");
-    else if (minRating !== undefined)
-      url_ += 'minRating=' + encodeURIComponent('' + minRating) + '&';
-    if (maxRating === null)
-      throw new Error("The parameter 'maxRating' cannot be null.");
-    else if (maxRating !== undefined)
-      url_ += 'maxRating=' + encodeURIComponent('' + maxRating) + '&';
-    if (minMatches === null)
-      throw new Error("The parameter 'minMatches' cannot be null.");
-    else if (minMatches !== undefined)
-      url_ += 'minMatches=' + encodeURIComponent('' + minMatches) + '&';
-    if (maxMatches === null)
-      throw new Error("The parameter 'maxMatches' cannot be null.");
-    else if (maxMatches !== undefined)
-      url_ += 'maxMatches=' + encodeURIComponent('' + maxMatches) + '&';
-    if (minWinRate === null)
-      throw new Error("The parameter 'minWinRate' cannot be null.");
-    else if (minWinRate !== undefined)
-      url_ += 'minWinRate=' + encodeURIComponent('' + minWinRate) + '&';
-    if (maxWinRate === null)
-      throw new Error("The parameter 'maxWinRate' cannot be null.");
-    else if (maxWinRate !== undefined)
-      url_ += 'maxWinRate=' + encodeURIComponent('' + maxWinRate) + '&';
-    if (bronze === null)
-      throw new Error("The parameter 'bronze' cannot be null.");
-    else if (bronze !== undefined)
-      url_ += 'bronze=' + encodeURIComponent('' + bronze) + '&';
-    if (silver === null)
-      throw new Error("The parameter 'silver' cannot be null.");
-    else if (silver !== undefined)
-      url_ += 'silver=' + encodeURIComponent('' + silver) + '&';
-    if (gold === null) throw new Error("The parameter 'gold' cannot be null.");
-    else if (gold !== undefined)
-      url_ += 'gold=' + encodeURIComponent('' + gold) + '&';
-    if (platinum === null)
-      throw new Error("The parameter 'platinum' cannot be null.");
-    else if (platinum !== undefined)
-      url_ += 'platinum=' + encodeURIComponent('' + platinum) + '&';
-    if (emerald === null)
-      throw new Error("The parameter 'emerald' cannot be null.");
-    else if (emerald !== undefined)
-      url_ += 'emerald=' + encodeURIComponent('' + emerald) + '&';
-    if (diamond === null)
-      throw new Error("The parameter 'diamond' cannot be null.");
-    else if (diamond !== undefined)
-      url_ += 'diamond=' + encodeURIComponent('' + diamond) + '&';
-    if (master === null)
-      throw new Error("The parameter 'master' cannot be null.");
-    else if (master !== undefined)
-      url_ += 'master=' + encodeURIComponent('' + master) + '&';
-    if (grandmaster === null)
-      throw new Error("The parameter 'grandmaster' cannot be null.");
-    else if (grandmaster !== undefined)
-      url_ += 'grandmaster=' + encodeURIComponent('' + grandmaster) + '&';
-    if (eliteGrandmaster === null)
-      throw new Error("The parameter 'eliteGrandmaster' cannot be null.");
-    else if (eliteGrandmaster !== undefined)
-      url_ +=
-        'eliteGrandmaster=' + encodeURIComponent('' + eliteGrandmaster) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<LeaderboardDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a leaderboard of players which fit an optional request query
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
+    * @return Returns the leaderboard
+    */
+    public get(params: LeaderboardsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<LeaderboardDTO>> {
+        const {
+            page, 
+            pageSize, 
+            ruleset, 
+            country, 
+            minOsuRank, 
+            maxOsuRank, 
+            minRating, 
+            maxRating, 
+            minMatches, 
+            maxMatches, 
+            minWinRate, 
+            maxWinRate, 
+            bronze, 
+            silver, 
+            gold, 
+            platinum, 
+            emerald, 
+            diamond, 
+            master, 
+            grandmaster, 
+            eliteGrandmaster
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/leaderboards?";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (country === null)
+            throw new Error("The parameter 'country' cannot be null.");
+        else if (country !== undefined)
+            url_ += "country=" + encodeURIComponent("" + country) + "&";
+        if (minOsuRank === null)
+            throw new Error("The parameter 'minOsuRank' cannot be null.");
+        else if (minOsuRank !== undefined)
+            url_ += "minOsuRank=" + encodeURIComponent("" + minOsuRank) + "&";
+        if (maxOsuRank === null)
+            throw new Error("The parameter 'maxOsuRank' cannot be null.");
+        else if (maxOsuRank !== undefined)
+            url_ += "maxOsuRank=" + encodeURIComponent("" + maxOsuRank) + "&";
+        if (minRating === null)
+            throw new Error("The parameter 'minRating' cannot be null.");
+        else if (minRating !== undefined)
+            url_ += "minRating=" + encodeURIComponent("" + minRating) + "&";
+        if (maxRating === null)
+            throw new Error("The parameter 'maxRating' cannot be null.");
+        else if (maxRating !== undefined)
+            url_ += "maxRating=" + encodeURIComponent("" + maxRating) + "&";
+        if (minMatches === null)
+            throw new Error("The parameter 'minMatches' cannot be null.");
+        else if (minMatches !== undefined)
+            url_ += "minMatches=" + encodeURIComponent("" + minMatches) + "&";
+        if (maxMatches === null)
+            throw new Error("The parameter 'maxMatches' cannot be null.");
+        else if (maxMatches !== undefined)
+            url_ += "maxMatches=" + encodeURIComponent("" + maxMatches) + "&";
+        if (minWinRate === null)
+            throw new Error("The parameter 'minWinRate' cannot be null.");
+        else if (minWinRate !== undefined)
+            url_ += "minWinRate=" + encodeURIComponent("" + minWinRate) + "&";
+        if (maxWinRate === null)
+            throw new Error("The parameter 'maxWinRate' cannot be null.");
+        else if (maxWinRate !== undefined)
+            url_ += "maxWinRate=" + encodeURIComponent("" + maxWinRate) + "&";
+        if (bronze === null)
+            throw new Error("The parameter 'bronze' cannot be null.");
+        else if (bronze !== undefined)
+            url_ += "bronze=" + encodeURIComponent("" + bronze) + "&";
+        if (silver === null)
+            throw new Error("The parameter 'silver' cannot be null.");
+        else if (silver !== undefined)
+            url_ += "silver=" + encodeURIComponent("" + silver) + "&";
+        if (gold === null)
+            throw new Error("The parameter 'gold' cannot be null.");
+        else if (gold !== undefined)
+            url_ += "gold=" + encodeURIComponent("" + gold) + "&";
+        if (platinum === null)
+            throw new Error("The parameter 'platinum' cannot be null.");
+        else if (platinum !== undefined)
+            url_ += "platinum=" + encodeURIComponent("" + platinum) + "&";
+        if (emerald === null)
+            throw new Error("The parameter 'emerald' cannot be null.");
+        else if (emerald !== undefined)
+            url_ += "emerald=" + encodeURIComponent("" + emerald) + "&";
+        if (diamond === null)
+            throw new Error("The parameter 'diamond' cannot be null.");
+        else if (diamond !== undefined)
+            url_ += "diamond=" + encodeURIComponent("" + diamond) + "&";
+        if (master === null)
+            throw new Error("The parameter 'master' cannot be null.");
+        else if (master !== undefined)
+            url_ += "master=" + encodeURIComponent("" + master) + "&";
+        if (grandmaster === null)
+            throw new Error("The parameter 'grandmaster' cannot be null.");
+        else if (grandmaster !== undefined)
+            url_ += "grandmaster=" + encodeURIComponent("" + grandmaster) + "&";
+        if (eliteGrandmaster === null)
+            throw new Error("The parameter 'eliteGrandmaster' cannot be null.");
+        else if (eliteGrandmaster !== undefined)
+            url_ += "eliteGrandmaster=" + encodeURIComponent("" + eliteGrandmaster) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<LeaderboardDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(new OtrApiResponse<LeaderboardDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(
-        new OtrApiResponse<LeaderboardDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<LeaderboardDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.list | api/v1/matches}
- */
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.list | api/v1/matches}
+*/
 export type MatchesListRequestParams = {
-  page: number;
-  pageSize: number;
-  /**
-   * (optional) Filters results for only matches played in a specified ruleset
-   */
-  ruleset?: Ruleset | undefined;
-  /**
-   * (optional) Filters results for only matches with a partially matching name (case insensitive)
-   */
-  name?: string | undefined;
-  /**
-   * (optional) Filters results for only matches that occurred on or after a specified date
-   */
-  dateMin?: Date | undefined;
-  /**
-   * (optional) Filters results for only matches that occurred on or before a specified date
-   */
-  dateMax?: Date | undefined;
-  /**
-   * (optional) Filters results for only matches with a specified verification status
-   */
-  verificationStatus?: VerificationStatus | undefined;
-  /**
-   * (optional) Filters results for only matches with a specified rejection reason
-   */
-  rejectionReason?: MatchRejectionReason | undefined;
-  /**
-   * (optional) Filters results for only matches with a specified processing status
-   */
-  processingStatus?: MatchProcessingStatus | undefined;
-  /**
-   * (optional) Filters results for only matches submitted by a user with a specified id
-   */
-  submittedBy?: number | undefined;
-  /**
-   * (optional) Filters results for only matches verified by a user with a specified id
-   */
-  verifiedBy?: number | undefined;
-  /**
-   * (optional) The key used to sort results by
-   */
-  sort?: MatchQuerySortType | undefined;
-  /**
-   * (optional) Whether the results are sorted in descending order by the API.DTOs.MatchRequestQueryDTO.Sort
-   */
-  descending?: boolean | undefined;
-};
+    page: number;
+    pageSize: number;
+    /**
+    * (optional) Filters results for only matches played in a specified ruleset
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filters results for only matches with a partially matching name (case insensitive)
+    */
+    name?: string | undefined;
+    /**
+    * (optional) Filters results for only matches that occurred on or after a specified date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filters results for only matches that occurred on or before a specified date
+    */
+    dateMax?: Date | undefined;
+    /**
+    * (optional) Filters results for only matches with a specified verification status
+    */
+    verificationStatus?: VerificationStatus | undefined;
+    /**
+    * (optional) Filters results for only matches with a specified rejection reason
+    */
+    rejectionReason?: MatchRejectionReason | undefined;
+    /**
+    * (optional) Filters results for only matches with a specified processing status
+    */
+    processingStatus?: MatchProcessingStatus | undefined;
+    /**
+    * (optional) Filters results for only matches submitted by a user with a specified id
+    */
+    submittedBy?: number | undefined;
+    /**
+    * (optional) Filters results for only matches verified by a user with a specified id
+    */
+    verifiedBy?: number | undefined;
+    /**
+    * (optional) The key used to sort results by
+    */
+    sort?: MatchQuerySortType | undefined;
+    /**
+    * (optional) Whether the results are sorted in descending order by the API.DTOs.MatchRequestQueryDTO.Sort
+    */
+    descending?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.get | api/v1/matches/[id]}
- */
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.get | api/v1/matches/[id]}
+*/
 export type MatchesGetRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-  /**
-   * (optional) Whether all games and subsequent child navigations must be verified
-   */
-  verified?: boolean | undefined;
-};
+    /**
+    * (required) Match id
+    */
+    id: number;
+    /**
+    * (optional) Whether all games and subsequent child navigations must be verified
+    */
+    verified?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.update | api/v1/matches/[id]}
- */
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.update | api/v1/matches/[id]}
+*/
 export type MatchesUpdateRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-  /**
-   * (optional) JsonPatch data
-   */
-  body?: Operation[] | undefined;
-};
+    /**
+    * (required) Match id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link MatchesWrapper.prototype.delete | api/v1/matches/[id]}
- */
+* Request parameters available for use when requesting {@link MatchesWrapper.prototype.delete | api/v1/matches/[id]}
+*/
 export type MatchesDeleteRequestParams = {
-  /**
-   * (required) Match id
-   */
-  id: number;
-};
+    /**
+    * (required) Match id
+    */
+    id: number;
+}
 
 export class MatchesWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get all matches which fit an optional request query
-   *
-   * Will not include game data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link MatchesListRequestParams})
-   * @return Returns all matches which fit the request query
-   */
-  public list(
-    params: MatchesListRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<MatchDTO[]>> {
-    const {
-      page,
-      pageSize,
-      ruleset,
-      name,
-      dateMin,
-      dateMax,
-      verificationStatus,
-      rejectionReason,
-      processingStatus,
-      submittedBy,
-      verifiedBy,
-      sort,
-      descending,
-    } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches?';
-    if (page === undefined || page === null)
-      throw new Error(
-        "The parameter 'page' must be defined and cannot be null."
-      );
-    else url_ += 'page=' + encodeURIComponent('' + page) + '&';
-    if (pageSize === undefined || pageSize === null)
-      throw new Error(
-        "The parameter 'pageSize' must be defined and cannot be null."
-      );
-    else url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
-    if (ruleset === null)
-      throw new Error("The parameter 'ruleset' cannot be null.");
-    else if (ruleset !== undefined)
-      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (name === null) throw new Error("The parameter 'name' cannot be null.");
-    else if (name !== undefined)
-      url_ += 'name=' + encodeURIComponent('' + name) + '&';
-    if (dateMin === null)
-      throw new Error("The parameter 'dateMin' cannot be null.");
-    else if (dateMin !== undefined)
-      url_ +=
-        'dateMin=' +
-        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
-        '&';
-    if (dateMax === null)
-      throw new Error("The parameter 'dateMax' cannot be null.");
-    else if (dateMax !== undefined)
-      url_ +=
-        'dateMax=' +
-        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
-        '&';
-    if (verificationStatus === null)
-      throw new Error("The parameter 'verificationStatus' cannot be null.");
-    else if (verificationStatus !== undefined)
-      url_ +=
-        'verificationStatus=' +
-        encodeURIComponent('' + verificationStatus) +
-        '&';
-    if (rejectionReason === null)
-      throw new Error("The parameter 'rejectionReason' cannot be null.");
-    else if (rejectionReason !== undefined)
-      url_ +=
-        'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
-    if (processingStatus === null)
-      throw new Error("The parameter 'processingStatus' cannot be null.");
-    else if (processingStatus !== undefined)
-      url_ +=
-        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
-    if (submittedBy === null)
-      throw new Error("The parameter 'submittedBy' cannot be null.");
-    else if (submittedBy !== undefined)
-      url_ += 'submittedBy=' + encodeURIComponent('' + submittedBy) + '&';
-    if (verifiedBy === null)
-      throw new Error("The parameter 'verifiedBy' cannot be null.");
-    else if (verifiedBy !== undefined)
-      url_ += 'verifiedBy=' + encodeURIComponent('' + verifiedBy) + '&';
-    if (sort === null) throw new Error("The parameter 'sort' cannot be null.");
-    else if (sort !== undefined)
-      url_ += 'sort=' + encodeURIComponent('' + sort) + '&';
-    if (descending === null)
-      throw new Error("The parameter 'descending' cannot be null.");
-    else if (descending !== undefined)
-      url_ += 'descending=' + encodeURIComponent('' + descending) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processList(_response);
-      });
-  }
+    }
 
-  protected processList(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<MatchDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get all matches which fit an optional request query
+    *
+    * Will not include game data
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link MatchesListRequestParams})
+    * @return Returns all matches which fit the request query
+    */
+    public list(params: MatchesListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO[]>> {
+        const {
+            page, 
+            pageSize, 
+            ruleset, 
+            name, 
+            dateMin, 
+            dateMax, 
+            verificationStatus, 
+            rejectionReason, 
+            processingStatus, 
+            submittedBy, 
+            verifiedBy, 
+            sort, 
+            descending
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/matches?";
+        if (page === undefined || page === null)
+            throw new Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (name === null)
+            throw new Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "name=" + encodeURIComponent("" + name) + "&";
+        if (dateMin === null)
+            throw new Error("The parameter 'dateMin' cannot be null.");
+        else if (dateMin !== undefined)
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+        if (dateMax === null)
+            throw new Error("The parameter 'dateMax' cannot be null.");
+        else if (dateMax !== undefined)
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+        if (verificationStatus === null)
+            throw new Error("The parameter 'verificationStatus' cannot be null.");
+        else if (verificationStatus !== undefined)
+            url_ += "verificationStatus=" + encodeURIComponent("" + verificationStatus) + "&";
+        if (rejectionReason === null)
+            throw new Error("The parameter 'rejectionReason' cannot be null.");
+        else if (rejectionReason !== undefined)
+            url_ += "rejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
+        if (processingStatus === null)
+            throw new Error("The parameter 'processingStatus' cannot be null.");
+        else if (processingStatus !== undefined)
+            url_ += "processingStatus=" + encodeURIComponent("" + processingStatus) + "&";
+        if (submittedBy === null)
+            throw new Error("The parameter 'submittedBy' cannot be null.");
+        else if (submittedBy !== undefined)
+            url_ += "submittedBy=" + encodeURIComponent("" + submittedBy) + "&";
+        if (verifiedBy === null)
+            throw new Error("The parameter 'verifiedBy' cannot be null.");
+        else if (verifiedBy !== undefined)
+            url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+        if (sort === null)
+            throw new Error("The parameter 'sort' cannot be null.");
+        else if (sort !== undefined)
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+        if (descending === null)
+            throw new Error("The parameter 'descending' cannot be null.");
+        else if (descending !== undefined)
+            url_ += "descending=" + encodeURIComponent("" + descending) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processList(_response);
+        });
+    }
+
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-        new OtrApiResponse<MatchDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse<MatchDTO[]>(status, _headers, result200));
 
-  /**
-   * Get a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link MatchesGetRequestParams})
-   * @return Returns a match
-   */
-  public get(
-    params: MatchesGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<MatchDTO>> {
-    const { id, verified } = params;
-
-    let url_ = this.baseUrl + '/api/v1/matches/{id}?';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<MatchDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link MatchesGetRequestParams})
+    * @return Returns a match
+    */
+    public get(params: MatchesGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO>> {
+        const {
+            id, 
+            verified
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/matches/{id}?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<MatchDTO>>(
-        new OtrApiResponse<MatchDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<MatchDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Amend match data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link MatchesUpdateRequestParams})
-   * @return Returns the updated match
-   */
-  public update(
-    params: MatchesUpdateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<MatchDTO>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/matches/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdate(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<MatchDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Amend match data
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link MatchesUpdateRequestParams})
+    * @return Returns the updated match
+    */
+    public update(params: MatchesUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/matches/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdate(_response);
+        });
+    }
+
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The JsonPatch data is malformed',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<MatchDTO>>(
-        new OtrApiResponse<MatchDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<MatchDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link MatchesDeleteRequestParams})
-   * @return The match was deleted successfully
-   */
-  public delete(
-    params: MatchesDeleteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The JsonPatch data is malformed", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/matches/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse<MatchDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDelete(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<MatchDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDelete(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete a match
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link MatchesDeleteRequestParams})
+    * @return The match was deleted successfully
+    */
+    public delete(params: MatchesDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/matches/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A match matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A match matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link MeWrapper.prototype.getStats | api/v1/me/stats}
- */
+* Request parameters available for use when requesting {@link MeWrapper.prototype.getStats | api/v1/me/stats}
+*/
 export type MeGetStatsRequestParams = {
-  /**
-   * (optional) Ruleset to filter for
-   */
-  ruleset?: Ruleset | undefined;
-  /**
-   * (optional) Filter from earliest date
-   */
-  dateMin?: Date | undefined;
-  /**
-   * (optional) Filter to latest date
-   */
-  dateMax?: Date | undefined;
-};
+    /**
+    * (optional) Ruleset to filter for
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filter from earliest date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filter to latest date
+    */
+    dateMax?: Date | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link MeWrapper.prototype.updateRuleset | api/v1/me/settings/ruleset}
- */
+* Request parameters available for use when requesting {@link MeWrapper.prototype.updateRuleset | api/v1/me/settings/ruleset}
+*/
 export type MeUpdateRulesetRequestParams = {
-  body: Ruleset;
-};
+    body: Ruleset;
+}
 
 export class MeWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get the currently logged in user
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @return Returns the currently logged in user
-   */
-  public get(cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
-    let url_ = this.baseUrl + '/api/v1/me';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<UserDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get the currently logged in user
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @return Returns the currently logged in user
+    */
+    public get( cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+
+        let url_ = this.baseUrl + "/api/v1/me";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 302) {
-      const _responseText = response.data;
-      return throwException(
-        'Redirects to `GET` `/users/{id}`',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 302) {
+            const _responseText = response.data;
+            return throwException("Redirects to `GET` `/users/{id}`", status, _responseText, _headers);
 
-  /**
-   * Get player stats for the currently logged in user
-   *
-   * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
-   * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-   * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
-   * If no date range is provided, gets all stats without considering date
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @param params Request parameters (see {@link MeGetStatsRequestParams})
-   * @return Returns the currently logged in user's player stats
-   */
-  public getStats(
-    params: MeGetStatsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
-    const { ruleset, dateMin, dateMax } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/me/stats?';
-    if (ruleset === null)
-      throw new Error("The parameter 'ruleset' cannot be null.");
-    else if (ruleset !== undefined)
-      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (dateMin === null)
-      throw new Error("The parameter 'dateMin' cannot be null.");
-    else if (dateMin !== undefined)
-      url_ +=
-        'dateMin=' +
-        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
-        '&';
-    if (dateMax === null)
-      throw new Error("The parameter 'dateMax' cannot be null.");
-    else if (dateMax !== undefined)
-      url_ +=
-        'dateMax=' +
-        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
-        '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetStats(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGetStats(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get player stats for the currently logged in user
+    *
+    * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
+    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    * If no date range is provided, gets all stats without considering date
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param params Request parameters (see {@link MeGetStatsRequestParams})
+    * @return Returns the currently logged in user's player stats
+    */
+    public getStats(params: MeGetStatsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
+        const {
+            ruleset, 
+            dateMin, 
+            dateMax
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/me/stats?";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (dateMin === null)
+            throw new Error("The parameter 'dateMin' cannot be null.");
+        else if (dateMin !== undefined)
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+        if (dateMax === null)
+            throw new Error("The parameter 'dateMax' cannot be null.");
+        else if (dateMax !== undefined)
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetStats(_response);
+        });
+    }
+
+    protected processGetStats(response: AxiosResponse): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 302) {
-      const _responseText = response.data;
-      return throwException(
-        'Redirects to `GET` `/players/{key}/stats`',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-        new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 302) {
+            const _responseText = response.data;
+            return throwException("Redirects to `GET` `/players/{key}/stats`", status, _responseText, _headers);
 
-  /**
-   * Update the ruleset for the currently logged in user
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @param params Request parameters (see {@link MeUpdateRulesetRequestParams})
-   * @return The operation was successful
-   */
-  public updateRuleset(
-    params: MeUpdateRulesetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/me/settings/ruleset';
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateRuleset(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdateRuleset(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Update the ruleset for the currently logged in user
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param params Request parameters (see {@link MeUpdateRulesetRequestParams})
+    * @return The operation was successful
+    */
+    public updateRuleset(params: MeUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/me/settings/ruleset";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdateRuleset(_response);
+        });
+    }
+
+    protected processUpdateRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 308) {
-      const _responseText = response.data;
-      return throwException(
-        'Redirects to `PATCH` `/users/{id}/settings/ruleset`',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The operation was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 308) {
+            const _responseText = response.data;
+            return throwException("Redirects to `PATCH` `/users/{id}/settings/ruleset`", status, _responseText, _headers);
 
-  /**
-   * Sync the ruleset of the currently logged in user to their osu! ruleset
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @return The operation was successful
-   */
-  public syncRuleset(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-    let url_ = this.baseUrl + '/api/v1/me/settings/ruleset:sync';
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processSyncRuleset(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processSyncRuleset(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Sync the ruleset of the currently logged in user to their osu! ruleset
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @return The operation was successful
+    */
+    public syncRuleset( cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+
+        let url_ = this.baseUrl + "/api/v1/me/settings/ruleset:sync";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSyncRuleset(_response);
+        });
+    }
+
+    protected processSyncRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 308) {
+            const _responseText = response.data;
+            return throwException("Permanent Redirect", status, _responseText, _headers);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status === 307) {
+            const _responseText = response.data;
+            return throwException("Redirects to `POST` `/users/{id}/settings/ruleset:sync`", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 308) {
-      const _responseText = response.data;
-      return throwException(
-        'Permanent Redirect',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The operation was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 307) {
-      const _responseText = response.data;
-      return throwException(
-        'Redirects to `POST` `/users/{id}/settings/ruleset:sync`',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorize | api/v1/oauth/authorize}
- */
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorize | api/v1/oauth/authorize}
+*/
 export type OAuthAuthorizeRequestParams = {
-  /**
-   * (optional) osu! authorization code
-   */
-  code?: string | undefined;
-  /**
-   * (optional)
-   */
-  code_verifier?: string | undefined;
-};
+    /**
+    * (optional) osu! authorization code
+    */
+    code?: string | undefined;
+    /**
+    * (optional) 
+    */
+    code_verifier?: string | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorizeClient | api/v1/oauth/token}
- */
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorizeClient | api/v1/oauth/token}
+*/
 export type OAuthAuthorizeClientRequestParams = {
-  /**
-   * (required) Client id
-   */
-  clientId: number;
-  /**
-   * (required) Client secret
-   */
-  clientSecret: string;
-};
+    /**
+    * (required) Client id
+    */
+    clientId: number;
+    /**
+    * (required) Client secret
+    */
+    clientSecret: string;
+}
 
 /**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.refresh | api/v1/oauth/refresh}
- */
+* Request parameters available for use when requesting {@link OAuthWrapper.prototype.refresh | api/v1/oauth/refresh}
+*/
 export type OAuthRefreshRequestParams = {
-  /**
-   * (required) Refresh token
-   */
-  refreshToken: string;
-};
+    /**
+    * (required) Refresh token
+    */
+    refreshToken: string;
+}
 
 export class OAuthWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Authorize using an osu! authorization code
-   * @param params Request parameters (see {@link OAuthAuthorizeRequestParams})
-   * @return Returns user access credentials
-   */
-  public authorize(
-    params: OAuthAuthorizeRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { code, code_verifier } = params;
-
-    let url_ = this.baseUrl + '/api/v1/oauth/authorize';
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = new FormData();
-    if (code === null || code === undefined)
-      throw new Error("The parameter 'code' cannot be null.");
-    else content_.append('code', code.toString());
-    if (code_verifier === null || code_verifier === undefined)
-      throw new Error("The parameter 'code_verifier' cannot be null.");
-    else content_.append('code_verifier', code_verifier.toString());
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processAuthorize(_response);
-      });
-  }
+    }
 
-  protected processAuthorize(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Authorize using an osu! authorization code
+    * @param params Request parameters (see {@link OAuthAuthorizeRequestParams})
+    * @return Returns user access credentials
+    */
+    public authorize(params: OAuthAuthorizeRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            code, 
+            code_verifier
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/oauth/authorize";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (code === null || code === undefined)
+            throw new Error("The parameter 'code' cannot be null.");
+        else
+            content_.append("code", code.toString());
+        if (code_verifier === null || code_verifier === undefined)
+            throw new Error("The parameter 'code_verifier' cannot be null.");
+        else
+            content_.append("code_verifier", code_verifier.toString());
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: false
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processAuthorize(_response);
+        });
+    }
+
+    protected processAuthorize(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 401) {
-      const _responseText = response.data;
-      let result401: any = null;
-      let resultData401 = _responseText;
-      result401 = JSON.parse(resultData401);
-      return throwException(
-        'There was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result401
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 401) {
+            const _responseText = response.data;
+            let result401: any = null;
+            let resultData401  = _responseText;
+            result401 = JSON.parse(resultData401);
+            return throwException("There was an error during authorization", status, _responseText, _headers, result401);
 
-  /**
-   * Authorize using client credentials
-   * @param params Request parameters (see {@link OAuthAuthorizeClientRequestParams})
-   * @return Returns client access credentials
-   */
-  public authorizeClient(
-    params: OAuthAuthorizeClientRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { clientId, clientSecret } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/oauth/token?';
-    if (clientId === undefined || clientId === null)
-      throw new Error(
-        "The parameter 'clientId' must be defined and cannot be null."
-      );
-    else url_ += 'clientId=' + encodeURIComponent('' + clientId) + '&';
-    if (clientSecret === undefined || clientSecret === null)
-      throw new Error(
-        "The parameter 'clientSecret' must be defined and cannot be null."
-      );
-    else url_ += 'clientSecret=' + encodeURIComponent('' + clientSecret) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processAuthorizeClient(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processAuthorizeClient(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Authorize using client credentials
+    * @param params Request parameters (see {@link OAuthAuthorizeClientRequestParams})
+    * @return Returns client access credentials
+    */
+    public authorizeClient(params: OAuthAuthorizeClientRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            clientId, 
+            clientSecret
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/oauth/token?";
+        if (clientId === undefined || clientId === null)
+            throw new Error("The parameter 'clientId' must be defined and cannot be null.");
+        else
+            url_ += "clientId=" + encodeURIComponent("" + clientId) + "&";
+        if (clientSecret === undefined || clientSecret === null)
+            throw new Error("The parameter 'clientSecret' must be defined and cannot be null.");
+        else
+            url_ += "clientSecret=" + encodeURIComponent("" + clientSecret) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: false
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processAuthorizeClient(_response);
+        });
+    }
+
+    protected processAuthorizeClient(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'There was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("There was an error during authorization", status, _responseText, _headers, result400);
 
-  /**
-   * Create a new OAuth client
-   *
-   * Client secret is only returned from creation.
-   * The user will have to reset the secret if they lose access.
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @return Returns created client credentials
-   */
-  public createClient(
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    let url_ = this.baseUrl + '/api/v1/oauth/client';
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateClient(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processCreateClient(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Create a new OAuth client
+    *
+    * Client secret is only returned from creation.
+    * The user will have to reset the secret if they lose access.
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @return Returns created client credentials
+    */
+    public createClient( cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+
+        let url_ = this.baseUrl + "/api/v1/oauth/client";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCreateClient(_response);
+        });
+    }
+
+    protected processCreateClient(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
 
-  /**
-   * Generate new access credentials from a valid refresh token
-   *
-   * Generated access credentials will contain only a new access token
-   * @param params Request parameters (see {@link OAuthRefreshRequestParams})
-   * @return Returns access credentials containing a new access token
-   */
-  public refresh(
-    params: OAuthRefreshRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { refreshToken } = params;
-
-    let url_ = this.baseUrl + '/api/v1/oauth/refresh?';
-    if (refreshToken === undefined || refreshToken === null)
-      throw new Error(
-        "The parameter 'refreshToken' must be defined and cannot be null."
-      );
-    else url_ += 'refreshToken=' + encodeURIComponent('' + refreshToken) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processRefresh(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processRefresh(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Generate new access credentials from a valid refresh token
+    *
+    * Generated access credentials will contain only a new access token
+    * @param params Request parameters (see {@link OAuthRefreshRequestParams})
+    * @return Returns access credentials containing a new access token
+    */
+    public refresh(params: OAuthRefreshRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const {
+            refreshToken
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/oauth/refresh?";
+        if (refreshToken === undefined || refreshToken === null)
+            throw new Error("The parameter 'refreshToken' must be defined and cannot be null.");
+        else
+            url_ += "refreshToken=" + encodeURIComponent("" + refreshToken) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: false
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRefresh(_response);
+        });
+    }
+
+    protected processRefresh(response: AxiosResponse): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The refresh token is invalid or there was an error during authorization", status, _responseText, _headers, result400);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The refresh token is invalid or there was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.get | api/v1/players/[key]}
- */
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.get | api/v1/players/[key]}
+*/
 export type PlayersGetRequestParams = {
-  /**
-   * (required) Search key (id, osu! id, or osu! username)
-   */
-  key: string;
-};
+    /**
+    * (required) Search key (id, osu! id, or osu! username)
+    */
+    key: string;
+}
 
 /**
- * Request parameters available for use when requesting {@link PlayersWrapper.prototype.getStats | api/v1/players/[key]/stats}
- */
+* Request parameters available for use when requesting {@link PlayersWrapper.prototype.getStats | api/v1/players/[key]/stats}
+*/
 export type PlayersGetStatsRequestParams = {
-  /**
-   * (required) Search key
-   */
-  key: string;
-  /**
-   * (optional) Ruleset to filter for
-   */
-  ruleset?: Ruleset | undefined;
-  /**
-   * (optional) Filter from earliest date
-   */
-  dateMin?: Date | undefined;
-  /**
-   * (optional) Filter to latest date
-   */
-  dateMax?: Date | undefined;
-};
+    /**
+    * (required) Search key
+    */
+    key: string;
+    /**
+    * (optional) Ruleset to filter for
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filter from earliest date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filter to latest date
+    */
+    dateMax?: Date | undefined;
+}
 
 export class PlayersWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get a player
-   *
-   * Get a player searching first by id, then by osu! id, then osu! username
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link PlayersGetRequestParams})
-   * @return Returns a player
-   */
-  public get(
-    params: PlayersGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<PlayerCompactDTO>> {
-    const { key } = params;
-
-    let url_ = this.baseUrl + '/api/v1/players/{key}';
-    if (key === undefined || key === null)
-      throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace('{key}', encodeURIComponent('' + key));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<PlayerCompactDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a player
+    *
+    * Get a player searching first by id, then by osu! id, then osu! username
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link PlayersGetRequestParams})
+    * @return Returns a player
+    */
+    public get(params: PlayersGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerCompactDTO>> {
+        const {
+            key
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/players/{key}";
+        if (key === undefined || key === null)
+            throw new Error("The parameter 'key' must be defined.");
+        url_ = url_.replace("{key}", encodeURIComponent("" + key));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<PlayerCompactDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A player matching the given key does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(
-        new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A player matching the given key does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Get a player's stats
-   *
-   * Gets player by versatile search.
-   * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
-   * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
-   * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
-   * If no date range is provided, gets all stats without considering date
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link PlayersGetStatsRequestParams})
-   * @return Returns a player's stats
-   */
-  public getStats(
-    params: PlayersGetStatsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
-    const { key, ruleset, dateMin, dateMax } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse<PlayerCompactDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/players/{key}/stats?';
-    if (key === undefined || key === null)
-      throw new Error("The parameter 'key' must be defined.");
-    url_ = url_.replace('{key}', encodeURIComponent('' + key));
-    if (ruleset === null)
-      throw new Error("The parameter 'ruleset' cannot be null.");
-    else if (ruleset !== undefined)
-      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (dateMin === null)
-      throw new Error("The parameter 'dateMin' cannot be null.");
-    else if (dateMin !== undefined)
-      url_ +=
-        'dateMin=' +
-        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
-        '&';
-    if (dateMax === null)
-      throw new Error("The parameter 'dateMax' cannot be null.");
-    else if (dateMax !== undefined)
-      url_ +=
-        'dateMax=' +
-        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
-        '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetStats(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<PlayerCompactDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGetStats(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a player's stats
+    *
+    * Gets player by versatile search.
+    * If no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.
+    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
+    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
+    * If no date range is provided, gets all stats without considering date
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link PlayersGetStatsRequestParams})
+    * @return Returns a player's stats
+    */
+    public getStats(params: PlayersGetStatsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
+        const {
+            key, 
+            ruleset, 
+            dateMin, 
+            dateMax
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/players/{key}/stats?";
+        if (key === undefined || key === null)
+            throw new Error("The parameter 'key' must be defined.");
+        url_ = url_.replace("{key}", encodeURIComponent("" + key));
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (dateMin === null)
+            throw new Error("The parameter 'dateMin' cannot be null.");
+        else if (dateMin !== undefined)
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+        if (dateMax === null)
+            throw new Error("The parameter 'dateMax' cannot be null.");
+        else if (dateMax !== undefined)
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetStats(_response);
+        });
+    }
+
+    protected processGetStats(response: AxiosResponse): Promise<OtrApiResponse<PlayerDashboardStatsDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A player matching the given search key does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A player matching the given search key does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-        new OtrApiResponse<PlayerDashboardStatsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link SearchWrapper.prototype.search | api/v1/search}
- */
+* Request parameters available for use when requesting {@link SearchWrapper.prototype.search | api/v1/search}
+*/
 export type SearchSearchRequestParams = {
-  /**
-   * (required) Search key
-   */
-  searchKey: string;
-};
+    /**
+    * (required) Search key
+    */
+    searchKey: string;
+}
 
 export class SearchWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Search for tournaments, matches, and users
-   *
-   * Search uses partial matching on: tournament name and abbreviation, match name, and player name
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link SearchSearchRequestParams})
-   * @return Returns a list of tournaments, matches, and usernames matching the given search key
-   */
-  public search(
-    params: SearchSearchRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
-    const { searchKey } = params;
-
-    let url_ = this.baseUrl + '/api/v1/search?';
-    if (searchKey === undefined || searchKey === null)
-      throw new Error(
-        "The parameter 'searchKey' must be defined and cannot be null."
-      );
-    else url_ += 'searchKey=' + encodeURIComponent('' + searchKey) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processSearch(_response);
-      });
-  }
+    }
 
-  protected processSearch(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Search for tournaments, matches, and users
+    *
+    * Search uses partial matching on: tournament name and abbreviation, match name, and player name
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link SearchSearchRequestParams})
+    * @return Returns a list of tournaments, matches, and usernames matching the given search key
+    */
+    public search(params: SearchSearchRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
+        const {
+            searchKey
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/search?";
+        if (searchKey === undefined || searchKey === null)
+            throw new Error("The parameter 'searchKey' must be defined and cannot be null.");
+        else
+            url_ += "searchKey=" + encodeURIComponent("" + searchKey) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSearch(_response);
+        });
+    }
+
+    protected processSearch(response: AxiosResponse): Promise<OtrApiResponse<SearchResponseCollectionDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(new OtrApiResponse<SearchResponseCollectionDTO>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(
-        new OtrApiResponse<SearchResponseCollectionDTO>(
-          status,
-          _headers,
-          result200
-        )
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<SearchResponseCollectionDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.delete | api/v1/tournaments/[id]}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.delete | api/v1/tournaments/[id]}
+*/
 export type TournamentsDeleteRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.get | api/v1/tournaments/[id]}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.get | api/v1/tournaments/[id]}
+*/
 export type TournamentsGetRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) If true, specifically includes verified match data. If false,
-   * includes all data, regardless of verification status.
-   * Also includes all child navigations if false.
-   * Default true (strictly verified data with limited navigation properties)
-   */
-  verified?: boolean | undefined;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) If true, specifically includes verified match data. If false,
+	* includes all data, regardless of verification status.
+	* Also includes all child navigations if false.
+	* Default true (strictly verified data with limited navigation properties)
+    */
+    verified?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.update | api/v1/tournaments/[id]}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.update | api/v1/tournaments/[id]}
+*/
 export type TournamentsUpdateRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) JsonPatch data
-   */
-  body?: Operation[] | undefined;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) JsonPatch data
+    */
+    body?: Operation[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.acceptPreVerificationStatuses | api/v1/tournaments/[id]:accept-pre-verification-statuses}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.acceptPreVerificationStatuses | api/v1/tournaments/[id]:accept-pre-verification-statuses}
+*/
 export type TournamentsAcceptPreVerificationStatusesRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.rerunAutomationChecks | api/v1/tournaments/[id]:reset-automation-statuses}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.rerunAutomationChecks | api/v1/tournaments/[id]:reset-automation-statuses}
+*/
 export type TournamentsRerunAutomationChecksRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) Whether to overwrite data which has already been Verified or Rejected
-   */
-  force?: boolean | undefined;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) Whether to overwrite data which has already been Verified or Rejected
+    */
+    force?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.insertBeatmaps | api/v1/tournaments/[id]/beatmaps}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.insertBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
 export type TournamentsInsertBeatmapsRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) A collection of osu! beatmap ids
-   */
-  body?: number[] | undefined;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) A collection of osu! beatmap ids
+    */
+    body?: number[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.deleteBeatmaps | api/v1/tournaments/[id]/beatmaps}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.deleteBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
 export type TournamentsDeleteBeatmapsRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-  /**
-   * (optional) An optional collection of specific beatmap ids to remove from the pooled beatmaps collection
-   */
-  body?: number[] | undefined;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+    /**
+    * (optional) An optional collection of specific beatmap ids to remove from the pooled beatmaps collection
+    */
+    body?: number[] | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.getBeatmaps | api/v1/tournaments/[id]/beatmaps}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.getBeatmaps | api/v1/tournaments/[id]/beatmaps}
+*/
 export type TournamentsGetBeatmapsRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.list | api/v1/tournaments}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.list | api/v1/tournaments}
+*/
 export type TournamentsListRequestParams = {
-  page: number;
-  pageSize: number;
-  /**
-   * (optional) Filters results for only tournaments that are verified
-   */
-  verified?: boolean | undefined;
-  /**
-   * (optional) Filters results for only tournaments played in a specified ruleset
-   */
-  ruleset?: Ruleset | undefined;
-  /**
-   * (optional) Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)
-   */
-  searchQuery?: string | undefined;
-  /**
-   * (optional) Filters results for only tournaments that occurred on or after a specified date
-   */
-  dateMin?: Date | undefined;
-  /**
-   * (optional) Filters results for only tournaments that occurred on or before a specified date
-   */
-  dateMax?: Date | undefined;
-  /**
-   * (optional) Filters results for only tournaments with a specified verification status
-   */
-  verificationStatus?: VerificationStatus | undefined;
-  /**
-   * (optional) Filters results for only tournaments with a specified rejection reason
-   */
-  rejectionReason?: TournamentRejectionReason | undefined;
-  /**
-   * (optional) Filters results for only tournaments with a specified processing status
-   */
-  processingStatus?: TournamentProcessingStatus | undefined;
-  /**
-   * (optional) Filters results for only tournaments submitted by a user with a specified id
-   */
-  submittedBy?: number | undefined;
-  /**
-   * (optional) Filters results for only tournaments verified by a user with a specified id
-   */
-  verifiedBy?: number | undefined;
-  /**
-   * (optional) Filters results for only tournaments played with a specified lobby size
-   */
-  lobbySize?: number | undefined;
-  /**
-   * (optional) The key used to sort results by
-   */
-  sort?: TournamentQuerySortType | undefined;
-  /**
-   * (optional) Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort
-   */
-  descending?: boolean | undefined;
-};
+    page: number;
+    pageSize: number;
+    /**
+    * (optional) Filters results for only tournaments that are verified
+    */
+    verified?: boolean | undefined;
+    /**
+    * (optional) Filters results for only tournaments played in a specified ruleset
+    */
+    ruleset?: Ruleset | undefined;
+    /**
+    * (optional) Filters results for only tournaments with a partially matching name or abbreviation (case insensitive)
+    */
+    searchQuery?: string | undefined;
+    /**
+    * (optional) Filters results for only tournaments that occurred on or after a specified date
+    */
+    dateMin?: Date | undefined;
+    /**
+    * (optional) Filters results for only tournaments that occurred on or before a specified date
+    */
+    dateMax?: Date | undefined;
+    /**
+    * (optional) Filters results for only tournaments with a specified verification status
+    */
+    verificationStatus?: VerificationStatus | undefined;
+    /**
+    * (optional) Filters results for only tournaments with a specified rejection reason
+    */
+    rejectionReason?: TournamentRejectionReason | undefined;
+    /**
+    * (optional) Filters results for only tournaments with a specified processing status
+    */
+    processingStatus?: TournamentProcessingStatus | undefined;
+    /**
+    * (optional) Filters results for only tournaments submitted by a user with a specified id
+    */
+    submittedBy?: number | undefined;
+    /**
+    * (optional) Filters results for only tournaments verified by a user with a specified id
+    */
+    verifiedBy?: number | undefined;
+    /**
+    * (optional) Filters results for only tournaments played with a specified lobby size
+    */
+    lobbySize?: number | undefined;
+    /**
+    * (optional) The key used to sort results by
+    */
+    sort?: TournamentQuerySortType | undefined;
+    /**
+    * (optional) Whether the results are sorted in descending order by the API.DTOs.TournamentRequestQueryDTO.Sort
+    */
+    descending?: boolean | undefined;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.create | api/v1/tournaments}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.create | api/v1/tournaments}
+*/
 export type TournamentsCreateRequestParams = {
-  /**
-   * (required) Tournament submission data
-   */
-  body: TournamentSubmissionDTO;
-};
+    /**
+    * (required) Tournament submission data
+    */
+    body: TournamentSubmissionDTO;
+}
 
 /**
- * Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listMatches | api/v1/tournaments/[id]/matches}
- */
+* Request parameters available for use when requesting {@link TournamentsWrapper.prototype.listMatches | api/v1/tournaments/[id]/matches}
+*/
 export type TournamentsListMatchesRequestParams = {
-  /**
-   * (required) Tournament id
-   */
-  id: number;
-};
+    /**
+    * (required) Tournament id
+    */
+    id: number;
+}
 
 export class TournamentsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Delete a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsDeleteRequestParams})
-   * @return The tournament was deleted successfully
-   */
-  public delete(
-    params: TournamentsDeleteRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDelete(_response);
-      });
-  }
+    }
 
-  protected processDelete(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsDeleteRequestParams})
+    * @return The tournament was deleted successfully
+    */
+    public delete(params: TournamentsDeleteRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 404) {
-      const _responseText = response.data;
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-  /**
-   * Get a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsGetRequestParams})
-   * @return Returns a tournament
-   */
-  public get(
-    params: TournamentsGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const { id, verified } = params;
+        } else if (status === 404) {
+            const _responseText = response.data;
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers);
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}?';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link TournamentsGetRequestParams})
+    * @return Returns a tournament
+    */
+    public get(params: TournamentsGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
+        const {
+            id, 
+            verified
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Amend tournament data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
-   * @return Returns the updated tournament
-   */
-  public update(
-    params: TournamentsUpdateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdate(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentCompactDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Amend tournament data
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsUpdateRequestParams})
+    * @return Returns the updated tournament
+    */
+    public update(params: TournamentsUpdateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentCompactDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdate(_response);
+        });
+    }
+
+    protected processUpdate(response: AxiosResponse): Promise<OtrApiResponse<TournamentCompactDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'JsonPatch data is malformed',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-        new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Mark pre-rejected items as rejected, marks pre-verified
-   * items as verified. Applies for the tournament and all children.
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsAcceptPreVerificationStatusesRequestParams})
-   * @return All items were updated successfully
-   */
-  public acceptPreVerificationStatuses(
-    params: TournamentsAcceptPreVerificationStatusesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("JsonPatch data is malformed", status, _responseText, _headers, result400);
 
-    let url_ =
-      this.baseUrl +
-      '/api/v1/tournaments/{id}:accept-pre-verification-statuses';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(new OtrApiResponse<TournamentCompactDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processAcceptPreVerificationStatuses(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<TournamentCompactDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processAcceptPreVerificationStatuses(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Mark pre-rejected items as rejected, marks pre-verified
+    * items as verified. Applies for the tournament and all children.
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsAcceptPreVerificationStatusesRequestParams})
+    * @return All items were updated successfully
+    */
+    public acceptPreVerificationStatuses(params: TournamentsAcceptPreVerificationStatusesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}:accept-pre-verification-statuses";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processAcceptPreVerificationStatuses(_response);
+        });
+    }
+
+    protected processAcceptPreVerificationStatuses(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'If a tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-        new OtrApiResponse<TournamentDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Rerun automation checks for a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsRerunAutomationChecksRequestParams})
-   * @return The entities were updated successfully
-   */
-  public rerunAutomationChecks(
-    params: TournamentsRerunAutomationChecksRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id, force } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse<TournamentDTO>(status, _headers, result200));
 
-    let url_ =
-      this.baseUrl + '/api/v1/tournaments/{id}:reset-automation-statuses?';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (force === null)
-      throw new Error("The parameter 'force' cannot be null.");
-    else if (force !== undefined)
-      url_ += 'force=' + encodeURIComponent('' + force) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processRerunAutomationChecks(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<TournamentDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processRerunAutomationChecks(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Rerun automation checks for a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsRerunAutomationChecksRequestParams})
+    * @return The entities were updated successfully
+    */
+    public rerunAutomationChecks(params: TournamentsRerunAutomationChecksRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            force
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}:reset-automation-statuses?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (force === null)
+            throw new Error("The parameter 'force' cannot be null.");
+        else if (force !== undefined)
+            url_ += "force=" + encodeURIComponent("" + force) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRerunAutomationChecks(_response);
+        });
+    }
+
+    protected processRerunAutomationChecks(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'If a tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("If a tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Add beatmaps to a tournament by osu! id
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsInsertBeatmapsRequestParams})
-   * @return The beatmaps were added successfully
-   */
-  public insertBeatmaps(
-    params: TournamentsInsertBeatmapsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processInsertBeatmaps(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processInsertBeatmaps(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Add beatmaps to a tournament by osu! id
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsInsertBeatmapsRequestParams})
+    * @return The beatmaps were added successfully
+    */
+    public insertBeatmaps(params: TournamentsInsertBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processInsertBeatmaps(_response);
+        });
+    }
+
+    protected processInsertBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete all pooled beatmaps from a tournament. This does not alter the beatmaps table. This only
-   * deletes the mapping between a tournament and a pooled beatmap.
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link TournamentsDeleteBeatmapsRequestParams})
-   * @return All beatmaps were successfully removed
-   */
-  public deleteBeatmaps(
-    params: TournamentsDeleteBeatmapsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'DELETE',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteBeatmaps(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDeleteBeatmaps(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete all pooled beatmaps from a tournament. This does not alter the beatmaps table. This only
+    * deletes the mapping between a tournament and a pooled beatmap.
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link TournamentsDeleteBeatmapsRequestParams})
+    * @return All beatmaps were successfully removed
+    */
+    public deleteBeatmaps(params: TournamentsDeleteBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "DELETE",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDeleteBeatmaps(_response);
+        });
+    }
+
+    protected processDeleteBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 204) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Get all beatmaps pooled by a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsGetBeatmapsRequestParams})
-   * @return Returns a collection of pooled beatmaps
-   */
-  public getBeatmaps(
-    params: TournamentsGetBeatmapsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetBeatmaps(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGetBeatmaps(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get all beatmaps pooled by a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link TournamentsGetBeatmapsRequestParams})
+    * @return Returns a collection of pooled beatmaps
+    */
+    public getBeatmaps(params: TournamentsGetBeatmapsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/beatmaps";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetBeatmaps(_response);
+        });
+    }
+
+    protected processGetBeatmaps(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-  /**
-   * Get all tournaments which fit an optional request query
-   *
-   * Results will not include match data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsListRequestParams})
-   * @return Returns all tournaments which fit the request query
-   */
-  public list(
-    params: TournamentsListRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentDTO[]>> {
-    const {
-      page,
-      pageSize,
-      verified,
-      ruleset,
-      searchQuery,
-      dateMin,
-      dateMax,
-      verificationStatus,
-      rejectionReason,
-      processingStatus,
-      submittedBy,
-      verifiedBy,
-      lobbySize,
-      sort,
-      descending,
-    } = params;
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
 
-    let url_ = this.baseUrl + '/api/v1/tournaments?';
-    if (page === undefined || page === null)
-      throw new Error(
-        "The parameter 'page' must be defined and cannot be null."
-      );
-    else url_ += 'page=' + encodeURIComponent('' + page) + '&';
-    if (pageSize === undefined || pageSize === null)
-      throw new Error(
-        "The parameter 'pageSize' must be defined and cannot be null."
-      );
-    else url_ += 'pageSize=' + encodeURIComponent('' + pageSize) + '&';
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
-    if (ruleset === null)
-      throw new Error("The parameter 'ruleset' cannot be null.");
-    else if (ruleset !== undefined)
-      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
-    if (searchQuery === null)
-      throw new Error("The parameter 'searchQuery' cannot be null.");
-    else if (searchQuery !== undefined)
-      url_ += 'searchQuery=' + encodeURIComponent('' + searchQuery) + '&';
-    if (dateMin === null)
-      throw new Error("The parameter 'dateMin' cannot be null.");
-    else if (dateMin !== undefined)
-      url_ +=
-        'dateMin=' +
-        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
-        '&';
-    if (dateMax === null)
-      throw new Error("The parameter 'dateMax' cannot be null.");
-    else if (dateMax !== undefined)
-      url_ +=
-        'dateMax=' +
-        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
-        '&';
-    if (verificationStatus === null)
-      throw new Error("The parameter 'verificationStatus' cannot be null.");
-    else if (verificationStatus !== undefined)
-      url_ +=
-        'verificationStatus=' +
-        encodeURIComponent('' + verificationStatus) +
-        '&';
-    if (rejectionReason === null)
-      throw new Error("The parameter 'rejectionReason' cannot be null.");
-    else if (rejectionReason !== undefined)
-      url_ +=
-        'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
-    if (processingStatus === null)
-      throw new Error("The parameter 'processingStatus' cannot be null.");
-    else if (processingStatus !== undefined)
-      url_ +=
-        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
-    if (submittedBy === null)
-      throw new Error("The parameter 'submittedBy' cannot be null.");
-    else if (submittedBy !== undefined)
-      url_ += 'submittedBy=' + encodeURIComponent('' + submittedBy) + '&';
-    if (verifiedBy === null)
-      throw new Error("The parameter 'verifiedBy' cannot be null.");
-    else if (verifiedBy !== undefined)
-      url_ += 'verifiedBy=' + encodeURIComponent('' + verifiedBy) + '&';
-    if (lobbySize === null)
-      throw new Error("The parameter 'lobbySize' cannot be null.");
-    else if (lobbySize !== undefined)
-      url_ += 'lobbySize=' + encodeURIComponent('' + lobbySize) + '&';
-    if (sort === null) throw new Error("The parameter 'sort' cannot be null.");
-    else if (sort !== undefined)
-      url_ += 'sort=' + encodeURIComponent('' + sort) + '&';
-    if (descending === null)
-      throw new Error("The parameter 'descending' cannot be null.");
-    else if (descending !== undefined)
-      url_ += 'descending=' + encodeURIComponent('' + descending) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processList(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processList(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get all tournaments which fit an optional request query
+    *
+    * Results will not include match data
+    * 
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link TournamentsListRequestParams})
+    * @return Returns all tournaments which fit the request query
+    */
+    public list(params: TournamentsListRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentDTO[]>> {
+        const {
+            page, 
+            pageSize, 
+            verified, 
+            ruleset, 
+            searchQuery, 
+            dateMin, 
+            dateMax, 
+            verificationStatus, 
+            rejectionReason, 
+            processingStatus, 
+            submittedBy, 
+            verifiedBy, 
+            lobbySize, 
+            sort, 
+            descending
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments?";
+        if (page === undefined || page === null)
+            throw new Error("The parameter 'page' must be defined and cannot be null.");
+        else
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (verified === null)
+            throw new Error("The parameter 'verified' cannot be null.");
+        else if (verified !== undefined)
+            url_ += "verified=" + encodeURIComponent("" + verified) + "&";
+        if (ruleset === null)
+            throw new Error("The parameter 'ruleset' cannot be null.");
+        else if (ruleset !== undefined)
+            url_ += "ruleset=" + encodeURIComponent("" + ruleset) + "&";
+        if (searchQuery === null)
+            throw new Error("The parameter 'searchQuery' cannot be null.");
+        else if (searchQuery !== undefined)
+            url_ += "searchQuery=" + encodeURIComponent("" + searchQuery) + "&";
+        if (dateMin === null)
+            throw new Error("The parameter 'dateMin' cannot be null.");
+        else if (dateMin !== undefined)
+            url_ += "dateMin=" + encodeURIComponent(dateMin ? "" + dateMin.toISOString() : "") + "&";
+        if (dateMax === null)
+            throw new Error("The parameter 'dateMax' cannot be null.");
+        else if (dateMax !== undefined)
+            url_ += "dateMax=" + encodeURIComponent(dateMax ? "" + dateMax.toISOString() : "") + "&";
+        if (verificationStatus === null)
+            throw new Error("The parameter 'verificationStatus' cannot be null.");
+        else if (verificationStatus !== undefined)
+            url_ += "verificationStatus=" + encodeURIComponent("" + verificationStatus) + "&";
+        if (rejectionReason === null)
+            throw new Error("The parameter 'rejectionReason' cannot be null.");
+        else if (rejectionReason !== undefined)
+            url_ += "rejectionReason=" + encodeURIComponent("" + rejectionReason) + "&";
+        if (processingStatus === null)
+            throw new Error("The parameter 'processingStatus' cannot be null.");
+        else if (processingStatus !== undefined)
+            url_ += "processingStatus=" + encodeURIComponent("" + processingStatus) + "&";
+        if (submittedBy === null)
+            throw new Error("The parameter 'submittedBy' cannot be null.");
+        else if (submittedBy !== undefined)
+            url_ += "submittedBy=" + encodeURIComponent("" + submittedBy) + "&";
+        if (verifiedBy === null)
+            throw new Error("The parameter 'verifiedBy' cannot be null.");
+        else if (verifiedBy !== undefined)
+            url_ += "verifiedBy=" + encodeURIComponent("" + verifiedBy) + "&";
+        if (lobbySize === null)
+            throw new Error("The parameter 'lobbySize' cannot be null.");
+        else if (lobbySize !== undefined)
+            url_ += "lobbySize=" + encodeURIComponent("" + lobbySize) + "&";
+        if (sort === null)
+            throw new Error("The parameter 'sort' cannot be null.");
+        else if (sort !== undefined)
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
+        if (descending === null)
+            throw new Error("The parameter 'descending' cannot be null.");
+        else if (descending !== undefined)
+            url_ += "descending=" + encodeURIComponent("" + descending) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processList(_response);
+        });
+    }
+
+    protected processList(response: AxiosResponse): Promise<OtrApiResponse<TournamentDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(
-        new OtrApiResponse<TournamentDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse<TournamentDTO[]>(status, _headers, result200));
 
-  /**
-   * Submit a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @param params Request parameters (see {@link TournamentsCreateRequestParams})
-   * @return Returns location information for the created tournament
-   */
-  public create(
-    params: TournamentsCreateRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
-    const { body } = params;
-
-    let url_ = this.baseUrl + '/api/v1/tournaments';
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreate(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<TournamentDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processCreate(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Submit a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user
+    * @param params Request parameters (see {@link TournamentsCreateRequestParams})
+    * @return Returns location information for the created tournament
+    */
+    public create(params: TournamentsCreateRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
+        const {
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCreate(_response);
+        });
+    }
+
+    protected processCreate(response: AxiosResponse): Promise<OtrApiResponse<TournamentCreatedResultDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 201) {
-      const _responseText = response.data;
-      let result201: any = null;
-      let resultData201 = _responseText;
-      result201 = JSON.parse(resultData201);
-      return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(
-        new OtrApiResponse<TournamentCreatedResultDTO>(
-          status,
-          _headers,
-          result201
-        )
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The tournament submission is malformed or\r\na tournament matching the given name and ruleset already exists", status, _responseText, _headers, result400);
 
-  /**
-   * List all matches from a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
-   * @param params Request parameters (see {@link TournamentsListMatchesRequestParams})
-   * @return Returns all matches from a tournament
-   */
-  public listMatches(
-    params: TournamentsListMatchesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<MatchDTO[]>> {
-    const { id } = params;
+        } else if (status === 201) {
+            const _responseText = response.data;
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = JSON.parse(resultData201);
+            return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(new OtrApiResponse<TournamentCreatedResultDTO>(status, _headers, result201));
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}/matches';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processListMatches(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<TournamentCreatedResultDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processListMatches(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<MatchDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * List all matches from a tournament
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): user, client
+    * @param params Request parameters (see {@link TournamentsListMatchesRequestParams})
+    * @return Returns all matches from a tournament
+    */
+    public listMatches(params: TournamentsListMatchesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchDTO[]>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/tournaments/{id}/matches";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processListMatches(_response);
+        });
+    }
+
+    protected processListMatches(response: AxiosResponse): Promise<OtrApiResponse<MatchDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A tournament matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse<MatchDTO[]>(status, _headers, result200));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<MatchDTO[]>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A tournament matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-        new OtrApiResponse<MatchDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<MatchDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.get | api/v1/users/[id]}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.get | api/v1/users/[id]}
+*/
 export type UsersGetRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.updateScopes | api/v1/users/[id]/scopes}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.updateScopes | api/v1/users/[id]/scopes}
+*/
 export type UsersUpdateScopesRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-  /**
-   * (required) List of scopes to assign to the user
-   */
-  body: string[];
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+    /**
+    * (required) List of scopes to assign to the user
+    */
+    body: string[];
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.getSubmissions | api/v1/users/[id]/submissions}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.getSubmissions | api/v1/users/[id]/submissions}
+*/
 export type UsersGetSubmissionsRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.rejectSubmissions | api/v1/users/[id]/submissions:reject}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.rejectSubmissions | api/v1/users/[id]/submissions:reject}
+*/
 export type UsersRejectSubmissionsRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.getClients | api/v1/users/[id]/clients}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.getClients | api/v1/users/[id]/clients}
+*/
 export type UsersGetClientsRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.deleteClient | api/v1/users/[id]/clients/[clientId]}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.deleteClient | api/v1/users/[id]/clients/[clientId]}
+*/
 export type UsersDeleteClientRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-  /**
-   * (required) OAuth client id
-   */
-  clientId: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+    /**
+    * (required) OAuth client id
+    */
+    clientId: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.resetClientSecret | api/v1/users/[id]/clients/[clientId]/secret:reset}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.resetClientSecret | api/v1/users/[id]/clients/[clientId]/secret:reset}
+*/
 export type UsersResetClientSecretRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-  /**
-   * (required) OAuth client id
-   */
-  clientId: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+    /**
+    * (required) OAuth client id
+    */
+    clientId: number;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.updateRuleset | api/v1/users/[id]/settings/ruleset}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.updateRuleset | api/v1/users/[id]/settings/ruleset}
+*/
 export type UsersUpdateRulesetRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-  /**
-   * (required) The new ruleset
-   */
-  body: Ruleset;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+    /**
+    * (required) The new ruleset
+    */
+    body: Ruleset;
+}
 
 /**
- * Request parameters available for use when requesting {@link UsersWrapper.prototype.syncRuleset | api/v1/users/[id]/settings/ruleset:sync}
- */
+* Request parameters available for use when requesting {@link UsersWrapper.prototype.syncRuleset | api/v1/users/[id]/settings/ruleset:sync}
+*/
 export type UsersSyncRulesetRequestParams = {
-  /**
-   * (required) User id
-   */
-  id: number;
-};
+    /**
+    * (required) User id
+    */
+    id: number;
+}
 
 export class UsersWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
+    protected instance: AxiosInstance;
+    protected baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
+    constructor(configuration: IOtrApiWrapperConfiguration) {
 
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
+        super(configuration);
 
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
+        this.instance = axios.create(this.configuration.clientConfiguration);
+        this.baseUrl = this.getBaseUrl("");
 
-  /**
-   * Get a user
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersGetRequestParams})
-   * @return Returns a user
-   */
-  public get(
-    params: UsersGetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<UserDTO>> {
-    const { id } = params;
-
-    let url_ = this.baseUrl + '/api/v1/users/{id}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        if (this.configuration.postConfigureClientMethod) {
+            this.configuration.postConfigureClientMethod(this.instance);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGet(_response);
-      });
-  }
+    }
 
-  protected processGet(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<UserDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a user
+    *
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersGetRequestParams})
+    * @return Returns a user
+    */
+    public get(params: UsersGetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGet(_response);
+        });
+    }
+
+    protected processGet(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Update a user's scopes
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link UsersUpdateScopesRequestParams})
-   * @return Returns the updated user
-   */
-  public updateScopes(
-    params: UsersUpdateScopesRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<UserDTO>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/scopes';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateScopes(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdateScopes(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<UserDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Update a user's scopes
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link UsersUpdateScopesRequestParams})
+    * @return Returns the updated user
+    */
+    public updateScopes(params: UsersUpdateScopesRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<UserDTO>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/scopes";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdateScopes(_response);
+        });
+    }
+
+    protected processUpdateScopes(response: AxiosResponse): Promise<OtrApiResponse<UserDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'A given scope is invalid, or the update was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<UserDTO>>(
-        new OtrApiResponse<UserDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<UserDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Get a user's match submissions
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersGetSubmissionsRequestParams})
-   * @return Returns a list of submissions
-   */
-  public getSubmissions(
-    params: UsersGetSubmissionsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("A given scope is invalid, or the update was not successful", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/submissions';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse<UserDTO>(status, _headers, result200));
 
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetSubmissions(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<UserDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGetSubmissions(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a user's match submissions
+    *
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersGetSubmissionsRequestParams})
+    * @return Returns a list of submissions
+    */
+    public getSubmissions(params: UsersGetSubmissionsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/submissions";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetSubmissions(_response);
+        });
+    }
+
+    protected processGetSubmissions(response: AxiosResponse): Promise<OtrApiResponse<MatchSubmissionStatusDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(
-        new OtrApiResponse<MatchSubmissionStatusDTO[]>(
-          status,
-          _headers,
-          result200
-        )
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Reject a user's match submissions
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): admin
-   * @param params Request parameters (see {@link UsersRejectSubmissionsRequestParams})
-   * @return The operation was successful
-   */
-  public rejectSubmissions(
-    params: UsersRejectSubmissionsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(new OtrApiResponse<MatchSubmissionStatusDTO[]>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/submissions:reject';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processRejectSubmissions(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<MatchSubmissionStatusDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processRejectSubmissions(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Reject a user's match submissions
+    *
+    * Requires Authorization:
+    * 
+    * Claim(s): admin
+    * @param params Request parameters (see {@link UsersRejectSubmissionsRequestParams})
+    * @return The operation was successful
+    */
+    public rejectSubmissions(params: UsersRejectSubmissionsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/submissions:reject";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRejectSubmissions(_response);
+        });
+    }
+
+    protected processRejectSubmissions(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      return throwException(
-        'The operation was not successful',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Get a user's OAuth clients
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersGetClientsRequestParams})
-   * @return Returns a list of OAuth clients
-   */
-  public getClients(
-    params: UsersGetClientsRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<OAuthClientDTO[]>> {
-    const { id } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/clients';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 400) {
+            const _responseText = response.data;
+            return throwException("The operation was not successful", status, _responseText, _headers);
 
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetClients(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processGetClients(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<OAuthClientDTO[]>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Get a user's OAuth clients
+    *
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersGetClientsRequestParams})
+    * @return Returns a list of OAuth clients
+    */
+    public getClients(params: UsersGetClientsRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientDTO[]>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/clients";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processGetClients(_response);
+        });
+    }
+
+    protected processGetClients(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientDTO[]>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(
-        new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Delete a user's OAuth client
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersDeleteClientRequestParams})
-   * @return The deletion was successful
-   */
-  public deleteClient(
-    params: UsersDeleteClientRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id, clientId } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(new OtrApiResponse<OAuthClientDTO[]>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/clients/{clientId}';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (clientId === undefined || clientId === null)
-      throw new Error("The parameter 'clientId' must be defined.");
-    url_ = url_.replace('{clientId}', encodeURIComponent('' + clientId));
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'DELETE',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processDeleteClient(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<OAuthClientDTO[]>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processDeleteClient(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Delete a user's OAuth client
+    *
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersDeleteClientRequestParams})
+    * @return The deletion was successful
+    */
+    public deleteClient(params: UsersDeleteClientRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            clientId
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (clientId === undefined || clientId === null)
+            throw new Error("The parameter 'clientId' must be defined.");
+        url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDeleteClient(_response);
+        });
+    }
+
+    protected processDeleteClient(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The deletion was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
-  /**
-   * Reset the secret of a user's OAuth client
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersResetClientSecretRequestParams})
-   * @return Returns new client credentials
-   */
-  public resetClientSecret(
-    params: UsersResetClientSecretRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    const { id, clientId } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The deletion was not successful", status, _responseText, _headers, result400);
 
-    let url_ =
-      this.baseUrl + '/api/v1/users/{id}/clients/{clientId}/secret:reset';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (clientId === undefined || clientId === null)
-      throw new Error("The parameter 'clientId' must be defined.");
-    url_ = url_.replace('{clientId}', encodeURIComponent('' + clientId));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processResetClientSecret(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processResetClientSecret(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Reset the secret of a user's OAuth client
+    *
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersResetClientSecretRequestParams})
+    * @return Returns new client credentials
+    */
+    public resetClientSecret(params: UsersResetClientSecretRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+        const {
+            id, 
+            clientId
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/clients/{clientId}/secret:reset";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (clientId === undefined || clientId === null)
+            throw new Error("The parameter 'clientId' must be defined.");
+        url_ = url_.replace("{clientId}", encodeURIComponent("" + clientId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processResetClientSecret(_response);
+        });
+    }
+
+    protected processResetClientSecret(response: AxiosResponse): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist\r\nor an OAuth client matching the given id is not owned by the user", status, _responseText, _headers, result404);
 
-  /**
-   * Update the ruleset of a user
-   *
-   * If a user's preferred ruleset was previously being synced with the one selected on their osu! profile,
-   * updating it will stop their preferred ruleset from being synced in the future unless it is requested
-   * to be synced again
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersUpdateRulesetRequestParams})
-   * @return The operation was successful
-   */
-  public updateRuleset(
-    params: UsersUpdateRulesetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id, body } = params;
+        } else if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = JSON.parse(resultData200);
+            return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200));
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/settings/ruleset';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = JSON.stringify(body);
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'PATCH',
-      url: url_,
-      headers: {
-        'Content-Type': 'application/json-patch+json',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processUpdateRuleset(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processUpdateRuleset(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Update the ruleset of a user
+    *
+    * If a user's preferred ruleset was previously being synced with the one selected on their osu! profile,
+    * updating it will stop their preferred ruleset from being synced in the future unless it is requested
+    * to be synced again
+    * 
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersUpdateRulesetRequestParams})
+    * @return The operation was successful
+    */
+    public updateRuleset(params: UsersUpdateRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id, 
+            body
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PATCH",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json-patch+json",
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processUpdateRuleset(_response);
+        });
+    }
+
+    protected processUpdateRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
-    }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The operation was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
 
-  /**
-   * Sync the ruleset of a user with their osu! ruleset
-   *
-   * Sets the user's preferred ruleset to the one currently selected on their osu! profile
-   * and in the future will continuously update if the ruleset selected on their osu! profile changes
-   *
-   * Requires Authorization:
-   *
-   * Policy: AccessUserResources
-   * @param params Request parameters (see {@link UsersSyncRulesetRequestParams})
-   * @return The operation was successful
-   */
-  public syncRuleset(
-    params: UsersSyncRulesetRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
-    const { id } = params;
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
 
-    let url_ = this.baseUrl + '/api/v1/users/{id}/settings/ruleset:sync';
-    if (id === undefined || id === null)
-      throw new Error("The parameter 'id' must be defined.");
-    url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    url_ = url_.replace(/[?&]$/, '');
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
 
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processSyncRuleset(_response);
-      });
-  }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
+    }
 
-  protected processSyncRuleset(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
+    /**
+    * Sync the ruleset of a user with their osu! ruleset
+    *
+    * Sets the user's preferred ruleset to the one currently selected on their osu! profile
+    * and in the future will continuously update if the ruleset selected on their osu! profile changes
+    * 
+    * Requires Authorization:
+    * 
+    * Policy: AccessUserResources
+    * @param params Request parameters (see {@link UsersSyncRulesetRequestParams})
+    * @return The operation was successful
+    */
+    public syncRuleset(params: UsersSyncRulesetRequestParams, cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
+        const {
+            id
+        } = params;
+
+        let url_ = this.baseUrl + "/api/v1/users/{id}/settings/ruleset:sync";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+            },
+            cancelToken,
+            requiresAuthorization: true
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSyncRuleset(_response);
+        });
+    }
+
+    protected processSyncRuleset(response: AxiosResponse): Promise<OtrApiResponse<void>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
         }
-      }
+        if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = JSON.parse(resultData404);
+            return throwException("A user matching the given id does not exist", status, _responseText, _headers, result404);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = JSON.parse(resultData400);
+            return throwException("The operation was not successful", status, _responseText, _headers, result400);
+
+        } else if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse<void>(status, _headers, null as any));
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<OtrApiResponse<void>>(new OtrApiResponse(status, _headers, null as any));
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'A user matching the given id does not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The operation was not successful',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
 }
 
 /** Represents access credentials and their expiry */
 export interface AccessCredentialsDTO {
-  /** Access token */
-  accessToken: string;
-  /** Refresh token */
-  refreshToken: string;
-  /** Lifetime of the access token in seconds */
-  expiresIn: number;
-  /** Token type */
-  tokenType: string;
+    /** Access token */
+    accessToken: string;
+    /** Refresh token */
+    refreshToken: string;
+    /** Lifetime of the access token in seconds */
+    expiresIn: number;
+    /** Token type */
+    tokenType: string;
 }
 
 /** Represents a note for an entity created by an admin */
 export interface AdminNoteDTO {
-  /** The id of the admin note */
-  id: number;
-  /** Timestamp of creation */
-  created: Date;
-  /** Timestamp of the last update, if available */
-  updated?: Date | undefined;
-  /** Id of the parent entity */
-  referenceId: number;
-  /** The admin user that created the note */
-  adminUser: UserCompactDTO;
-  /** Content of the note */
-  note: string;
+    /** The id of the admin note */
+    id: number;
+    /** Timestamp of creation */
+    created: Date;
+    /** Timestamp of the last update, if available */
+    updated?: Date | undefined;
+    /** Id of the parent entity */
+    referenceId: number;
+    /** The admin user that created the note */
+    adminUser: UserCompactDTO;
+    /** Content of the note */
+    note: string;
 }
 
 /** Type of entity to target for admin note actions */
 export enum AdminNoteRouteTarget {
-  /**  */
-  Game = 'game',
-  /**  */
-  GameScore = 'gamescore',
-  /**  */
-  Match = 'match',
-  /**  */
-  OAuthClient = 'oauthclient',
-  /**  */
-  Player = 'player',
-  /**  */
-  Tournament = 'tournament',
+    /**  */
+    Game = "game",
+    /**  */
+    GameScore = "gamescore",
+    /**  */
+    Match = "match",
+    /**  */
+    OAuthClient = "oauthclient",
+    /**  */
+    Player = "player",
+    /**  */
+    Tournament = "tournament",
 }
 
 /** Represents an aggregate of match statistics for a player during a period of time */
 export interface AggregatePlayerMatchStatsDTO {
-  /** The player's average match cost during the period */
-  averageMatchCostAggregate: number;
-  /** The peak rating achieved by the player during the period */
-  highestRating: number;
-  /** The amount of rating gained from the start of the period to the end of the period */
-  ratingGained: number;
-  /** The amount of games won during the period */
-  gamesWon: number;
-  /** The amount of games lost during the period */
-  gamesLost: number;
-  /** The amount of games played during the period */
-  gamesPlayed: number;
-  /** The amount of matches won during the period */
-  matchesWon: number;
-  /** The amount of matches lost during the period */
-  matchesLost: number;
-  /** The amount of matches played during the period */
-  readonly matchesPlayed: number;
-  /** A value between 0 and 1 representing the player's game win rate during the period */
-  readonly gameWinRate: number;
-  /** A value between 0 and 1 representing the player's match win rate during the period */
-  readonly matchWinRate: number;
-  /** The most amount of matches won in a row during the period */
-  bestWinStreak: number;
-  /** Across all matches the player has played in, the average score across the entire lobby. This average includes
+    /** The player's average match cost during the period */
+    averageMatchCostAggregate: number;
+    /** The peak rating achieved by the player during the period */
+    highestRating: number;
+    /** The amount of rating gained from the start of the period to the end of the period */
+    ratingGained: number;
+    /** The amount of games won during the period */
+    gamesWon: number;
+    /** The amount of games lost during the period */
+    gamesLost: number;
+    /** The amount of games played during the period */
+    gamesPlayed: number;
+    /** The amount of matches won during the period */
+    matchesWon: number;
+    /** The amount of matches lost during the period */
+    matchesLost: number;
+    /** The amount of matches played during the period */
+    readonly matchesPlayed: number;
+    /** A value between 0 and 1 representing the player's game win rate during the period */
+    readonly gameWinRate: number;
+    /** A value between 0 and 1 representing the player's match win rate during the period */
+    readonly matchWinRate: number;
+    /** The most amount of matches won in a row during the period */
+    bestWinStreak: number;
+    /** Across all matches the player has played in, the average score across the entire lobby. This average includes
 scores for games the player may have not been in for */
-  matchAverageScoreAggregate: number;
-  /** Across all matches the player has played in, the average miss count of the lobby, across all games in that match */
-  matchAverageMissesAggregate: number;
-  /** Across all matches the player has played in, the average accuracy of the lobby, across all games in that match */
-  matchAverageAccuracyAggregate: number;
-  /** The amount of maps the player participates in, on average. */
-  averageGamesPlayedAggregate: number;
-  /** The average lobby ranking the player has on maps they participate in.
+    matchAverageScoreAggregate: number;
+    /** Across all matches the player has played in, the average miss count of the lobby, across all games in that match */
+    matchAverageMissesAggregate: number;
+    /** Across all matches the player has played in, the average accuracy of the lobby, across all games in that match */
+    matchAverageAccuracyAggregate: number;
+    /** The amount of maps the player participates in, on average. */
+    averageGamesPlayedAggregate: number;
+    /** The average lobby ranking the player has on maps they participate in.
 A top-score is 1, bottom score would be team size * 2 */
-  averagePlacingAggregate: number;
-  /** The beginning of the period for which the statistics are calculated. */
-  periodStart: Date;
-  /** The end of the period for which the statistics are calculated. */
-  periodEnd: Date;
+    averagePlacingAggregate: number;
+    /** The beginning of the period for which the statistics are calculated. */
+    periodStart: Date;
+    /** The end of the period for which the statistics are calculated. */
+    periodEnd: Date;
 }
 
 /** The possible authorization policies enforced on a route. Authorization policies differ from Roles as they may require special conditions to be satisfied. See the description of a policy for more information. */
 export enum AuthorizationPolicies {
-  /** Policy that allows access from the user that owns the resource as well as any admin users */
-  AccessUserResources = 'AccessUserResources',
+    /** Policy that allows access from the user that owns the resource as well as any admin users */
+    AccessUserResources = "AccessUserResources",
 }
 
 /** Represents a beatmap's attributes */
 export interface BeatmapAttributesDTO {
-  /** Mods applied */
-  mods: Mods;
-  /** Star rating with applied mods */
-  sr: number;
+    /** Mods applied */
+    mods: Mods;
+    /** Star rating with applied mods */
+    sr: number;
 }
 
 /** Represents a beatmap */
 export interface BeatmapDTO {
-  /** Id of the beatmap */
-  id: number;
-  /** osu! id of the beatmap */
-  osuId: number;
-  /** Beats per minute */
-  bpm?: number | undefined;
-  /** Star rating */
-  sr: number;
-  /** Circle size */
-  cs: number;
-  /** Approach rate */
-  ar: number;
-  /** HP drain rate */
-  hp: number;
-  /** Overall difficulty */
-  od: number;
-  /** Song length */
-  totalLength: number;
-  /** Name of the difficulty */
-  diffName?: string | undefined;
-  /** Beatmapset id */
-  beatmapsetId?: number | undefined;
-  /** Beatmapset */
-  beatmapset?: BeatmapsetCompactDTO | undefined;
-  /** Beatmap attributes */
-  attributes: BeatmapAttributesDTO[];
-  /** Beatmap creators */
-  creators: PlayerCompactDTO[];
+    /** Id of the beatmap */
+    id: number;
+    /** osu! id of the beatmap */
+    osuId: number;
+    /** Beats per minute */
+    bpm?: number | undefined;
+    /** Star rating */
+    sr: number;
+    /** Circle size */
+    cs: number;
+    /** Approach rate */
+    ar: number;
+    /** HP drain rate */
+    hp: number;
+    /** Overall difficulty */
+    od: number;
+    /** Song length */
+    totalLength: number;
+    /** Name of the difficulty */
+    diffName?: string | undefined;
+    /** Beatmapset id */
+    beatmapsetId?: number | undefined;
+    /** Beatmapset */
+    beatmapset?: BeatmapsetCompactDTO | undefined;
+    /** Beatmap attributes */
+    attributes: BeatmapAttributesDTO[];
+    /** Beatmap creators */
+    creators: PlayerCompactDTO[];
 }
 
 export enum BeatmapRankedStatus {
-  Pending = 0,
-  Ranked = 1,
-  Approved = 2,
-  Qualified = 3,
-  Loved = 4,
-  Graveyard = -2,
-  WorkInProgress = -1,
+    Pending = 0,
+    Ranked = 1,
+    Approved = 2,
+    Qualified = 3,
+    Loved = 4,
+    Graveyard = -2,
+    WorkInProgress = -1,
 }
 
 /** Represents a compact version of a beatmapset */
 export interface BeatmapsetCompactDTO {
-  /** Beatmapset id */
-  id: number;
-  /** osu! beatmapset id */
-  osuId: number;
-  /** Artist */
-  artist: string;
-  /** Title */
-  title: string;
-  /** Ranked status */
-  rankedStatus: BeatmapRankedStatus;
-  /** Date of ranking, if applicable */
-  rankedDate?: Date | undefined;
-  /** Date of submission */
-  submittedDate?: Date | undefined;
-  /** Id of the Player who created the set */
-  creatorId: number;
-  /** The set creator */
-  creator?: PlayerCompactDTO | undefined;
+    /** Beatmapset id */
+    id: number;
+    /** osu! beatmapset id */
+    osuId: number;
+    /** Artist */
+    artist: string;
+    /** Title */
+    title: string;
+    /** Ranked status */
+    rankedStatus: BeatmapRankedStatus;
+    /** Date of ranking, if applicable */
+    rankedDate?: Date | undefined;
+    /** Date of submission */
+    submittedDate?: Date | undefined;
+    /** Id of the Player who created the set */
+    creatorId: number;
+    /** The set creator */
+    creator?: PlayerCompactDTO | undefined;
 }
 
 /** A beatmapset with beatmaps included */
 export interface BeatmapsetDTO extends BeatmapsetCompactDTO {
-  /** Beatmaps which are part of this set */
-  beatmaps?: BeatmapDTO[];
+    /** Beatmaps which are part of this set */
+    beatmaps?: BeatmapDTO[];
 }
 
 /** Represents a newly created resource */
 export interface CreatedResultBaseDTO {
-  /** Id of the resource */
-  id: number;
-  /** Location of the resource */
-  location: string;
+    /** Id of the resource */
+    id: number;
+    /** Location of the resource */
+    location: string;
 }
 
 export enum FilteringFailReason {
-  /** The player passed filtering, thus there is no failure reason */
-  None = 0,
-  /** The player does not have a rating / profile in the o!TR database */
-  NoData = 1,
-  /** The player's rating is below the minimum threshold */
-  MinRating = 2,
-  /** The player's rating is above the maximum threshold */
-  MaxRating = 4,
-  /**
-   * The player is provisional and the filtering criteria specifies
-   * exclusion of provisional players
-   */
-  IsProvisional = 8,
-  /**
-   * The player has not played in the minimum specified
-   * amount of tournaments
-   */
-  NotEnoughTournaments = 16,
-  /** The player's all-time peak rating is above the maximum allowed */
-  PeakRatingTooHigh = 32,
-  /** The player has not played in the minimum specified amount of matches */
-  NotEnoughMatches = 64,
+    /** The player passed filtering, thus there is no failure reason */
+    None = 0,
+    /** The player does not have a rating / profile in the o!TR database */
+    NoData = 1,
+    /** The player's rating is below the minimum threshold */
+    MinRating = 2,
+    /** The player's rating is above the maximum threshold */
+    MaxRating = 4,
+    /**
+    * The player is provisional and the filtering criteria specifies
+	* exclusion of provisional players
+    */
+    IsProvisional = 8,
+    /**
+    * The player has not played in the minimum specified
+	* amount of tournaments
+    */
+    NotEnoughTournaments = 16,
+    /** The player's all-time peak rating is above the maximum allowed */
+    PeakRatingTooHigh = 32,
+    /** The player has not played in the minimum specified amount of matches */
+    NotEnoughMatches = 64,
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
 export interface FilteringRequestDTO {
-  /** The ruleset by which data will be referenced, required */
-  ruleset: Ruleset;
-  /** Players with a current rating below this value will be filtered */
-  minRating?: number | undefined;
-  /** Players with a current rating above this value will be filtered */
-  maxRating?: number | undefined;
-  /** Whether to filter players that currently have a provisional rating */
-  allowProvisional: boolean;
-  /** If set, requires players to have participated in at least
+    /** The ruleset by which data will be referenced, required */
+    ruleset: Ruleset;
+    /** Players with a current rating below this value will be filtered */
+    minRating?: number | undefined;
+    /** Players with a current rating above this value will be filtered */
+    maxRating?: number | undefined;
+    /** Whether to filter players that currently have a provisional rating */
+    allowProvisional: boolean;
+    /** If set, requires players to have participated in at least
 this many distinct tournaments */
-  tournamentsPlayed?: number | undefined;
-  /** If set, requires players to have an all-time peak rating less than
+    tournamentsPlayed?: number | undefined;
+    /** If set, requires players to have an all-time peak rating less than
 this value */
-  peakRating?: number | undefined;
-  /** If set, requires players to have played in at least
+    peakRating?: number | undefined;
+    /** If set, requires players to have played in at least
 this many matches */
-  matchesPlayed?: number | undefined;
-  /** A list of osu! player ids that will be filtered */
-  osuPlayerIds: number[];
+    matchesPlayed?: number | undefined;
+    /** A list of osu! player ids that will be filtered */
+    osuPlayerIds: number[];
 }
 
 export enum FilteringResult {
-  /** Indicates the player passed filtering */
-  Pass = 0,
-  /** Indicates the player failed filtering */
-  Fail = 1,
+    /** Indicates the player passed filtering */
+    Pass = 0,
+    /** Indicates the player failed filtering */
+    Fail = 1,
 }
 
 /** Represents a filterings result for a collection of players */
 export interface FilteringResultDTO {
-  /** The number of players who passed filtering */
-  playersPassed: number;
-  /** The number of players who failed filtering */
-  playersFailed: number;
-  /** A collection of filtering results, one per submitted player,
+    /** The number of players who passed filtering */
+    playersPassed: number;
+    /** The number of players who failed filtering */
+    playersFailed: number;
+    /** A collection of filtering results, one per submitted player,
 in the same order as submitted in the API.DTOs.FilteringRequestDTO */
-  filteringResults: PlayerFilteringResultDTO[];
+    filteringResults: PlayerFilteringResultDTO[];
 }
 
 /** Represents a single game (osu! beatmap) played in a match */
 export interface GameDTO {
-  /** Primary key */
-  id: number;
-  /** osu! id */
-  osuId: number;
-  /** The ruleset */
-  ruleset: Ruleset;
-  /** The scoring type used */
-  scoringType: ScoringType;
-  /** The team type used */
-  teamType: TeamType;
-  /** The mods enabled */
-  mods: Mods;
-  /** Denotes if the mod setting is "free mod" */
-  isFreeMod: boolean;
-  /** The verification status */
-  verificationStatus: VerificationStatus;
-  /** The processing status */
-  processingStatus: GameProcessingStatus;
-  /** Warning flags */
-  warningFlags: GameWarningFlags;
-  /** The rejection reason */
-  rejectionReason: GameRejectionReason;
-  /** Timestamp of the beginning of the game */
-  startTime: Date;
-  /** Timestamp of the end of the game */
-  endTime?: Date | undefined;
-  /** The beatmap played */
-  beatmap: BeatmapDTO;
-  /** Win record */
-  rosters: GameRosterDTO[];
-  /** All participating players (Will only be populated if the game is the highest order of entity requested) */
-  players: PlayerCompactDTO[];
-  /** All associated admin notes */
-  adminNotes: AdminNoteDTO[];
-  /** All match scores */
-  scores: GameScoreDTO[];
+    /** Primary key */
+    id: number;
+    /** osu! id */
+    osuId: number;
+    /** The ruleset */
+    ruleset: Ruleset;
+    /** The scoring type used */
+    scoringType: ScoringType;
+    /** The team type used */
+    teamType: TeamType;
+    /** The mods enabled */
+    mods: Mods;
+    /** Denotes if the mod setting is "free mod" */
+    isFreeMod: boolean;
+    /** The verification status */
+    verificationStatus: VerificationStatus;
+    /** The processing status */
+    processingStatus: GameProcessingStatus;
+    /** Warning flags */
+    warningFlags: GameWarningFlags;
+    /** The rejection reason */
+    rejectionReason: GameRejectionReason;
+    /** Timestamp of the beginning of the game */
+    startTime: Date;
+    /** Timestamp of the end of the game */
+    endTime?: Date | undefined;
+    /** The beatmap played */
+    beatmap: BeatmapDTO;
+    /** Win record */
+    rosters: GameRosterDTO[];
+    /** All participating players (Will only be populated if the game is the highest order of entity requested) */
+    players: PlayerCompactDTO[];
+    /** All associated admin notes */
+    adminNotes: AdminNoteDTO[];
+    /** All match scores */
+    scores: GameScoreDTO[];
 }
 
 export enum GameProcessingStatus {
-  /** The !:Database.Entities.Game needs automation checks */
-  NeedsAutomationChecks = 0,
-  /**
-   * The !:Database.Entities.Game is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 1,
-  /**
-   * The !:Database.Entities.Game needs stat calculation
-   *
-   * Generates the !:Database.Entities.GameRoster
-   */
-  NeedsStatCalculation = 2,
-  /** The !:Database.Entities.Game has completed all processing steps */
-  Done = 3,
+    /** The !:Database.Entities.Game needs automation checks */
+    NeedsAutomationChecks = 0,
+    /**
+    * The !:Database.Entities.Game is awaiting verification from a
+	* !:Database.Entities.User with verifier permission
+    */
+    NeedsVerification = 1,
+    /**
+    * The !:Database.Entities.Game needs stat calculation
+	* 
+	* Generates the !:Database.Entities.GameRoster
+    */
+    NeedsStatCalculation = 2,
+    /** The !:Database.Entities.Game has completed all processing steps */
+    Done = 3,
 }
 
 export enum GameRejectionReason {
-  /** The !:Database.Entities.Game is not rejected */
-  None = 0,
-  /** The !:Database.Entities.Game's osu! API data did not contain any !:Database.Entities.GameScores */
-  NoScores = 1,
-  /** The !:Database.Entities.Game has invalid mods applied */
-  InvalidMods = 2,
-  /** The !:Database.Entities.Game's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
-  RulesetMismatch = 4,
-  /** The !:Database.Entities.Game's Common.Enums.ScoringType is not Common.Enums.ScoringType.ScoreV2 */
-  InvalidScoringType = 8,
-  /** The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs */
-  InvalidTeamType = 16,
-  /**
-   * The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs
-   * and attempting Common.Enums.TeamType.TeamVs conversion was not successful
-   */
-  FailedTeamVsConversion = 32,
-  /**
-   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
-   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is < 2
-   */
-  NoValidScores = 64,
-  /**
-   * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
-   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
-   * not equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament
-   * in case of Common.Enums.TeamType.HeadToHead!:Database.Entities.Games.
-   * In the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.
-   */
-  LobbySizeMismatch = 128,
-  /** The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined */
-  NoEndTime = 256,
-  /** The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected */
-  RejectedMatch = 512,
-  /**
-   * The !:Database.Entities.Tournament has a known collection of PooledBeatmaps
-   * and the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present
-   * in said collection
-   */
-  BeatmapNotPooled = 1024,
+    /** The !:Database.Entities.Game is not rejected */
+    None = 0,
+    /** The !:Database.Entities.Game's osu! API data did not contain any !:Database.Entities.GameScores */
+    NoScores = 1,
+    /** The !:Database.Entities.Game has invalid mods applied */
+    InvalidMods = 2,
+    /** The !:Database.Entities.Game's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
+    RulesetMismatch = 4,
+    /** The !:Database.Entities.Game's Common.Enums.ScoringType is not Common.Enums.ScoringType.ScoreV2 */
+    InvalidScoringType = 8,
+    /** The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs */
+    InvalidTeamType = 16,
+    /**
+    * The !:Database.Entities.Game's Common.Enums.TeamType is not Common.Enums.TeamType.TeamVs
+	* and attempting Common.Enums.TeamType.TeamVs conversion was not successful
+    */
+    FailedTeamVsConversion = 32,
+    /**
+    * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
+	* of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is < 2
+    */
+    NoValidScores = 64,
+    /**
+    * The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus
+	* of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified divided by 2 is
+	* not equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament
+	* in case of Common.Enums.TeamType.HeadToHead!:Database.Entities.Games.
+	* In the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.
+    */
+    LobbySizeMismatch = 128,
+    /** The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined */
+    NoEndTime = 256,
+    /** The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected */
+    RejectedMatch = 512,
+    /**
+    * The !:Database.Entities.Tournament has a known collection of PooledBeatmaps
+	* and the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present
+	* in said collection
+    */
+    BeatmapNotPooled = 1024,
 }
 
 /** Represents aggregate statistics and roster for both teams in a game */
 export interface GameRosterDTO {
-  /** Id of the game */
-  gameId: number;
-  /** Winning team */
-  team: Team;
-  /** Combined score of the losing team */
-  score: number;
-  /** Ids of all players on the losing team */
-  roster: number[];
+    /** Id of the game */
+    gameId: number;
+    /** Winning team */
+    team: Team;
+    /** Combined score of the losing team */
+    score: number;
+    /** Ids of all players on the losing team */
+    roster: number[];
 }
 
 /** Represents a single score set in a game */
 export interface GameScoreDTO {
-  /** Primary key */
-  id: number;
-  /** Id of the Player that set the score */
-  playerId: number;
-  /** Ruleset the score was set in */
-  ruleset: Ruleset;
-  /** Team the Player was on */
-  team: Team;
-  /** Letter grade */
-  grade: ScoreGrade;
-  /** Total score */
-  score: number;
-  /** Placement of the score compared to all others in the same game */
-  placement: number;
-  /** Max combo */
-  maxCombo: number;
-  /** Count of notes hit with a judgement of 50 */
-  count50: number;
-  /** Count of notes hit with a judgement of 100 */
-  count100: number;
-  /** Count of notes hit with a judgement of 300 */
-  count300: number;
-  /** Count of notes hit with a judgement of Katu */
-  countKatu: number;
-  /** Count of notes hit with a judgement of Geki */
-  countGeki: number;
-  /** Count of missed notes */
-  countMiss: number;
-  /** Applied mods */
-  mods: Mods;
-  /** Accuracy */
-  accuracy: number;
-  /** The current state of verification */
-  verificationStatus: VerificationStatus;
-  /** The current state of processing */
-  processingStatus: ScoreProcessingStatus;
-  /** The rejection reason */
-  rejectionReason: ScoreRejectionReason;
-  /** All associated admin notes */
-  adminNotes: AdminNoteDTO[];
+    /** Primary key */
+    id: number;
+    /** Id of the Player that set the score */
+    playerId: number;
+    /** Ruleset the score was set in */
+    ruleset: Ruleset;
+    /** Team the Player was on */
+    team: Team;
+    /** Letter grade */
+    grade: ScoreGrade;
+    /** Total score */
+    score: number;
+    /** Placement of the score compared to all others in the same game */
+    placement: number;
+    /** Max combo */
+    maxCombo: number;
+    /** Count of notes hit with a judgement of 50 */
+    count50: number;
+    /** Count of notes hit with a judgement of 100 */
+    count100: number;
+    /** Count of notes hit with a judgement of 300 */
+    count300: number;
+    /** Count of notes hit with a judgement of Katu */
+    countKatu: number;
+    /** Count of notes hit with a judgement of Geki */
+    countGeki: number;
+    /** Count of missed notes */
+    countMiss: number;
+    /** Applied mods */
+    mods: Mods;
+    /** Accuracy */
+    accuracy: number;
+    /** The current state of verification */
+    verificationStatus: VerificationStatus;
+    /** The current state of processing */
+    processingStatus: ScoreProcessingStatus;
+    /** The rejection reason */
+    rejectionReason: ScoreRejectionReason;
+    /** All associated admin notes */
+    adminNotes: AdminNoteDTO[];
 }
 
 export enum GameWarningFlags {
-  /** The !:Database.Entities.Game has no warnings */
-  None = 0,
-  /**
-   * If the parent !:Database.Entities.Tournament does not have a submitted pool of
-   * !:Database.Entities.Beatmaps, and the !:Database.Entities.Game's !:Database.Entities.Game.Beatmap
-   * is played only once throughout the entire !:Database.Entities.Tournament
-   */
-  BeatmapUsedOnce = 1,
+    /** The !:Database.Entities.Game has no warnings */
+    None = 0,
+    /**
+    * If the parent !:Database.Entities.Tournament does not have a submitted pool of
+	* !:Database.Entities.Beatmaps, and the !:Database.Entities.Game's !:Database.Entities.Game.Beatmap
+	* is played only once throughout the entire !:Database.Entities.Tournament
+    */
+    BeatmapUsedOnce = 1,
 }
 
 export interface ProblemDetails {
-  type?: string | undefined;
-  title?: string | undefined;
-  status?: number | undefined;
-  detail?: string | undefined;
-  instance?: string | undefined;
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
 
-  [key: string]: any;
+    [key: string]: any;
 }
 
 export interface HttpValidationProblemDetails extends ProblemDetails {
-  errors?: { [key: string]: string[] };
+    errors?: { [key: string]: string[]; };
 
-  [key: string]: any;
+    [key: string]: any;
 }
 
 export interface LeaderboardDTO {
-  /** The maximum page count for which there will be results */
-  pages: number;
-  ruleset: Ruleset;
-  leaderboard: PlayerRatingStatsDTO[];
+    /** The maximum page count for which there will be results */
+    pages: number;
+    ruleset: Ruleset;
+    leaderboard: PlayerRatingStatsDTO[];
 }
 
 export interface MatchCompactDTO {
-  /** Id */
-  id: number;
-  /** osu! id */
-  osuId: number;
-  /** Title of the lobby */
-  name: string;
-  /** Ruleset */
-  ruleset: Ruleset;
-  /** Start time */
-  startTime?: Date | undefined;
-  /** End time */
-  endTime?: Date | undefined;
-  /** Verification status */
-  verificationStatus: VerificationStatus;
-  /** Rejection reason */
-  rejectionReason: MatchRejectionReason;
-  /** Warning flags */
-  warningFlags: MatchWarningFlags;
-  /** Processing status */
-  processingStatus: MatchProcessingStatus;
-  /** Timestamp of the last time the match was processed */
-  lastProcessingDate: Date;
+    /** Id */
+    id: number;
+    /** osu! id */
+    osuId: number;
+    /** Title of the lobby */
+    name: string;
+    /** Ruleset */
+    ruleset: Ruleset;
+    /** Start time */
+    startTime?: Date | undefined;
+    /** End time */
+    endTime?: Date | undefined;
+    /** Verification status */
+    verificationStatus: VerificationStatus;
+    /** Rejection reason */
+    rejectionReason: MatchRejectionReason;
+    /** Warning flags */
+    warningFlags: MatchWarningFlags;
+    /** Processing status */
+    processingStatus: MatchProcessingStatus;
+    /** Timestamp of the last time the match was processed */
+    lastProcessingDate: Date;
 }
 
 /** Represents a created match */
 export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
-  /** osu! match id */
-  osuId?: number;
+    /** osu! match id */
+    osuId?: number;
 }
 
 /** Represents a played match */
 export interface MatchDTO extends MatchCompactDTO {
-  /** The API.DTOs.TournamentCompactDTO this match was played in */
-  tournament?: TournamentCompactDTO;
-  /** The participating !:Players */
-  players?: PlayerCompactDTO[];
-  /** List of games played during the match */
-  games?: GameDTO[];
-  /** All associated admin notes */
-  adminNotes?: AdminNoteDTO[];
+    /** The API.DTOs.TournamentCompactDTO this match was played in */
+    tournament?: TournamentCompactDTO;
+    /** The participating !:Players */
+    players?: PlayerCompactDTO[];
+    /** List of games played during the match */
+    games?: GameDTO[];
+    /** All associated admin notes */
+    adminNotes?: AdminNoteDTO[];
 }
 
 export enum MatchProcessingStatus {
-  /** The !:Database.Entities.Match needs data requested from the osu! API */
-  NeedsData = 0,
-  /** The !:Database.Entities.Match needs automation checks */
-  NeedsAutomationChecks = 1,
-  /**
-   * The !:Database.Entities.Match is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 2,
-  /**
-   * The !:Database.Entities.Match needs stat calculation
-   *
-   * Generates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats
-   */
-  NeedsStatCalculation = 3,
-  /**
-   * The !:Database.Entities.Match is awaiting rating processor data
-   *
-   * Generates all !:Database.Entities.Processor.RatingAdjustments
-   */
-  NeedsRatingProcessorData = 4,
-  /** The !:Database.Entities.Match has completed all processing steps */
-  Done = 5,
+    /** The !:Database.Entities.Match needs data requested from the osu! API */
+    NeedsData = 0,
+    /** The !:Database.Entities.Match needs automation checks */
+    NeedsAutomationChecks = 1,
+    /**
+    * The !:Database.Entities.Match is awaiting verification from a
+	* !:Database.Entities.User with verifier permission
+    */
+    NeedsVerification = 2,
+    /**
+    * The !:Database.Entities.Match needs stat calculation
+	* 
+	* Generates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats
+    */
+    NeedsStatCalculation = 3,
+    /**
+    * The !:Database.Entities.Match is awaiting rating processor data
+	* 
+	* Generates all !:Database.Entities.Processor.RatingAdjustments
+    */
+    NeedsRatingProcessorData = 4,
+    /** The !:Database.Entities.Match has completed all processing steps */
+    Done = 5,
 }
 
 export enum MatchQuerySortType {
-  /** Sort by primary key */
-  Id = 0,
-  /** Sort by osu! id */
-  OsuId = 1,
-  /** Sort by start time */
-  StartTime = 2,
-  /** Sort by end time */
-  EndTime = 3,
-  /** Sort by creation date */
-  Created = 4,
+    /** Sort by primary key */
+    Id = 0,
+    /** Sort by osu! id */
+    OsuId = 1,
+    /** Sort by start time */
+    StartTime = 2,
+    /** Sort by end time */
+    EndTime = 3,
+    /** Sort by creation date */
+    Created = 4,
 }
 
 export enum MatchRejectionReason {
-  /** The !:Database.Entities.Match is not rejected */
-  None = 0,
-  /** The osu! API returned invalid data or no data for the !:Database.Entities.Match */
-  NoData = 1,
-  /** The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match */
-  NoGames = 2,
-  /**
-   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the
-   * parent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation
-   */
-  NamePrefixMismatch = 4,
-  /**
-   * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs
-   * conversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful
-   */
-  FailedTeamVsConversion = 8,
-  /**
-   * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
-   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
-   */
-  NoValidGames = 16,
-  /**
-   * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
-   * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number
-   * (does not satisfy "best of X")
-   */
-  UnexpectedGameCount = 32,
-  /** The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined */
-  NoEndTime = 64,
-  /** The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected */
-  RejectedTournament = 128,
+    /** The !:Database.Entities.Match is not rejected */
+    None = 0,
+    /** The osu! API returned invalid data or no data for the !:Database.Entities.Match */
+    NoData = 1,
+    /** The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match */
+    NoGames = 2,
+    /**
+    * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the
+	* parent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation
+    */
+    NamePrefixMismatch = 4,
+    /**
+    * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs
+	* conversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful
+    */
+    FailedTeamVsConversion = 8,
+    /**
+    * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+	* of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
+    */
+    NoValidGames = 16,
+    /**
+    * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+	* of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number
+	* (does not satisfy "best of X")
+    */
+    UnexpectedGameCount = 32,
+    /** The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined */
+    NoEndTime = 64,
+    /** The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected */
+    RejectedTournament = 128,
 }
 
 /** Represents a search result for a match */
 export interface MatchSearchResultDTO {
-  /** Id of the match */
-  id: number;
-  /** osu! match id of the match */
-  osuId: number;
-  /** Name of the match */
-  name?: string | undefined;
+    /** Id of the match */
+    id: number;
+    /** osu! match id of the match */
+    osuId: number;
+    /** Name of the match */
+    name?: string | undefined;
 }
 
 /** Represents the status of a submitted match */
 export interface MatchSubmissionStatusDTO {
-  /** Id of the match */
-  id: number;
-  /** osu! match id of the match */
-  osuId: number;
-  /** Lobby title of the match */
-  name?: string | undefined;
-  /** Current verification status of the match */
-  verificationStatus?: VerificationStatus | undefined;
-  /** Date that the match was submitted */
-  created: Date;
-  /** Date that the match was last updated */
-  updated?: Date | undefined;
+    /** Id of the match */
+    id: number;
+    /** osu! match id of the match */
+    osuId: number;
+    /** Lobby title of the match */
+    name?: string | undefined;
+    /** Current verification status of the match */
+    verificationStatus?: VerificationStatus | undefined;
+    /** Date that the match was submitted */
+    created: Date;
+    /** Date that the match was last updated */
+    updated?: Date | undefined;
 }
 
 export enum MatchWarningFlags {
-  /** The !:Database.Entities.Match has no warnings */
-  None = 0,
-  /**
-   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament
-   * lobby title conventions
-   */
-  UnexpectedNameFormat = 1,
-  /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
-  LowGameCount = 2,
-  /**
-   * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason
-   * of Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
-   */
-  UnexpectedBeatmapsFound = 4,
-  /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
-  OverlappingRosters = 8,
+    /** The !:Database.Entities.Match has no warnings */
+    None = 0,
+    /**
+    * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament
+	* lobby title conventions
+    */
+    UnexpectedNameFormat = 1,
+    /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
+    LowGameCount = 2,
+    /**
+    * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason
+	* of Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
+    */
+    UnexpectedBeatmapsFound = 4,
+    /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
+    OverlappingRosters = 8,
 }
 
 export enum Mods {
-  /** No mods enabled */
-  None = 0,
-  /** No fail (NF) */
-  NoFail = 1,
-  /** Easy (EZ) */
-  Easy = 2,
-  /** Touch Device (TD) */
-  TouchDevice = 4,
-  /** Hidden (HD) */
-  Hidden = 8,
-  /** Hard Rock (HR) */
-  HardRock = 16,
-  /** Sudden Death (SD) */
-  SuddenDeath = 32,
-  /** Double Time (DT) */
-  DoubleTime = 64,
-  /** Relax (RX) */
-  Relax = 128,
-  /** Half Time (HT) */
-  HalfTime = 256,
-  /**
-   * Nightcore (NC)
-   *
-   * Only set along with DoubleTime. i.e: NC only gives 576
-   */
-  Nightcore = 512,
-  /** Flashlight (FL) */
-  Flashlight = 1024,
-  /** Autoplay (AT) */
-  Autoplay = 2048,
-  /** Spun Out (SO) */
-  SpunOut = 4096,
-  /**
-   * Autopilot (AP)
-   *
-   * Autopilot
-   */
-  Relax2 = 8192,
-  /**
-   * Perfect (PF)
-   *
-   * Only set along with Common.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
-   */
-  Perfect = 16384,
-  /**
-   * 4 key (4K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  InvalidMods = 22688,
-  /**
-   * 5 key (5K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key4 = 32768,
-  /**
-   * 6 key (6K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key5 = 65536,
-  /**
-   * 7 key (7K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key6 = 131072,
-  /**
-   * 8 key (8K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key7 = 262144,
-  /**
-   * Fade In (FI)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key8 = 524288,
-  /**
-   * Random (RD)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  FadeIn = 1048576,
-  /** Cinema (CM) */
-  ScoreIncreaseMods = 1049688,
-  /** Target Practice (TP) */
-  Random = 2097152,
-  /**
-   * 9 Key (9K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Cinema = 4194304,
-  /**
-   * Co-op (CO)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Target = 8388608,
-  /**
-   * 1 Key (1K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key9 = 16777216,
-  /**
-   * 3 Key (3K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  KeyCoop = 33554432,
-  /**
-   * 2 Key (2K)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key1 = 67108864,
-  /** Score v2 (SV2) */
-  Key3 = 134217728,
-  /**
-   * Mirror (MR)
-   *
-   * Applicable only to Common.Enums.Ruleset.ManiaOther
-   */
-  Key2 = 268435456,
-  /**
-   * Denotes mods that are Common.Enums.Ruleset.ManiaOther key modifiers
-   *
-   * See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
-   */
-  KeyMod = 521109504,
-  /** Denotes mods that are available to use during Free Mod settings */
-  FreeModAllowed = 522171579,
-  /** Denotes mods that directly impose a modifier on score */
-  ScoreV2 = 536870912,
-  /** Denotes mods that are ineligible for ratings */
-  Mirror = 1073741824,
+    /** No mods enabled */
+    None = 0,
+    /** No fail (NF) */
+    NoFail = 1,
+    /** Easy (EZ) */
+    Easy = 2,
+    /** Touch Device (TD) */
+    TouchDevice = 4,
+    /** Hidden (HD) */
+    Hidden = 8,
+    /** Hard Rock (HR) */
+    HardRock = 16,
+    /** Sudden Death (SD) */
+    SuddenDeath = 32,
+    /** Double Time (DT) */
+    DoubleTime = 64,
+    /** Relax (RX) */
+    Relax = 128,
+    /** Half Time (HT) */
+    HalfTime = 256,
+    /**
+    * Nightcore (NC)
+	* 
+	* Only set along with DoubleTime. i.e: NC only gives 576
+    */
+    Nightcore = 512,
+    /** Flashlight (FL) */
+    Flashlight = 1024,
+    /** Autoplay (AT) */
+    Autoplay = 2048,
+    /** Spun Out (SO) */
+    SpunOut = 4096,
+    /**
+    * Autopilot (AP)
+	* 
+	* Autopilot
+    */
+    Relax2 = 8192,
+    /**
+    * Perfect (PF)
+	* 
+	* Only set along with Common.Enums.Mods.SuddenDeath. i.e: PF only gives 16416
+    */
+    Perfect = 16384,
+    /**
+    * 4 key (4K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    InvalidMods = 22688,
+    /**
+    * 5 key (5K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key4 = 32768,
+    /**
+    * 6 key (6K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key5 = 65536,
+    /**
+    * 7 key (7K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key6 = 131072,
+    /**
+    * 8 key (8K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key7 = 262144,
+    /**
+    * Fade In (FI)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key8 = 524288,
+    /**
+    * Random (RD)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    FadeIn = 1048576,
+    /** Cinema (CM) */
+    ScoreIncreaseMods = 1049688,
+    /** Target Practice (TP) */
+    Random = 2097152,
+    /**
+    * 9 Key (9K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Cinema = 4194304,
+    /**
+    * Co-op (CO)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Target = 8388608,
+    /**
+    * 1 Key (1K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key9 = 16777216,
+    /**
+    * 3 Key (3K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    KeyCoop = 33554432,
+    /**
+    * 2 Key (2K)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key1 = 67108864,
+    /** Score v2 (SV2) */
+    Key3 = 134217728,
+    /**
+    * Mirror (MR)
+	* 
+	* Applicable only to Common.Enums.Ruleset.ManiaOther
+    */
+    Key2 = 268435456,
+    /**
+    * Denotes mods that are Common.Enums.Ruleset.ManiaOther key modifiers
+	* 
+	* See https://osu.ppy.sh/wiki/en/Gameplay/Game_modifier/xK
+    */
+    KeyMod = 521109504,
+    /** Denotes mods that are available to use during Free Mod settings */
+    FreeModAllowed = 522171579,
+    /** Denotes mods that directly impose a modifier on score */
+    ScoreV2 = 536870912,
+    /** Denotes mods that are ineligible for ratings */
+    Mirror = 1073741824,
 }
 
 /** Represents an OAuth client */
 export interface OAuthClientDTO {
-  /** Client id of the client */
-  clientId: number;
-  /** List of permissions granted to the client */
-  scopes: string[];
-  /** Possible rate limit override for the client */
-  rateLimitOverride?: number | undefined;
+    /** Client id of the client */
+    clientId: number;
+    /** List of permissions granted to the client */
+    scopes: string[];
+    /** Possible rate limit override for the client */
+    rateLimitOverride?: number | undefined;
 }
 
 /** Represents a created OAuth client (The only time the client secret is available is when a new client is created) */
 export interface OAuthClientCreatedDTO extends OAuthClientDTO {
-  /** Client secret of the client */
-  clientSecret?: string;
+    /** Client secret of the client */
+    clientSecret?: string;
 }
 
 export interface OperationBase {
-  readonly operationType: OperationType;
-  path?: string | undefined;
-  op?: string | undefined;
-  from?: string | undefined;
+    readonly operationType: OperationType;
+    path?: string | undefined;
+    op?: string | undefined;
+    from?: string | undefined;
 }
 
 export interface Operation extends OperationBase {
-  value?: any | undefined;
+    value?: any | undefined;
 }
 
 export enum OperationType {
-  /**  */
-  Add = 0,
-  /**  */
-  Remove = 1,
-  /**  */
-  Replace = 2,
-  /**  */
-  Move = 3,
-  /**  */
-  Copy = 4,
-  /**  */
-  Test = 5,
-  /**  */
-  Invalid = 6,
+    /**  */
+    Add = 0,
+    /**  */
+    Remove = 1,
+    /**  */
+    Replace = 2,
+    /**  */
+    Move = 3,
+    /**  */
+    Copy = 4,
+    /**  */
+    Test = 5,
+    /**  */
+    Invalid = 6,
 }
 
-export interface Operation_1 extends Operation {}
+export interface Operation_1 extends Operation {
+}
 
 /** Represents player information */
 export interface PlayerCompactDTO {
-  /** Id */
-  id: number;
-  /** osu! id */
-  osuId: number;
-  /** osu! username */
-  username: string;
-  /** osu! country code */
-  country: string;
-  /** The player's primary osu! ruleset */
-  defaultRuleset: Ruleset;
-  /** Id of the associated user, if available */
-  userId?: number | undefined;
+    /** Id */
+    id: number;
+    /** osu! id */
+    osuId: number;
+    /** osu! username */
+    username: string;
+    /** osu! country code */
+    country: string;
+    /** The player's primary osu! ruleset */
+    defaultRuleset: Ruleset;
+    /** Id of the associated user, if available */
+    userId?: number | undefined;
 }
 
 /** Represents a collection of statistics for a player in a ruleset */
 export interface PlayerDashboardStatsDTO {
-  /** Player info */
-  playerInfo: PlayerCompactDTO;
-  /** Ruleset the statistics were calculated for */
-  ruleset: Ruleset;
-  /** Base stats for the player */
-  rating?: PlayerRatingStatsDTO | undefined;
-  /** Match stats for the player */
-  matchStats?: AggregatePlayerMatchStatsDTO | undefined;
-  /** Mod stats for the player */
-  modStats?: PlayerModStatsDTO[] | undefined;
-  /** Tournament participation and performance stats for the player */
-  tournamentPerformanceStats?: PlayerTournamentPerformanceDTO | undefined;
-  /** List of frequencies of the player's teammates */
-  frequentTeammates?: PlayerFrequencyDTO[] | undefined;
-  /** List of frequencies of the player's opponents */
-  frequentOpponents?: PlayerFrequencyDTO[] | undefined;
+    /** Player info */
+    playerInfo: PlayerCompactDTO;
+    /** Ruleset the statistics were calculated for */
+    ruleset: Ruleset;
+    /** Base stats for the player */
+    rating?: PlayerRatingStatsDTO | undefined;
+    /** Match stats for the player */
+    matchStats?: AggregatePlayerMatchStatsDTO | undefined;
+    /** Mod stats for the player */
+    modStats?: PlayerModStatsDTO[] | undefined;
+    /** Tournament participation and performance stats for the player */
+    tournamentPerformanceStats?: PlayerTournamentPerformanceDTO | undefined;
+    /** List of frequencies of the player's teammates */
+    frequentTeammates?: PlayerFrequencyDTO[] | undefined;
+    /** List of frequencies of the player's opponents */
+    frequentOpponents?: PlayerFrequencyDTO[] | undefined;
 }
 
 /** Represents one player's filtering result */
 export interface PlayerFilteringResultDTO {
-  /** The id of the player, if found */
-  playerId?: number | undefined;
-  /** The username of the player, if found */
-  username?: string | undefined;
-  /** The osu! id of the player */
-  osuId: number;
-  /** The filtering result */
-  filteringResult: FilteringResult;
-  /** If the user failed filtering, the fail reason */
-  filteringFailReason?: FilteringFailReason | undefined;
-  /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
-  readonly filteringResultMessage: string;
-  /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
-  readonly filteringFailReasonMessage?: string | undefined;
+    /** The id of the player, if found */
+    playerId?: number | undefined;
+    /** The username of the player, if found */
+    username?: string | undefined;
+    /** The osu! id of the player */
+    osuId: number;
+    /** The filtering result */
+    filteringResult: FilteringResult;
+    /** If the user failed filtering, the fail reason */
+    filteringFailReason?: FilteringFailReason | undefined;
+    /** The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form */
+    readonly filteringResultMessage: string;
+    /** The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form */
+    readonly filteringFailReasonMessage?: string | undefined;
 }
 
 /** Represents a player in the context of a teammate or opponent of another player */
 export interface PlayerFrequencyDTO {
-  /** The player */
-  player: PlayerCompactDTO;
-  /** Number of times this teammate or opponent has played with the player */
-  frequency: number;
+    /** The player */
+    player: PlayerCompactDTO;
+    /** Number of times this teammate or opponent has played with the player */
+    frequency: number;
 }
 
 /** Represents counts of participation in games of differing mod combinations */
 export interface PlayerModStatsDTO {
-  /** The combination of mods used */
-  mods: Mods;
-  /** The number of times the player participated with this mod combination */
-  count: number;
-  /** The average score achieved by the player with this mod combination. */
-  averageScore: number;
+    /** The combination of mods used */
+    mods: Mods;
+    /** The number of times the player participated with this mod combination */
+    count: number;
+    /** The average score achieved by the player with this mod combination. */
+    averageScore: number;
 }
 
 /** Describes tournament rating based information for a player in a ruleset that are current and not time specific */
 export interface PlayerRatingDTO {
-  /** Ruleset */
-  ruleset: Ruleset;
-  /** Rating */
-  rating: number;
-  /** Rating volatility */
-  volatility: number;
-  /** Global rating percentile */
-  percentile: number;
-  /** Global rank */
-  globalRank: number;
-  /** Country rank */
-  countryRank: number;
-  /** The player */
-  player: PlayerCompactDTO;
-  /** A collection of adjustments that describe the changes resulting in the final rating */
-  adjustments: RatingAdjustmentDTO[];
+    /** Ruleset */
+    ruleset: Ruleset;
+    /** Rating */
+    rating: number;
+    /** Rating volatility */
+    volatility: number;
+    /** Global rating percentile */
+    percentile: number;
+    /** Global rank */
+    globalRank: number;
+    /** Country rank */
+    countryRank: number;
+    /** The player */
+    player: PlayerCompactDTO;
+    /** A collection of adjustments that describe the changes resulting in the final rating */
+    adjustments: RatingAdjustmentDTO[];
 }
 
 /** Describes tournament rating based information for a player in a ruleset with additional statistics */
 export interface PlayerRatingStatsDTO extends PlayerRatingDTO {
-  /** Total number of tournaments played */
-  tournamentsPlayed?: number;
-  /** Total number of matches played */
-  matchesPlayed?: number;
-  /** Match win rate */
-  winRate?: number;
-  /** Current tier */
-  readonly currentTier?: string;
-  /** Rating tier progress information */
-  rankProgress?: RankProgressDTO;
-  /** Denotes the current rating as being provisional */
-  readonly isProvisional?: boolean;
+    /** Total number of tournaments played */
+    tournamentsPlayed?: number;
+    /** Total number of matches played */
+    matchesPlayed?: number;
+    /** Match win rate */
+    winRate?: number;
+    /** Rating tier progress information */
+    tierProgress: TierProgressDTO;
+    /** Denotes the current rating as being provisional */
+    readonly isProvisional?: boolean;
 }
 
 /** Represents a search result for a player for a given ruleset */
 export interface PlayerSearchResultDTO {
-  /** Id of the player */
-  id: number;
-  /** osu! id of the player */
-  osuId: number;
-  /** Rating of the player for the given ruleset */
-  rating?: number | undefined;
-  /** Current global rank of the player for the given ruleset */
-  globalRank?: number | undefined;
-  /** Current rating tier of the player for the given ruleset */
-  readonly ratingTier?: string | undefined;
-  /** osu! username of the player */
-  username?: string | undefined;
-  /** Link to an osu! thumbnail for the player */
-  thumbnail: string;
+    /** Id of the player */
+    id: number;
+    /** osu! id of the player */
+    osuId: number;
+    /** Rating of the player for the given ruleset */
+    rating?: number | undefined;
+    /** Current global rank of the player for the given ruleset */
+    globalRank?: number | undefined;
+    /** Current rating tier of the player for the given ruleset */
+    readonly ratingTier?: string | undefined;
+    /** osu! username of the player */
+    username?: string | undefined;
+    /** Link to an osu! thumbnail for the player */
+    thumbnail: string;
 }
 
 /** Represents counts of participation in tournaments of differing team sizes */
 export interface PlayerTournamentLobbySizeCountDTO {
-  /** Number of 1v1 tournaments played */
-  count1v1?: number | undefined;
-  /** Number of 2v2 tournaments played */
-  count2v2?: number | undefined;
-  /** Number of 3v3 tournaments played */
-  count3v3?: number | undefined;
-  /** Number of 4v4 tournaments played */
-  count4v4?: number | undefined;
-  /** Number of tournaments played outside of standard team sizes */
-  countOther?: number | undefined;
+    /** Number of 1v1 tournaments played */
+    count1v1?: number | undefined;
+    /** Number of 2v2 tournaments played */
+    count2v2?: number | undefined;
+    /** Number of 3v3 tournaments played */
+    count3v3?: number | undefined;
+    /** Number of 4v4 tournaments played */
+    count4v4?: number | undefined;
+    /** Number of tournaments played outside of standard team sizes */
+    countOther?: number | undefined;
 }
 
 /** Represents statistics for a player regarding tournament participation and performance */
 export interface PlayerTournamentPerformanceDTO {
-  /** Counts of participation in tournaments of differing team sizes for the player */
-  lobbySizeCounts: PlayerTournamentLobbySizeCountDTO;
-  /** List of best tournament performances for the player */
-  bestPerformances: PlayerTournamentStatsDTO[];
-  /** List of recent tournament performances for the player */
-  recentPerformances: PlayerTournamentStatsDTO[];
+    /** Counts of participation in tournaments of differing team sizes for the player */
+    lobbySizeCounts: PlayerTournamentLobbySizeCountDTO;
+    /** List of best tournament performances for the player */
+    bestPerformances: PlayerTournamentStatsDTO[];
+    /** List of recent tournament performances for the player */
+    recentPerformances: PlayerTournamentStatsDTO[];
 }
 
 export interface PlayerTournamentStatsDTO {
-  /** Average change in rating */
-  averageRatingDelta: number;
-  /** Average match cost */
-  averageMatchCost: number;
-  /** Average score */
-  averageScore: number;
-  /** Average placement */
-  averagePlacement: number;
-  /** Average accuracy */
-  averageAccuracy: number;
-  /** Total number of !:Matches played */
-  matchesPlayed: number;
-  /** Total number of !:Matches won */
-  matchesWon: number;
-  /** Total number of !:Matches lost */
-  matchesLost: number;
-  /** Total number of !:Games played */
-  gamesPlayed: number;
-  /** Total number of !:Games won */
-  gamesWon: number;
-  /** Total number of !:Games lost */
-  gamesLost: number;
-  /** The player who owns these stats */
-  player: PlayerCompactDTO;
-  /** Tournament */
-  tournament: TournamentCompactDTO;
-}
-
-/** Represents rating tier progress data */
-export interface RankProgressDTO {
-  /** Current tier */
-  currentTier: string;
-  /** Current sub tier */
-  currentSubTier?: number | undefined;
-  /** Rating required to reach next sub tier */
-  ratingForNextTier: number;
-  /** Rating required to reach next major tier */
-  ratingForNextMajorTier: number;
-  /** Next major tier following current tier */
-  nextMajorTier?: string | undefined;
-  /** Progress to the next sub tier as a percentage */
-  subTierFillPercentage?: number | undefined;
-  /** Progress to the next major tier as a percentage */
-  majorTierFillPercentage?: number | undefined;
+    /** Average change in rating */
+    averageRatingDelta: number;
+    /** Average match cost */
+    averageMatchCost: number;
+    /** Average score */
+    averageScore: number;
+    /** Average placement */
+    averagePlacement: number;
+    /** Average accuracy */
+    averageAccuracy: number;
+    /** Total number of !:Matches played */
+    matchesPlayed: number;
+    /** Total number of !:Matches won */
+    matchesWon: number;
+    /** Total number of !:Matches lost */
+    matchesLost: number;
+    /** Total number of !:Games played */
+    gamesPlayed: number;
+    /** Total number of !:Games won */
+    gamesWon: number;
+    /** Total number of !:Games lost */
+    gamesLost: number;
+    /** The player who owns these stats */
+    player: PlayerCompactDTO;
+    /** Tournament */
+    tournament: TournamentCompactDTO;
 }
 
 /** Describes a single change to a PlayerRating */
 export interface RatingAdjustmentDTO {
-  /** The type of event that caused the adjustment */
-  adjustmentType: RatingAdjustmentType;
-  /** Timestamp of when the adjustment was applied */
-  timestamp: Date;
-  /** Rating before the adjustment */
-  ratingBefore: number;
-  /** Rating after the adjustment */
-  ratingAfter: number;
-  /** Total change in rating */
-  ratingDelta: number;
-  /** Rating volatility before the adjustment */
-  volatilityBefore: number;
-  /** Rating volatility after the adjustment */
-  volatilityAfter: number;
-  /** Total change in rating volatility */
-  volatilityDelta: number;
-  /** Id of the match the adjustment was created for if available */
-  match?: MatchCompactDTO | undefined;
+    /** The type of event that caused the adjustment */
+    adjustmentType: RatingAdjustmentType;
+    /** Timestamp of when the adjustment was applied */
+    timestamp: Date;
+    /** Rating before the adjustment */
+    ratingBefore: number;
+    /** Rating after the adjustment */
+    ratingAfter: number;
+    /** Total change in rating */
+    ratingDelta: number;
+    /** Rating volatility before the adjustment */
+    volatilityBefore: number;
+    /** Rating volatility after the adjustment */
+    volatilityAfter: number;
+    /** Total change in rating volatility */
+    volatilityDelta: number;
+    /** Id of the match the adjustment was created for if available */
+    match?: MatchCompactDTO | undefined;
 }
 
 export enum RatingAdjustmentType {
-  /** The !:Database.Entities.Processor.RatingAdjustment is the initial rating */
-  Initial = 0,
-  /** The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay) */
-  Decay = 1,
-  /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match */
-  Match = 2,
+    /** The !:Database.Entities.Processor.RatingAdjustment is the initial rating */
+    Initial = 0,
+    /** The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay) */
+    Decay = 1,
+    /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match */
+    Match = 2,
 }
 
 /** The possible roles assignable to a user or client */
 export enum Roles {
-  /** Role granted to all users. */
-  User = 'user',
-  /** Role granted to all clients. */
-  Client = 'client',
-  /** Role granted to privileged users. */
-  Admin = 'admin',
-  /** Role granted to users with permission to verify submission data. */
-  Verifier = 'verifier',
-  /** Role granted to users with permission to submit tournament data. */
-  Submit = 'submit',
-  /** Role granted to users and clients to allow access during times of restricted use. */
-  Whitelist = 'whitelist',
+    /** Role granted to all users. */
+    User = "user",
+    /** Role granted to all clients. */
+    Client = "client",
+    /** Role granted to privileged users. */
+    Admin = "admin",
+    /** Role granted to users with permission to verify submission data. */
+    Verifier = "verifier",
+    /** Role granted to users with permission to submit tournament data. */
+    Submit = "submit",
+    /** Role granted to users and clients to allow access during times of restricted use. */
+    Whitelist = "whitelist",
 }
 
 export enum Ruleset {
-  /** osu! (standard) */
-  Osu = 0,
-  /** osu! Taiko */
-  Taiko = 1,
-  /** osu! Catch (aka Fruits) */
-  Catch = 2,
-  /**
-   * osu! Mania
-   *
-   * Encompasses all of the osu!mania ruleset and represents a ruleset that has
-   * not yet been identified as either Common.Enums.Ruleset.Mania4k or Common.Enums.Ruleset.Mania7k
-   */
-  ManiaOther = 3,
-  /** osu! Mania 4k variant */
-  Mania4k = 4,
-  /** osu! Mania 7k variant */
-  Mania7k = 5,
+    /** osu! (standard) */
+    Osu = 0,
+    /** osu! Taiko */
+    Taiko = 1,
+    /** osu! Catch (aka Fruits) */
+    Catch = 2,
+    /**
+    * osu! Mania
+	* 
+	* Encompasses all of the osu!mania ruleset and represents a ruleset that has
+	* not yet been identified as either Common.Enums.Ruleset.Mania4k or Common.Enums.Ruleset.Mania7k
+    */
+    ManiaOther = 3,
+    /** osu! Mania 4k variant */
+    Mania4k = 4,
+    /** osu! Mania 7k variant */
+    Mania7k = 5,
 }
 
 export enum ScoreGrade {
-  /** 100% accuracy with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
-  SSH = 0,
-  /** Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
-  SH = 1,
-  /** 100% accuracy */
-  SS = 2,
-  /** Over 90% 300s, less than 1% 50s and no misses */
-  S = 3,
-  /** Over 80% 300s and no misses OR over 90% 300s */
-  A = 4,
-  /** Over 70% 300s and no misses OR over 80% 300s */
-  B = 5,
-  /** Over 60% 300s */
-  C = 6,
-  /** Anything else */
-  D = 7,
+    /** 100% accuracy with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
+    SSH = 0,
+    /** Over 90% 300s, less than 1% 50s and no misses with Common.Enums.Mods.Hidden and/or Common.Enums.Mods.Flashlight */
+    SH = 1,
+    /** 100% accuracy */
+    SS = 2,
+    /** Over 90% 300s, less than 1% 50s and no misses */
+    S = 3,
+    /** Over 80% 300s and no misses OR over 90% 300s */
+    A = 4,
+    /** Over 70% 300s and no misses OR over 80% 300s */
+    B = 5,
+    /** Over 60% 300s */
+    C = 6,
+    /** Anything else */
+    D = 7,
 }
 
 export enum ScoreProcessingStatus {
-  /** The !:Database.Entities.GameScore needs automation checks */
-  NeedsAutomationChecks = 0,
-  /**
-   * The !:Database.Entities.GameScore is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 1,
-  /** The !:Database.Entities.GameScore has completed all processing steps */
-  Done = 2,
+    /** The !:Database.Entities.GameScore needs automation checks */
+    NeedsAutomationChecks = 0,
+    /**
+    * The !:Database.Entities.GameScore is awaiting verification from a
+	* !:Database.Entities.User with verifier permission
+    */
+    NeedsVerification = 1,
+    /** The !:Database.Entities.GameScore has completed all processing steps */
+    Done = 2,
 }
 
 export enum ScoreRejectionReason {
-  /** The !:Database.Entities.GameScore is not rejected */
-  None = 0,
-  /** The !:Database.Entities.GameScore's !:Database.Entities.GameScore.Score is below the minimum threshold */
-  ScoreBelowMinimum = 1,
-  /** The !:Database.Entities.GameScore was set with any Common.Enums.Mods.InvalidMods */
-  InvalidMods = 2,
-  /** The !:Database.Entities.GameScore's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
-  RulesetMismatch = 4,
-  /** The !:Database.Entities.Game the !:Database.Entities.GameScore was set in was rejected */
-  RejectedGame = 8,
+    /** The !:Database.Entities.GameScore is not rejected */
+    None = 0,
+    /** The !:Database.Entities.GameScore's !:Database.Entities.GameScore.Score is below the minimum threshold */
+    ScoreBelowMinimum = 1,
+    /** The !:Database.Entities.GameScore was set with any Common.Enums.Mods.InvalidMods */
+    InvalidMods = 2,
+    /** The !:Database.Entities.GameScore's Common.Enums.Ruleset does not match that of the parent !:Database.Entities.Tournament */
+    RulesetMismatch = 4,
+    /** The !:Database.Entities.Game the !:Database.Entities.GameScore was set in was rejected */
+    RejectedGame = 8,
 }
 
 export enum ScoringType {
-  /** Scoring based on Score v1 */
-  Score = 0,
-  /** Scoring based on accuracy */
-  Accuracy = 1,
-  /** Scoring based on combo */
-  Combo = 2,
-  /** Scoring based on Score v2 */
-  ScoreV2 = 3,
+    /** Scoring based on Score v1 */
+    Score = 0,
+    /** Scoring based on accuracy */
+    Accuracy = 1,
+    /** Scoring based on combo */
+    Combo = 2,
+    /** Scoring based on Score v2 */
+    ScoreV2 = 3,
 }
 
 /** Represents a collection of search results */
 export interface SearchResponseCollectionDTO {
-  /** A collection of search results for tournaments matching the search query */
-  tournaments: TournamentSearchResultDTO[];
-  /** A collection of search results for matches matching the search query */
-  matches: MatchSearchResultDTO[];
-  /** A collection of search results for players matching the search query */
-  players: PlayerSearchResultDTO[];
+    /** A collection of search results for tournaments matching the search query */
+    tournaments: TournamentSearchResultDTO[];
+    /** A collection of search results for matches matching the search query */
+    matches: MatchSearchResultDTO[];
+    /** A collection of search results for players matching the search query */
+    players: PlayerSearchResultDTO[];
 }
 
 export enum Team {
-  /** No team */
-  NoTeam = 0,
-  /** Team blue */
-  Blue = 1,
-  /** Team red */
-  Red = 2,
+    /** No team */
+    NoTeam = 0,
+    /** Team blue */
+    Blue = 1,
+    /** Team red */
+    Red = 2,
 }
 
 export enum TeamType {
-  /** Free for all */
-  HeadToHead = 0,
-  /**
-   * Free for all (Tag format)
-   *
-   * All players play tag on the same beatmap
-   */
-  TagCoop = 1,
-  /** Team red vs team blue */
-  TeamVs = 2,
-  /** Team red vs team blue (Tag format) */
-  TagTeamVs = 3,
+    /** Free for all */
+    HeadToHead = 0,
+    /**
+    * Free for all (Tag format)
+	* 
+	* All players play tag on the same beatmap
+    */
+    TagCoop = 1,
+    /** Team red vs team blue */
+    TeamVs = 2,
+    /** Team red vs team blue (Tag format) */
+    TagTeamVs = 3,
+}
+
+/** Represents rating tier progress data */
+export interface TierProgressDTO {
+    /** Current tier */
+    currentTier: string;
+    /** Current sub tier */
+    currentSubTier?: number | undefined;
+    /** Rating required to reach next sub tier */
+    ratingForNextTier: number;
+    /** Rating required to reach next major tier */
+    ratingForNextMajorTier: number;
+    /** Next major tier following current tier */
+    nextMajorTier?: string | undefined;
+    /** Progress to the next sub tier as a percentage */
+    subTierFillPercentage?: number | undefined;
+    /** Progress to the next major tier as a percentage */
+    majorTierFillPercentage?: number | undefined;
 }
 
 /** Represents a tournament with minimal data */
 export interface TournamentCompactDTO {
-  /** Id */
-  id: number;
-  /** The timestamp of submission */
-  created: Date;
-  /** Full name */
-  name: string;
-  abbreviation: string;
-  /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
-  forumUrl: string;
-  /** Lowest rank a player can be to participate */
-  rankRangeLowerBound: number;
-  /** Ruleset in which all matches are played */
-  ruleset: Ruleset;
-  /** Expected in-match team size */
-  lobbySize: number;
-  /** The start date of the first match */
-  startTime: Date;
-  /** The end date of the last match */
-  endTime: Date;
-  /** The state of verification */
-  verificationStatus: VerificationStatus;
-  /** The state of processing */
-  processingStatus: TournamentProcessingStatus;
-  /** The rejection reason */
-  rejectionReason: TournamentRejectionReason;
-  /** The user that submitted the tournament */
-  submittedByUser?: UserCompactDTO | undefined;
-  /** The user that verified the tournament */
-  verifiedByUser?: UserCompactDTO | undefined;
+    /** Id */
+    id: number;
+    /** The timestamp of submission */
+    created: Date;
+    /** Full name */
+    name: string;
+    abbreviation: string;
+    /** The osu! forum post or wiki page this tournament is featured by (If both are present, the osu! forum post should be used) */
+    forumUrl: string;
+    /** Lowest rank a player can be to participate */
+    rankRangeLowerBound: number;
+    /** Ruleset in which all matches are played */
+    ruleset: Ruleset;
+    /** Expected in-match team size */
+    lobbySize: number;
+    /** The start date of the first match */
+    startTime: Date;
+    /** The end date of the last match */
+    endTime: Date;
+    /** The state of verification */
+    verificationStatus: VerificationStatus;
+    /** The state of processing */
+    processingStatus: TournamentProcessingStatus;
+    /** The rejection reason */
+    rejectionReason: TournamentRejectionReason;
+    /** The user that submitted the tournament */
+    submittedByUser?: UserCompactDTO | undefined;
+    /** The user that verified the tournament */
+    verifiedByUser?: UserCompactDTO | undefined;
 }
 
 /** Represents a created tournament */
 export interface TournamentCreatedResultDTO extends CreatedResultBaseDTO {
-  /** The name of the tournament */
-  name: string;
-  /** Acronym / shortened name of the tournament
+    /** The name of the tournament */
+    name: string;
+    /** Acronym / shortened name of the tournament
 <example>For osu! World Cup 2023, this value would be "OWC23"</example> */
-  abbreviation: string;
-  /** List of created matches */
-  matches?: MatchCreatedResultDTO[];
+    abbreviation: string;
+    /** List of created matches */
+    matches?: MatchCreatedResultDTO[];
 }
 
 /** Represents a tournament including optional data */
 export interface TournamentDTO extends TournamentCompactDTO {
-  /** All associated match data (Will be empty for bulk requests such as List) */
-  matches?: MatchDTO[];
-  /** All admin notes associated with the tournament */
-  adminNotes?: AdminNoteDTO[];
+    /** All associated match data (Will be empty for bulk requests such as List) */
+    matches?: MatchDTO[];
+    /** All admin notes associated with the tournament */
+    adminNotes?: AdminNoteDTO[];
 }
 
 export enum TournamentProcessingStatus {
-  /**
-   * The !:Database.Entities.Tournament is awaiting approval from a
-   * !:Database.Entities.User with verifier permission
-   *
-   * Functions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament
-   * will advance through the processing flow until approved.
-   */
-  NeedsApproval = 0,
-  /**
-   * The !:Database.Entities.Tournament has !:Database.Entities.Matches with a
-   * Common.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData
-   */
-  NeedsMatchData = 1,
-  /** The !:Database.Entities.Tournament needs automation checks */
-  NeedsAutomationChecks = 2,
-  /**
-   * The !:Database.Entities.Tournament is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 3,
-  /** The !:Database.Entities.Tournament needs stat calculation */
-  NeedsStatCalculation = 4,
-  /** The tournament has completed all processing steps */
-  Done = 5,
+    /**
+    * The !:Database.Entities.Tournament is awaiting approval from a
+	* !:Database.Entities.User with verifier permission
+	* 
+	* Functions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament
+	* will advance through the processing flow until approved.
+    */
+    NeedsApproval = 0,
+    /**
+    * The !:Database.Entities.Tournament has !:Database.Entities.Matches with a
+	* Common.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData
+    */
+    NeedsMatchData = 1,
+    /** The !:Database.Entities.Tournament needs automation checks */
+    NeedsAutomationChecks = 2,
+    /**
+    * The !:Database.Entities.Tournament is awaiting verification from a
+	* !:Database.Entities.User with verifier permission
+    */
+    NeedsVerification = 3,
+    /** The !:Database.Entities.Tournament needs stat calculation */
+    NeedsStatCalculation = 4,
+    /** The tournament has completed all processing steps */
+    Done = 5,
 }
 
 export enum TournamentQuerySortType {
-  /** Sort by primary key */
-  Id = 0,
-  /** Sort by start date */
-  StartTime = 1,
-  /** Sort by end date */
-  EndTime = 2,
-  /** Sort by name */
-  SearchQueryRelevance = 3,
-  /** Sort by submission date */
-  SubmissionDate = 4,
-  /** Sort by lobby size */
-  LobbySize = 5,
+    /** Sort by primary key */
+    Id = 0,
+    /** Sort by start date */
+    StartTime = 1,
+    /** Sort by end date */
+    EndTime = 2,
+    /** Sort by name */
+    SearchQueryRelevance = 3,
+    /** Sort by submission date */
+    SubmissionDate = 4,
+    /** Sort by lobby size */
+    LobbySize = 5,
 }
 
 export enum TournamentRejectionReason {
-  /** The !:Database.Entities.Tournament is not rejected */
-  None = 0,
-  /**
-   * The !:Database.Entities.Tournament has no !:Database.Entities.Tournament.Matches with a
-   * Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
-   */
-  NoVerifiedMatches = 1,
-  /**
-   * The !:Database.Entities.Tournament's number of !:Database.Entities.Tournament.Matches with a
-   * Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or
-   * Common.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
-   */
-  NotEnoughVerifiedMatches = 2,
-  /**
-   * The !:Database.Entities.Tournament's win condition is not Common.Enums.ScoringType.ScoreV2
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as gimmicky win conditions, mixed win conditions, etc
-   */
-  AbnormalWinCondition = 4,
-  /**
-   * The !:Database.Entities.Tournament's format is not suitable for ratings
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as excessive gimmicks, relax, multiple modes, etc
-   */
-  AbnormalFormat = 8,
-  /**
-   * The !:Database.Entities.Tournament's lobby sizes are not consistent.
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc
-   */
-  VaryingLobbySize = 16,
-  /**
-   * The !:Database.Entities.Tournament's data is incomplete or not recoverable
-   * Covers cases where match links are lost to time, private,
-   * main sheet is deleted, missing rounds, etc.
-   *
-   * Only assigned via a "rejected submission".
-   *
-   * Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc
-   */
-  IncompleteData = 32,
+    /** The !:Database.Entities.Tournament is not rejected */
+    None = 0,
+    /**
+    * The !:Database.Entities.Tournament has no !:Database.Entities.Tournament.Matches with a
+	* Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
+    */
+    NoVerifiedMatches = 1,
+    /**
+    * The !:Database.Entities.Tournament's number of !:Database.Entities.Tournament.Matches with a
+	* Common.Enums.Verification.VerificationStatus of Common.Enums.Verification.VerificationStatus.Verified or
+	* Common.Enums.Verification.VerificationStatus.PreVerified is below 80% of the total
+    */
+    NotEnoughVerifiedMatches = 2,
+    /**
+    * The !:Database.Entities.Tournament's win condition is not Common.Enums.ScoringType.ScoreV2
+	* 
+	* Only assigned via a "rejected submission". 
+	* 
+	* Covers cases such as gimmicky win conditions, mixed win conditions, etc
+    */
+    AbnormalWinCondition = 4,
+    /**
+    * The !:Database.Entities.Tournament's format is not suitable for ratings
+	* 
+	* Only assigned via a "rejected submission". 
+	* 
+	* Covers cases such as excessive gimmicks, relax, multiple modes, etc
+    */
+    AbnormalFormat = 8,
+    /**
+    * The !:Database.Entities.Tournament's lobby sizes are not consistent.
+	* 
+	* Only assigned via a "rejected submission". 
+	* 
+	* Covers cases such as > 2 teams in lobby at once, async lobbies, team size gimmicks, varying team sizes, etc
+    */
+    VaryingLobbySize = 16,
+    /**
+    * The !:Database.Entities.Tournament's data is incomplete or not recoverable
+	* Covers cases where match links are lost to time, private,
+	* main sheet is deleted, missing rounds, etc.
+	* 
+	* Only assigned via a "rejected submission". 
+	* 
+	* Covers cases where match links are lost to time / dead / private, main sheet is deleted, missing rounds, etc
+    */
+    IncompleteData = 32,
 }
 
 /** Represents a search result for a tournament */
 export interface TournamentSearchResultDTO {
-  /** Id of the tournament */
-  id: number;
-  /** Ruleset of the tournament */
-  ruleset: Ruleset;
-  /** Expected in-match team size */
-  lobbySize: number;
-  /** Name of the tournament */
-  name: string;
+    /** Id of the tournament */
+    id: number;
+    /** Ruleset of the tournament */
+    ruleset: Ruleset;
+    /** Expected in-match team size */
+    lobbySize: number;
+    /** Name of the tournament */
+    name: string;
 }
 
 /** An incoming tournament submission */
 export interface TournamentSubmissionDTO {
-  /** The name of the tournament */
-  name: string;
-  /** Acronym / shortened name of the tournament */
-  abbreviation: string;
-  /** The osu! forum post advertising this tournament */
-  forumUrl: string;
-  /** Lowest rank a player can be to participate in the tournament */
-  rankRangeLowerBound: number;
-  /** Expected in-match team size */
-  lobbySize: number;
-  /** osu! ruleset */
-  ruleset: Ruleset;
-  /** Optional rejection reason. If set, the created tournament and all matches will be rejected
+    /** The name of the tournament */
+    name: string;
+    /** Acronym / shortened name of the tournament */
+    abbreviation: string;
+    /** The osu! forum post advertising this tournament */
+    forumUrl: string;
+    /** Lowest rank a player can be to participate in the tournament */
+    rankRangeLowerBound: number;
+    /** Expected in-match team size */
+    lobbySize: number;
+    /** osu! ruleset */
+    ruleset: Ruleset;
+    /** Optional rejection reason. If set, the created tournament and all matches will be rejected
 for this reason and go through no additional processing (Submissions with a rejection reason will only be accepted from admin users) */
-  rejectionReason?: TournamentRejectionReason | undefined;
-  /** List of osu! match ids */
-  ids: number[];
-  /** A collection of pooled osu! beatmap ids */
-  beatmapIds: number[];
+    rejectionReason?: TournamentRejectionReason | undefined;
+    /** List of osu! match ids */
+    ids: number[];
+    /** A collection of pooled osu! beatmap ids */
+    beatmapIds: number[];
 }
 
 /** Represents user information */
 export interface UserCompactDTO {
-  /** Id */
-  id: number;
-  /** Timestamp of the user's last login to the o!TR website */
-  lastLogin?: Date | undefined;
-  /** The associated player */
-  player: PlayerCompactDTO;
+    /** Id */
+    id: number;
+    /** Timestamp of the user's last login to the o!TR website */
+    lastLogin?: Date | undefined;
+    /** The associated player */
+    player: PlayerCompactDTO;
 }
 
 /** Represents user information including optional data */
 export interface UserDTO extends UserCompactDTO {
-  /** List of permissions granted to the user */
-  scopes?: string[];
-  /** Settings of the user */
-  settings?: UserSettingsDTO;
+    /** List of permissions granted to the user */
+    scopes?: string[];
+    /** Settings of the user */
+    settings?: UserSettingsDTO;
 }
 
 /** Represents user controlled settings for otr-web */
 export interface UserSettingsDTO {
-  /** Preferred ruleset of the associated user */
-  ruleset: Ruleset;
-  /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
-  rulesetIsControlled: boolean;
+    /** Preferred ruleset of the associated user */
+    ruleset: Ruleset;
+    /** Denotes whether the associated user has overwritten their default ruleset (If false, the default ruleset is always the same as the user's default ruleset on the osu! website) */
+    rulesetIsControlled: boolean;
 }
 
 export enum VerificationStatus {
-  /** Verification status has not yet been assigned */
-  None = 0,
-  /** The Data Worker has identified an issue during processing */
-  PreRejected = 1,
-  /** The Data Worker has not identified any issues during processing */
-  PreVerified = 2,
-  /** Determined to be unfit for ratings by manual review */
-  Rejected = 3,
-  /** Determined to be fit for ratings by manual review */
-  Verified = 4,
+    /** Verification status has not yet been assigned */
+    None = 0,
+    /** The Data Worker has identified an issue during processing */
+    PreRejected = 1,
+    /** The Data Worker has not identified any issues during processing */
+    PreVerified = 2,
+    /** Determined to be unfit for ratings by manual review */
+    Rejected = 3,
+    /** Determined to be fit for ratings by manual review */
+    Verified = 4,
 }
 
 export class OtrApiResponse<TResult> {
-  status: number;
-  headers: { [key: string]: any };
-  result: TResult;
+    status: number;
+    headers: { [key: string]: any; };
+    result: TResult;
 
-  constructor(
-    status: number,
-    headers: { [key: string]: any },
-    result: TResult
-  ) {
-    this.status = status;
-    this.headers = headers;
-    this.result = result;
-  }
+    constructor(status: number, headers: { [key: string]: any; }, result: TResult)
+    {
+        this.status = status;
+        this.headers = headers;
+        this.result = result;
+    }
 }
 
 export class OtrApiError extends Error {
-  override message: string;
-  status: number;
-  response: string;
-  headers: { [key: string]: any };
-  result: any;
+    override message: string;
+    status: number;
+    response: string;
+    headers: { [key: string]: any; };
+    result: any;
 
-  constructor(
-    message: string,
-    status: number,
-    response: string,
-    headers: { [key: string]: any },
-    result: any
-  ) {
-    super();
+    constructor(message: string, status: number, response: string, headers: { [key: string]: any; }, result: any) {
+        super();
 
-    this.message = message;
-    this.status = status;
-    this.response = response;
-    this.headers = headers;
-    this.result = result;
-  }
+        this.message = message;
+        this.status = status;
+        this.response = response;
+        this.headers = headers;
+        this.result = result;
+    }
 
-  protected isOtrApiError = true;
+    protected isOtrApiError = true;
 
-  static isOtrApiError(obj: any): obj is OtrApiError {
-    return obj.isOtrApiError === true;
-  }
+    static isOtrApiError(obj: any): obj is OtrApiError {
+        return obj.isOtrApiError === true;
+    }
 }
 
-function throwException(
-  message: string,
-  status: number,
-  response: string,
-  headers: { [key: string]: any },
-  result?: any
-): any {
-  if (result !== null && result !== undefined) throw result;
-  else throw new OtrApiError(message, status, response, headers, null);
+function throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): any {
+    if (result !== null && result !== undefined)
+        throw result;
+    else
+        throw new OtrApiError(message, status, response, headers, null);
 }
 
 function isAxiosError(obj: any): obj is AxiosError {
-  return obj && obj.isAxiosError === true;
+    return obj && obj.isAxiosError === true;
 }
 
 declare module 'axios' {
