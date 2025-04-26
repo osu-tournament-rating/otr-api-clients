@@ -319,6 +319,26 @@
               }
             }
           },
+          "403": {
+            "description": "User is attempting to update a note which they do not own",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "400": {
             "description": "The update was not successful",
             "content": {
@@ -411,6 +431,26 @@
         "responses": {
           "404": {
             "description": "An admin note matching the given noteId does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is attempting to delete a note which they do not own",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4753,8 +4793,6 @@
           "matchesPlayed",
           "matchesWon",
           "matchWinRate",
-          "periodEnd",
-          "periodStart",
           "ratingGained"
         ],
         "type": "object",
@@ -4850,12 +4888,14 @@
           "periodStart": {
             "type": "string",
             "description": "The beginning of the period for which the statistics are calculated.",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "periodEnd": {
             "type": "string",
             "description": "The end of the period for which the statistics are calculated.",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -6449,7 +6489,7 @@
                 "$ref": "#/components/schemas/PlayerRatingStatsDTO"
               }
             ],
-            "description": "Base stats for the player",
+            "description": "Base stats for the player (If filtered by time, all fields in this class will change.)",
             "nullable": true
           },
           "matchStats": {
@@ -6610,7 +6650,6 @@
       },
       "PlayerRatingDTO": {
         "required": [
-          "adjustments",
           "countryRank",
           "globalRank",
           "percentile",
@@ -6661,13 +6700,6 @@
               }
             ],
             "description": "The player"
-          },
-          "adjustments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RatingAdjustmentDTO"
-            },
-            "description": "A collection of adjustments that describe the changes resulting in the final rating"
           }
         },
         "additionalProperties": false,
@@ -6707,6 +6739,13 @@
                 ],
                 "description": "Rating tier progress information"
               },
+              "adjustments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RatingAdjustmentDTO"
+                },
+                "description": "A collection of adjustments that describe the changes resulting in the final rating"
+              },
               "isProvisional": {
                 "type": "boolean",
                 "description": "Denotes the current rating as being provisional",
@@ -6716,7 +6755,7 @@
             "additionalProperties": false
           }
         ],
-        "description": "Describes tournament rating based information for a player in a ruleset with additional statistics"
+        "description": "Describes tournament rating based information for a player in a ruleset with additional statistics (If filtered by time, all fields in this class will change.)"
       },
       "PlayerSearchResultDTO": {
         "required": [
