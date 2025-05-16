@@ -574,6 +574,294 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
 }
 
 /**
+ * Request parameters available for use when requesting {@link AuthWrapper.prototype.login | api/v1/auth/login}
+ */
+export type AuthLoginRequestParams = {
+  /**
+   * (optional) Redirects the client to the given uri after login
+   */
+  redirectUri?: string | undefined;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AuthWrapper.prototype.logout | api/v1/auth/logout}
+ */
+export type AuthLogoutRequestParams = {
+  /**
+   * (optional) Redirects the client to the given uri after logout
+   */
+  redirectUri?: string | undefined;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AuthWrapper.prototype.authenticateClient | api/v1/auth/token}
+ */
+export type AuthAuthenticateClientRequestParams = {
+  /**
+   * (required) Client id
+   */
+  clientId: number;
+  /**
+   * (required) Client secret
+   */
+  clientSecret: string;
+};
+
+export class AuthWrapper extends OtrApiWrapperBase {
+  protected instance: AxiosInstance;
+  protected baseUrl: string;
+  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
+    undefined;
+
+  constructor(configuration: IOtrApiWrapperConfiguration) {
+    super(configuration);
+
+    this.instance = axios.create(this.configuration.clientConfiguration);
+    this.baseUrl = this.getBaseUrl('');
+
+    if (this.configuration.postConfigureClientMethod) {
+      this.configuration.postConfigureClientMethod(this.instance);
+    }
+  }
+
+  /**
+   * Logs in to o!TR
+   * @param params Request parameters (see {@link AuthLoginRequestParams})
+   * @return OK
+   */
+  public login(
+    params: AuthLoginRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { redirectUri } = params;
+
+    let url_ = this.baseUrl + '/api/v1/auth/login?';
+    if (redirectUri === null)
+      throw new Error("The parameter 'redirectUri' cannot be null.");
+    else if (redirectUri !== undefined)
+      url_ += 'redirectUri=' + encodeURIComponent('' + redirectUri) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: false,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processLogin(_response);
+      });
+  }
+
+  protected processLogin(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Logs out from o!TR
+   * @param params Request parameters (see {@link AuthLogoutRequestParams})
+   * @return OK
+   */
+  public logout(
+    params: AuthLogoutRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { redirectUri } = params;
+
+    let url_ = this.baseUrl + '/api/v1/auth/logout?';
+    if (redirectUri === null)
+      throw new Error("The parameter 'redirectUri' cannot be null.");
+    else if (redirectUri !== undefined)
+      url_ += 'redirectUri=' + encodeURIComponent('' + redirectUri) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: false,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processLogout(_response);
+      });
+  }
+
+  protected processLogout(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Authenticate using client credentials
+   * @param params Request parameters (see {@link AuthAuthenticateClientRequestParams})
+   * @return Returns client access credentials
+   */
+  public authenticateClient(
+    params: AuthAuthenticateClientRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    const { clientId, clientSecret } = params;
+
+    let url_ = this.baseUrl + '/api/v1/auth/token?';
+    if (clientId === undefined || clientId === null)
+      throw new Error(
+        "The parameter 'clientId' must be defined and cannot be null."
+      );
+    else url_ += 'clientId=' + encodeURIComponent('' + clientId) + '&';
+    if (clientSecret === undefined || clientSecret === null)
+      throw new Error(
+        "The parameter 'clientSecret' must be defined and cannot be null."
+      );
+    else url_ += 'clientSecret=' + encodeURIComponent('' + clientSecret) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'POST',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: false,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processAuthenticateClient(_response);
+      });
+  }
+
+  protected processAuthenticateClient(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = JSON.parse(resultData401);
+      return throwException(
+        'Could not authenticate',
+        status,
+        _responseText,
+        _headers,
+        result401
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
+        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+}
+
+/**
  * Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.get | api/v1/beatmaps/[key]}
  */
 export type BeatmapsGetRequestParams = {
@@ -795,6 +1083,81 @@ export class ClientsWrapper extends OtrApiWrapperBase {
     if (this.configuration.postConfigureClientMethod) {
       this.configuration.postConfigureClientMethod(this.instance);
     }
+  }
+
+  /**
+   * Create a new OAuth client
+   *
+   * Client secret is only returned from creation.
+   * The user will have to reset the secret if they lose access.
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user
+   * @return Returns created client credentials
+   */
+  public create(
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    let url_ = this.baseUrl + '/api/v1/clients';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'POST',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processCreate(_response);
+      });
+  }
+
+  protected processCreate(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
+        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
   }
 
   /**
@@ -3019,415 +3382,6 @@ export class MeWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-}
-
-/**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorize | api/v1/oauth/authorize}
- */
-export type OAuthAuthorizeRequestParams = {
-  /**
-   * (optional) osu! authorization code
-   */
-  code?: string | undefined;
-  /**
-   * (optional)
-   */
-  code_verifier?: string | undefined;
-};
-
-/**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.authorizeClient | api/v1/oauth/token}
- */
-export type OAuthAuthorizeClientRequestParams = {
-  /**
-   * (required) Client id
-   */
-  clientId: number;
-  /**
-   * (required) Client secret
-   */
-  clientSecret: string;
-};
-
-/**
- * Request parameters available for use when requesting {@link OAuthWrapper.prototype.refresh | api/v1/oauth/refresh}
- */
-export type OAuthRefreshRequestParams = {
-  /**
-   * (required) Refresh token
-   */
-  refreshToken: string;
-};
-
-export class OAuthWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
-
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
-
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
-
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
-
-  /**
-   * Authorize using an osu! authorization code
-   * @param params Request parameters (see {@link OAuthAuthorizeRequestParams})
-   * @return Returns user access credentials
-   */
-  public authorize(
-    params: OAuthAuthorizeRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { code, code_verifier } = params;
-
-    let url_ = this.baseUrl + '/api/v1/oauth/authorize';
-    url_ = url_.replace(/[?&]$/, '');
-
-    const content_ = new FormData();
-    if (code === null || code === undefined)
-      throw new Error("The parameter 'code' cannot be null.");
-    else content_.append('code', code.toString());
-    if (code_verifier === null || code_verifier === undefined)
-      throw new Error("The parameter 'code_verifier' cannot be null.");
-    else content_.append('code_verifier', code_verifier.toString());
-
-    let options_: AxiosRequestConfig = {
-      data: content_,
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processAuthorize(_response);
-      });
-  }
-
-  protected processAuthorize(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 401) {
-      const _responseText = response.data;
-      let result401: any = null;
-      let resultData401 = _responseText;
-      result401 = JSON.parse(resultData401);
-      return throwException(
-        'There was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result401
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Authorize using client credentials
-   * @param params Request parameters (see {@link OAuthAuthorizeClientRequestParams})
-   * @return Returns client access credentials
-   */
-  public authorizeClient(
-    params: OAuthAuthorizeClientRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { clientId, clientSecret } = params;
-
-    let url_ = this.baseUrl + '/api/v1/oauth/token?';
-    if (clientId === undefined || clientId === null)
-      throw new Error(
-        "The parameter 'clientId' must be defined and cannot be null."
-      );
-    else url_ += 'clientId=' + encodeURIComponent('' + clientId) + '&';
-    if (clientSecret === undefined || clientSecret === null)
-      throw new Error(
-        "The parameter 'clientSecret' must be defined and cannot be null."
-      );
-    else url_ += 'clientSecret=' + encodeURIComponent('' + clientSecret) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processAuthorizeClient(_response);
-      });
-  }
-
-  protected processAuthorizeClient(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'There was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Create a new OAuth client
-   *
-   * Client secret is only returned from creation.
-   * The user will have to reset the secret if they lose access.
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
-   * @return Returns created client credentials
-   */
-  public createClient(
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    let url_ = this.baseUrl + '/api/v1/oauth/client';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: true,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processCreateClient(_response);
-      });
-  }
-
-  protected processCreateClient(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<OAuthClientCreatedDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-        new OtrApiResponse<OAuthClientCreatedDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<OAuthClientCreatedDTO>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-
-  /**
-   * Generate new access credentials from a valid refresh token
-   *
-   * Generated access credentials will contain only a new access token
-   * @param params Request parameters (see {@link OAuthRefreshRequestParams})
-   * @return Returns access credentials containing a new access token
-   */
-  public refresh(
-    params: OAuthRefreshRequestParams,
-    cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const { refreshToken } = params;
-
-    let url_ = this.baseUrl + '/api/v1/oauth/refresh?';
-    if (refreshToken === undefined || refreshToken === null)
-      throw new Error(
-        "The parameter 'refreshToken' must be defined and cannot be null."
-      );
-    else url_ += 'refreshToken=' + encodeURIComponent('' + refreshToken) + '&';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'POST',
-      url: url_,
-      headers: {
-        Accept: 'text/plain',
-      },
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processRefresh(_response);
-      });
-  }
-
-  protected processRefresh(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<AccessCredentialsDTO>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 400) {
-      const _responseText = response.data;
-      let result400: any = null;
-      let resultData400 = _responseText;
-      result400 = JSON.parse(resultData400);
-      return throwException(
-        'The refresh token is invalid or there was an error during authorization',
-        status,
-        _responseText,
-        _headers,
-        result400
-      );
-    } else if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
-        new OtrApiResponse<AccessCredentialsDTO>(status, _headers, result200)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<AccessCredentialsDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -6108,12 +6062,8 @@ export class UsersWrapper extends OtrApiWrapperBase {
 export interface AccessCredentialsDTO {
   /** Access token */
   accessToken: string;
-  /** Refresh token */
-  refreshToken: string;
   /** Lifetime of the access token in seconds */
   expiresIn: number;
-  /** Token type */
-  tokenType: string;
 }
 
 /** Represents a note for an entity created by an admin */
@@ -7230,11 +7180,15 @@ export interface TierProgressDTO {
   currentTier: string;
   /** Current sub tier */
   currentSubTier?: number | undefined;
+  /** Name of the next major tier (Null if there is no next major tier, e.g. when the rating value is within the maximum tier) */
+  nextTier?: string | undefined;
+  /** Next sub tier */
+  nextSubTier?: number | undefined;
   /** Rating required to reach next sub tier */
   ratingForNextTier: number;
   /** Rating required to reach next major tier */
   ratingForNextMajorTier: number;
-  /** Next major tier following current tier */
+  /** Major tier following current major tier */
   nextMajorTier?: string | undefined;
   /** Progress to the next sub tier as a percentage */
   subTierFillPercentage?: number | undefined;

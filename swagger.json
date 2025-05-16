@@ -506,6 +506,129 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/auth/login": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logs in to o!TR",
+        "operationId": "Auth_login",
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "description": "Redirects the client to the given uri after login",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-requiresAuthorization": false
+      }
+    },
+    "/api/v1/auth/logout": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logs out from o!TR",
+        "operationId": "Auth_logout",
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "description": "Redirects the client to the given uri after logout",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-requiresAuthorization": false
+      }
+    },
+    "/api/v1/auth/token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Authenticate using client credentials",
+        "operationId": "Auth_authenticateClient",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "query",
+            "description": "Client id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "clientSecret",
+            "in": "query",
+            "description": "Client secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Could not authenticate",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns client access credentials",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCredentialsDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-requiresAuthorization": false
+      }
+    },
     "/api/v1/beatmaps": {
       "get": {
         "tags": [
@@ -627,6 +750,49 @@
           {
             "OAuth2": [
               "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/clients": {
+      "post": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Create a new OAuth client",
+        "description": "Client secret is only returned from creation.\r\nThe user will have to reset the secret if they lose access.\n\nRequires Authorization:\n\nClaim(s): user",
+        "operationId": "Clients_create",
+        "responses": {
+          "200": {
+            "description": "Returns created client credentials",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
             ]
           }
         ],
@@ -2350,268 +2516,6 @@
           }
         ],
         "x-requiresAuthorization": true
-      }
-    },
-    "/api/v1/oauth/authorize": {
-      "post": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Authorize using an osu! authorization code",
-        "operationId": "OAuth_authorize",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "required": [
-                  "code",
-                  "code_verifier"
-                ],
-                "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "description": "osu! authorization code"
-                  },
-                  "code_verifier": {
-                    "type": "string"
-                  }
-                }
-              },
-              "encoding": {
-                "code": {
-                  "style": "form"
-                },
-                "code_verifier": {
-                  "style": "form"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "401": {
-            "description": "There was an error during authorization",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Returns user access credentials",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              }
-            }
-          }
-        },
-        "x-requiresAuthorization": false
-      }
-    },
-    "/api/v1/oauth/token": {
-      "post": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Authorize using client credentials",
-        "operationId": "OAuth_authorizeClient",
-        "parameters": [
-          {
-            "name": "clientId",
-            "in": "query",
-            "description": "Client id",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "clientSecret",
-            "in": "query",
-            "description": "Client secret",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "There was an error during authorization",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Returns client access credentials",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              }
-            }
-          }
-        },
-        "x-requiresAuthorization": false
-      }
-    },
-    "/api/v1/oauth/client": {
-      "post": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Create a new OAuth client",
-        "description": "Client secret is only returned from creation.\r\nThe user will have to reset the secret if they lose access.\n\nRequires Authorization:\n\nClaim(s): user",
-        "operationId": "OAuth_createClient",
-        "responses": {
-          "200": {
-            "description": "Returns created client credentials",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientCreatedDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          },
-          {
-            "OAuth2": [
-              "user"
-            ]
-          }
-        ],
-        "x-requiresAuthorization": true
-      }
-    },
-    "/api/v1/oauth/refresh": {
-      "post": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Generate new access credentials from a valid refresh token",
-        "description": "Generated access credentials will contain only a new access token",
-        "operationId": "OAuth_refresh",
-        "parameters": [
-          {
-            "name": "refreshToken",
-            "in": "query",
-            "description": "Refresh token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "The refresh token is invalid or there was an error during authorization",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Returns access credentials containing a new access token",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccessCredentialsDTO"
-                }
-              }
-            }
-          }
-        },
-        "x-requiresAuthorization": false
       }
     },
     "/api/v1/players/{key}": {
@@ -4680,9 +4584,7 @@
       "AccessCredentialsDTO": {
         "required": [
           "accessToken",
-          "expiresIn",
-          "refreshToken",
-          "tokenType"
+          "expiresIn"
         ],
         "type": "object",
         "properties": {
@@ -4690,18 +4592,10 @@
             "type": "string",
             "description": "Access token"
           },
-          "refreshToken": {
-            "type": "string",
-            "description": "Refresh token"
-          },
           "expiresIn": {
             "type": "integer",
             "description": "Lifetime of the access token in seconds",
             "format": "int32"
-          },
-          "tokenType": {
-            "type": "string",
-            "description": "Token type"
           }
         },
         "additionalProperties": false,
@@ -7333,6 +7227,17 @@
             "format": "int32",
             "nullable": true
           },
+          "nextTier": {
+            "type": "string",
+            "description": "Name of the next major tier (Null if there is no next major tier, e.g. when the rating value is within the maximum tier)",
+            "nullable": true
+          },
+          "nextSubTier": {
+            "type": "integer",
+            "description": "Next sub tier",
+            "format": "int32",
+            "nullable": true
+          },
           "ratingForNextTier": {
             "type": "number",
             "description": "Rating required to reach next sub tier",
@@ -7345,7 +7250,7 @@
           },
           "nextMajorTier": {
             "type": "string",
-            "description": "Next major tier following current tier",
+            "description": "Major tier following current major tier",
             "nullable": true
           },
           "subTierFillPercentage": {
@@ -7862,36 +7767,6 @@
         "description": "JWT Authorization using the Bearer scheme. Paste **ONLY** your JWT in the text box below",
         "scheme": "Bearer",
         "bearerFormat": "JWT"
-      },
-      "OAuth2": {
-        "type": "oauth2",
-        "description": "OAuth2 Authentication",
-        "flows": {
-          "clientCredentials": {
-            "tokenUrl": "api/v1.0/OAuth/token",
-            "refreshUrl": "api/v1.0/OAuth/refresh",
-            "scopes": {
-              "user": "Role granted to all users.",
-              "client": "Role granted to all clients.",
-              "admin": "Role granted to privileged users.",
-              "verifier": "Role granted to users with permission to verify submission data.",
-              "submit": "Role granted to users with permission to submit tournament data.",
-              "whitelist": "Role granted to users and clients to allow access during times of restricted use."
-            }
-          },
-          "authorizationCode": {
-            "authorizationUrl": "api/v1.0/OAuth/authorize",
-            "refreshUrl": "api/v1.0/OAuth/refresh",
-            "scopes": {
-              "user": "Role granted to all users.",
-              "client": "Role granted to all clients.",
-              "admin": "Role granted to privileged users.",
-              "verifier": "Role granted to users with permission to verify submission data.",
-              "submit": "Role granted to users with permission to submit tournament data.",
-              "whitelist": "Role granted to users and clients to allow access during times of restricted use."
-            }
-          }
-        }
       }
     }
   },
