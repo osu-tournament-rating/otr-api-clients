@@ -26,6 +26,7 @@ export abstract class OtrApiWrapperBase {
     this.configuration.clientConfiguration = {
       ...defaultAxiosClientConfiguration,
       ...this.configuration.clientConfiguration,
+      withCredentials: true,
     };
   }
 
