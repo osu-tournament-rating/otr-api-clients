@@ -6811,7 +6811,9 @@ export interface MatchSearchResultDTO {
   /** osu! match id of the match */
   osuId: number;
   /** Name of the match */
-  name?: string | undefined;
+  name: string;
+  /** Name of the tournament */
+  tournamentName: string;
 }
 
 /** Represents the status of a submitted match */
@@ -7155,6 +7157,8 @@ export interface PlayerSearchResultDTO {
   osuId: number;
   /** Rating of the player for the given ruleset */
   rating?: number | undefined;
+  /** Ruleset of the player's rating */
+  ruleset?: Ruleset | undefined;
   /** Current global rank of the player for the given ruleset */
   globalRank?: number | undefined;
   /** Current rating tier of the player for the given ruleset */

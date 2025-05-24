@@ -6111,7 +6111,9 @@
       "MatchSearchResultDTO": {
         "required": [
           "id",
-          "osuId"
+          "name",
+          "osuId",
+          "tournamentName"
         ],
         "type": "object",
         "properties": {
@@ -6127,8 +6129,11 @@
           },
           "name": {
             "type": "string",
-            "description": "Name of the match",
-            "nullable": true
+            "description": "Name of the match"
+          },
+          "tournamentName": {
+            "type": "string",
+            "description": "Name of the tournament"
           }
         },
         "additionalProperties": false,
@@ -6819,6 +6824,15 @@
             "type": "number",
             "description": "Rating of the player for the given ruleset",
             "format": "double",
+            "nullable": true
+          },
+          "ruleset": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "Ruleset of the player's rating",
             "nullable": true
           },
           "globalRank": {
