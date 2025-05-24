@@ -3,6 +3,7 @@
   "info": {
     "title": "osu! Tournament Rating API",
     "description": "The official resource for reading and writing data within the osu! Tournament Rating platform.",
+    "termsOfService": "https://docs.otr.stagec.xyz/About/Terms-of-Use",
     "version": "v1"
   },
   "paths": {
@@ -2252,6 +2253,122 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/matches/{id}:merge": {
+      "post": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Links games from provided matches into a single match id before deleting\r\nthe provided matches",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_merge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the match to link games to",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Match ids to unlink games from before deletion",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "A match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "State of the match after merging",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/me": {
       "get": {
         "tags": [
@@ -2503,6 +2620,49 @@
           },
           "307": {
             "description": "Redirects to `POST` `/users/{id}/settings/ruleset:sync`"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/stats": {
+      "get": {
+        "tags": [
+          "PlatformStats"
+        ],
+        "summary": "Get various platform-wide stats",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
+        "operationId": "PlatformStats_get",
+        "responses": {
+          "200": {
+            "description": "Returns various platform-wide stats",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatsDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatsDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatsDTO"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -5097,14 +5257,14 @@
           "NotEnoughMatches"
         ],
         "x-enumDescriptions": [
-          "The player passed filtering, thus there is no failure reason",
-          "The player does not have a rating / profile in the o!TR database",
+          "No failure reason",
+          "The player does not have a rating for the ruleset\r\nspecified by the filter",
           "The player's rating is below the minimum threshold",
           "The player's rating is above the maximum threshold",
-          "The player is provisional and the filtering criteria specifies\r\nexclusion of provisional players",
-          "The player has not played in the minimum specified\r\namount of tournaments",
-          "The player's all-time peak rating is above the maximum allowed",
-          "The player has not played in the minimum specified amount of matches"
+          "The player's rating is provisional and the filter\r\ndisallows provisional ratings",
+          "The player has not played in the minimum specified\r\nnumber of tournaments",
+          "The player's all-time peak rating is above the maximum threshold",
+          "The player has not played in the minimum specified number of matches"
         ]
       },
       "FilteringRequestDTO": {
@@ -5116,8 +5276,6 @@
         "type": "object",
         "properties": {
           "ruleset": {
-            "maximum": 5,
-            "minimum": 0,
             "allOf": [
               {
                 "$ref": "#/components/schemas/Ruleset"
@@ -5170,6 +5328,7 @@
             "nullable": true
           },
           "osuPlayerIds": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "integer",
@@ -5180,22 +5339,6 @@
         },
         "additionalProperties": false,
         "description": "Represents a set of criteria used by the API.Controllers.FilteringController\r\nto determine player eligibility for a tournament"
-      },
-      "FilteringResult": {
-        "enum": [
-          0,
-          1
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "Pass",
-          "Fail"
-        ],
-        "x-enumDescriptions": [
-          "Indicates the player passed filtering",
-          "Indicates the player failed filtering"
-        ]
       },
       "FilteringResultDTO": {
         "required": [
@@ -5224,7 +5367,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Represents a filterings result for a collection of players"
+        "description": "Represents a filtering result for a collection of players"
       },
       "GameDTO": {
         "required": [
@@ -6308,6 +6451,24 @@
           }
         ]
       },
+      "PlatformStatsDTO": {
+        "required": [
+          "tournamentsStats"
+        ],
+        "type": "object",
+        "properties": {
+          "tournamentsStats": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentPlatformStatsDTO"
+              }
+            ],
+            "description": "Platform-wide tournament stats"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents platform-wide statistics"
+      },
       "PlayerCompactDTO": {
         "required": [
           "country",
@@ -6434,8 +6595,7 @@
       },
       "PlayerFilteringResultDTO": {
         "required": [
-          "filteringResult",
-          "filteringResultMessage",
+          "isSuccess",
           "osuId"
         ],
         "type": "object",
@@ -6456,33 +6616,18 @@
             "description": "The osu! id of the player",
             "format": "int64"
           },
-          "filteringResult": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FilteringResult"
-              }
-            ],
-            "description": "The filtering result"
+          "isSuccess": {
+            "type": "boolean",
+            "description": "Whether the player successfully passes all\r\nconditions of the filter"
           },
-          "filteringFailReason": {
+          "failureReason": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/FilteringFailReason"
               }
             ],
-            "description": "If the user failed filtering, the fail reason",
+            "description": "If the player failed filtering, the fail reason",
             "nullable": true
-          },
-          "filteringResultMessage": {
-            "type": "string",
-            "description": "The API.DTOs.PlayerFilteringResultDTO.FilteringResult in string form",
-            "readOnly": true
-          },
-          "filteringFailReasonMessage": {
-            "type": "string",
-            "description": "The API.DTOs.PlayerFilteringResultDTO.FilteringFailReason in string form",
-            "nullable": true,
-            "readOnly": true
           }
         },
         "additionalProperties": false,
@@ -6681,8 +6826,12 @@
             "format": "int32",
             "nullable": true
           },
-          "ratingTier": {
-            "type": "string",
+          "tierProgress": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TierProgressDTO"
+              }
+            ],
             "description": "Current rating tier of the player for the given ruleset",
             "nullable": true,
             "readOnly": true
@@ -7449,6 +7598,114 @@
           }
         ],
         "description": "Represents a tournament including optional data"
+      },
+      "TournamentPlatformStatsDTO": {
+        "required": [
+          "countByVerificationStatus",
+          "totalCount",
+          "verifiedByLobbySize",
+          "verifiedByRuleset",
+          "verifiedByYear"
+        ],
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of Database.Entities.Tournaments",
+            "format": "int32"
+          },
+          "countByVerificationStatus": {
+            "required": [
+              "None",
+              "PreRejected",
+              "PreVerified",
+              "Rejected",
+              "Verified"
+            ],
+            "type": "object",
+            "properties": {
+              "None": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "PreRejected": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "PreVerified": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Rejected": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Verified": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Map of Common.Enums.Verification.VerificationStatuses to the number of Database.Entities.Tournaments with the status"
+          },
+          "verifiedByYear": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Map of years to the number of verified Database.Entities.Tournaments in that year"
+          },
+          "verifiedByRuleset": {
+            "required": [
+              "Osu",
+              "Taiko",
+              "Catch",
+              "ManiaOther",
+              "Mania4k",
+              "Mania7k"
+            ],
+            "type": "object",
+            "properties": {
+              "Osu": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Taiko": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Catch": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "ManiaOther": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Mania4k": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Mania7k": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Map of Common.Enums.Rulesets to the number of verified Database.Entities.Tournaments in that ruleset"
+          },
+          "verifiedByLobbySize": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Map of lobby sizes to the number of verified Database.Entities.Tournaments with that lobby size"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents platform-wide Database.Entities.Tournament stats"
       },
       "TournamentProcessingStatus": {
         "enum": [
