@@ -6799,6 +6799,7 @@
       "PlayerSearchResultDTO": {
         "required": [
           "id",
+          "isFriend",
           "osuId",
           "thumbnail"
         ],
@@ -6844,6 +6845,10 @@
           "thumbnail": {
             "type": "string",
             "description": "Link to an osu! thumbnail for the player"
+          },
+          "isFriend": {
+            "type": "boolean",
+            "description": "Denotes the player is a friend of the requesting user"
           }
         },
         "additionalProperties": false,
