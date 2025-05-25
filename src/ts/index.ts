@@ -4825,7 +4825,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
   public getBeatmaps(
     params: TournamentsGetBeatmapsRequestParams,
     cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<BeatmapDTO[]>> {
     const { id } = params;
 
     let url_ = this.baseUrl + '/api/v1/tournaments/{id}/beatmaps';
@@ -4837,7 +4837,9 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     let options_: AxiosRequestConfig = {
       method: 'GET',
       url: url_,
-      headers: {},
+      headers: {
+        Accept: 'text/plain',
+      },
       cancelToken,
       requiresAuthorization: true,
     };
@@ -4858,7 +4860,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   protected processGetBeatmaps(
     response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<BeatmapDTO[]>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === 'object') {
@@ -4870,8 +4872,11 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     }
     if (status === 200) {
       const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
+        new OtrApiResponse<BeatmapDTO[]>(status, _headers, result200)
       );
     } else if (status === 404) {
       const _responseText = response.data;
@@ -4894,7 +4899,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         _headers
       );
     }
-    return Promise.resolve<OtrApiResponse<void>>(
+    return Promise.resolve<OtrApiResponse<BeatmapDTO[]>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }

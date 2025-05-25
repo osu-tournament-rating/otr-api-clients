@@ -3525,7 +3525,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Returns a collection of pooled beatmaps"
+            "description": "Returns a collection of pooled beatmaps",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BeatmapDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BeatmapDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BeatmapDTO"
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "A tournament matching the given id does not exist",
