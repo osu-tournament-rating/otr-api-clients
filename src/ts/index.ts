@@ -7195,7 +7195,7 @@ export interface PlayerTournamentPerformanceDTO {
   recentPerformances: PlayerTournamentStatsDTO[];
 }
 
-export interface PlayerTournamentStatsDTO {
+export interface PlayerTournamentStatsBaseDTO {
   /** Average change in rating */
   averageRatingDelta: number;
   /** Average match cost */
@@ -7220,8 +7220,11 @@ export interface PlayerTournamentStatsDTO {
   gamesLost: number;
   /** The player who owns these stats */
   player: PlayerCompactDTO;
-  /** Tournament */
-  tournament: TournamentCompactDTO;
+}
+
+export interface PlayerTournamentStatsDTO extends PlayerTournamentStatsBaseDTO {
+  /** The tournament that these stats are for */
+  tournament?: TournamentCompactDTO;
 }
 
 /** Describes a single change to a PlayerRating */
@@ -7452,6 +7455,8 @@ export interface TournamentDTO extends TournamentCompactDTO {
   matches?: MatchDTO[];
   /** All admin notes associated with the tournament */
   adminNotes?: AdminNoteDTO[];
+  /** All player tournament stats associated with the tournament */
+  playerTournamentStats?: PlayerTournamentStatsBaseDTO[];
 }
 
 /** Represents platform-wide Database.Entities.Tournament stats */
