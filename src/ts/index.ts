@@ -7571,6 +7571,12 @@ export interface TournamentSearchResultDTO {
   id: number;
   /** Ruleset of the tournament */
   ruleset: Ruleset;
+  /** Verification status of the tournament */
+  verificationStatus: VerificationStatus;
+  /** Rejection reason of the tournament */
+  rejectionReason?: string | undefined;
+  /** Abbreviation of the tournament */
+  abbreviation?: string | undefined;
   /** Expected in-match team size */
   lobbySize: number;
   /** Name of the tournament */

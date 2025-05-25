@@ -7838,7 +7838,8 @@
           "id",
           "lobbySize",
           "name",
-          "ruleset"
+          "ruleset",
+          "verificationStatus"
         ],
         "type": "object",
         "properties": {
@@ -7854,6 +7855,24 @@
               }
             ],
             "description": "Ruleset of the tournament"
+          },
+          "verificationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "Verification status of the tournament"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "description": "Rejection reason of the tournament",
+            "nullable": true
+          },
+          "abbreviation": {
+            "type": "string",
+            "description": "Abbreviation of the tournament",
+            "nullable": true
           },
           "lobbySize": {
             "type": "integer",
