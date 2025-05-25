@@ -7838,6 +7838,7 @@
           "id",
           "lobbySize",
           "name",
+          "rejectionReason",
           "ruleset",
           "verificationStatus"
         ],
@@ -7865,9 +7866,12 @@
             "description": "Verification status of the tournament"
           },
           "rejectionReason": {
-            "type": "string",
-            "description": "Rejection reason of the tournament",
-            "nullable": true
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentRejectionReason"
+              }
+            ],
+            "description": "Rejection reason of the tournament"
           },
           "abbreviation": {
             "type": "string",

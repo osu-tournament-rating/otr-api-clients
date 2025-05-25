@@ -7574,7 +7574,7 @@ export interface TournamentSearchResultDTO {
   /** Verification status of the tournament */
   verificationStatus: VerificationStatus;
   /** Rejection reason of the tournament */
-  rejectionReason?: string | undefined;
+  rejectionReason: TournamentRejectionReason;
   /** Abbreviation of the tournament */
   abbreviation?: string | undefined;
   /** Expected in-match team size */
