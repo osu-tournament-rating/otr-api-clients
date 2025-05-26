@@ -6965,7 +6965,7 @@
         "additionalProperties": false,
         "description": "Represents statistics for a player regarding tournament participation and performance"
       },
-      "PlayerTournamentStatsDTO": {
+      "PlayerTournamentStatsBaseDTO": {
         "required": [
           "averageAccuracy",
           "averageMatchCost",
@@ -6978,8 +6978,7 @@
           "matchesLost",
           "matchesPlayed",
           "matchesWon",
-          "player",
-          "tournament"
+          "player"
         ],
         "type": "object",
         "properties": {
@@ -7045,17 +7044,30 @@
               }
             ],
             "description": "The player who owns these stats"
-          },
-          "tournament": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/TournamentCompactDTO"
-              }
-            ],
-            "description": "Tournament"
           }
         },
         "additionalProperties": false
+      },
+      "PlayerTournamentStatsDTO": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PlayerTournamentStatsBaseDTO"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "tournament": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                ],
+                "description": "The tournament that these stats are for"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       },
       "ProblemDetails": {
         "type": "object",
@@ -7637,6 +7649,13 @@
                   "$ref": "#/components/schemas/AdminNoteDTO"
                 },
                 "description": "All admin notes associated with the tournament"
+              },
+              "playerTournamentStats": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PlayerTournamentStatsBaseDTO"
+                },
+                "description": "All player tournament stats associated with the tournament"
               }
             },
             "additionalProperties": false
@@ -7845,7 +7864,9 @@
           "id",
           "lobbySize",
           "name",
-          "ruleset"
+          "rejectionReason",
+          "ruleset",
+          "verificationStatus"
         ],
         "type": "object",
         "properties": {
@@ -7861,6 +7882,27 @@
               }
             ],
             "description": "Ruleset of the tournament"
+          },
+          "verificationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "Verification status of the tournament"
+          },
+          "rejectionReason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentRejectionReason"
+              }
+            ],
+            "description": "Rejection reason of the tournament"
+          },
+          "abbreviation": {
+            "type": "string",
+            "description": "Abbreviation of the tournament",
+            "nullable": true
           },
           "lobbySize": {
             "type": "integer",

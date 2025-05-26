@@ -7200,7 +7200,7 @@ export interface PlayerTournamentPerformanceDTO {
   recentPerformances: PlayerTournamentStatsDTO[];
 }
 
-export interface PlayerTournamentStatsDTO {
+export interface PlayerTournamentStatsBaseDTO {
   /** Average change in rating */
   averageRatingDelta: number;
   /** Average match cost */
@@ -7225,8 +7225,11 @@ export interface PlayerTournamentStatsDTO {
   gamesLost: number;
   /** The player who owns these stats */
   player: PlayerCompactDTO;
-  /** Tournament */
-  tournament: TournamentCompactDTO;
+}
+
+export interface PlayerTournamentStatsDTO extends PlayerTournamentStatsBaseDTO {
+  /** The tournament that these stats are for */
+  tournament?: TournamentCompactDTO;
 }
 
 /** Describes a single change to a PlayerRating */
@@ -7457,6 +7460,8 @@ export interface TournamentDTO extends TournamentCompactDTO {
   matches?: MatchDTO[];
   /** All admin notes associated with the tournament */
   adminNotes?: AdminNoteDTO[];
+  /** All player tournament stats associated with the tournament */
+  playerTournamentStats?: PlayerTournamentStatsBaseDTO[];
 }
 
 /** Represents platform-wide Database.Entities.Tournament stats */
@@ -7571,6 +7576,12 @@ export interface TournamentSearchResultDTO {
   id: number;
   /** Ruleset of the tournament */
   ruleset: Ruleset;
+  /** Verification status of the tournament */
+  verificationStatus: VerificationStatus;
+  /** Rejection reason of the tournament */
+  rejectionReason: TournamentRejectionReason;
+  /** Abbreviation of the tournament */
+  abbreviation?: string | undefined;
   /** Expected in-match team size */
   lobbySize: number;
   /** Name of the tournament */
