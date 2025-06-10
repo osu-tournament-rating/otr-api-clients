@@ -575,6 +575,209 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
 }
 
 /**
+ * Request parameters available for use when requesting {@link AuditWrapper.prototype.getEntityAudits | api/v1/audit/entity/[entityType]/[entityId]}
+ */
+export type AuditGetEntityAuditsRequestParams = {
+  /**
+   * (required) The type of entity to get audits for
+   */
+  entityType: AuditEntityType;
+  /**
+   * (required) The ID of the entity to get audits for
+   */
+  entityId: number;
+};
+
+/**
+ * Request parameters available for use when requesting {@link AuditWrapper.prototype.getUserAudits | api/v1/audit/user/[userId]}
+ */
+export type AuditGetUserAuditsRequestParams = {
+  /**
+   * (required) The ID of the user to get audits for
+   */
+  userId: number;
+};
+
+export class AuditWrapper extends OtrApiWrapperBase {
+  protected instance: AxiosInstance;
+  protected baseUrl: string;
+  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
+    undefined;
+
+  constructor(configuration: IOtrApiWrapperConfiguration) {
+    super(configuration);
+
+    this.instance = axios.create(this.configuration.clientConfiguration);
+    this.baseUrl = this.getBaseUrl('');
+
+    if (this.configuration.postConfigureClientMethod) {
+      this.configuration.postConfigureClientMethod(this.instance);
+    }
+  }
+
+  /**
+   * Get audits for a specific entity
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link AuditGetEntityAuditsRequestParams})
+   * @return Returns a list of audits for the specified entity
+   */
+  public getEntityAudits(
+    params: AuditGetEntityAuditsRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<AuditDTO[]>> {
+    const { entityType, entityId } = params;
+
+    let url_ = this.baseUrl + '/api/v1/audit/entity/{entityType}/{entityId}';
+    if (entityType === undefined || entityType === null)
+      throw new Error("The parameter 'entityType' must be defined.");
+    url_ = url_.replace('{entityType}', encodeURIComponent('' + entityType));
+    if (entityId === undefined || entityId === null)
+      throw new Error("The parameter 'entityId' must be defined.");
+    url_ = url_.replace('{entityId}', encodeURIComponent('' + entityId));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetEntityAudits(_response);
+      });
+  }
+
+  protected processGetEntityAudits(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<AuditDTO[]>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<AuditDTO[]>>(
+        new OtrApiResponse<AuditDTO[]>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<AuditDTO[]>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get audits performed by a specific user
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link AuditGetUserAuditsRequestParams})
+   * @return Returns a list of audits performed by the specified user
+   */
+  public getUserAudits(
+    params: AuditGetUserAuditsRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<AuditDTO[]>> {
+    const { userId } = params;
+
+    let url_ = this.baseUrl + '/api/v1/audit/user/{userId}';
+    if (userId === undefined || userId === null)
+      throw new Error("The parameter 'userId' must be defined.");
+    url_ = url_.replace('{userId}', encodeURIComponent('' + userId));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetUserAudits(_response);
+      });
+  }
+
+  protected processGetUserAudits(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<AuditDTO[]>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<AuditDTO[]>>(
+        new OtrApiResponse<AuditDTO[]>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<AuditDTO[]>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+}
+
+/**
  * Request parameters available for use when requesting {@link AuthWrapper.prototype.login | api/v1/auth/login}
  */
 export type AuthLoginRequestParams = {
@@ -2240,10 +2443,6 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a leaderboard of players which fit an optional request query
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
    * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
    * @return Returns the leaderboard
    */
@@ -2368,7 +2567,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -2522,6 +2721,20 @@ export type MatchesMergeRequestParams = {
    * (optional) Match ids to unlink games from before deletion
    */
   body?: number[] | undefined;
+};
+
+/**
+ * Request parameters available for use when requesting {@link MatchesWrapper.prototype.deletePlayerScores | api/v1/matches/[id]/player/[playerId]}
+ */
+export type MatchesDeletePlayerScoresRequestParams = {
+  /**
+   * (required) Match id
+   */
+  id: number;
+  /**
+   * (required) Player id
+   */
+  playerId: number;
 };
 
 export class MatchesWrapper extends OtrApiWrapperBase {
@@ -3076,6 +3289,100 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<MatchDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Delete all scores belonging to a player for a given match
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link MatchesDeletePlayerScoresRequestParams})
+   * @return Returns the number of scores deleted
+   */
+  public deletePlayerScores(
+    params: MatchesDeletePlayerScoresRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<number>> {
+    const { id, playerId } = params;
+
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/player/{playerId}';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    if (playerId === undefined || playerId === null)
+      throw new Error("The parameter 'playerId' must be defined.");
+    url_ = url_.replace('{playerId}', encodeURIComponent('' + playerId));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'DELETE',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDeletePlayerScores(_response);
+      });
+  }
+
+  protected processDeletePlayerScores(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<number>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'A match matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<number>>(
+        new OtrApiResponse<number>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<number>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -4908,10 +5215,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    * Get all tournaments which fit an optional request query
    *
    * Results will not include match data
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link TournamentsListRequestParams})
    * @return Returns all tournaments which fit the request query
    */
@@ -5019,7 +5322,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -6348,6 +6651,41 @@ A top-score is 1, bottom score would be team size * 2 */
   periodEnd?: Date | undefined;
 }
 
+export enum AuditActionType {
+  /** The entity was created */
+  Created = 0,
+  /** The entity was updated */
+  Updated = 1,
+  /** The entity was deleted */
+  Deleted = 2,
+}
+
+/** Represents an audit record tracking changes made to entities in the system */
+export interface AuditDTO {
+  /** Primary key of the audit record */
+  id: number;
+  /** Id of the user who performed the action, if available (Will be null for system-generated actions or actions performed by anonymous users) */
+  userId?: number | undefined;
+  /** The type of action that was performed on the entity */
+  actionType: AuditActionType;
+  /** The type of entity that was modified */
+  entityType: AuditEntityType;
+  /** Timestamp when the action was performed */
+  timestamp: Date;
+  /** Id of the entity that was modified (This is a locked copy of the entity's primary key that persists even if the original entity is deleted) */
+  entityId: number;
+  /** JSON object containing all field changes made to the entity.
+Format: { "FieldName": { "NewValue": value, "OriginalValue": value }, ... } */
+  changes: string;
+}
+
+export enum AuditEntityType {
+  Game = 0,
+  GameScore = 1,
+  Match = 2,
+  Tournament = 3,
+}
+
 /** The possible authorization policies enforced on a route. Authorization policies differ from Roles as they may require special conditions to be satisfied. See the description of a policy for more information. */
 export enum AuthorizationPolicies {
   /** Policy that allows access from the user that owns the resource as well as any admin users */
@@ -7048,7 +7386,11 @@ export interface Operation_1 extends Operation {}
 /** Represents platform-wide statistics */
 export interface PlatformStatsDTO {
   /** Platform-wide tournament stats */
-  tournamentsStats: TournamentPlatformStatsDTO;
+  tournamentStats: TournamentPlatformStatsDTO;
+  /** Platform-wide rating stats */
+  ratingStats: RatingPlatformStatsDTO;
+  /** Platform-wide user stats */
+  userStats: UserPlatformStatsDTO;
 }
 
 /** Represents player information */
@@ -7261,6 +7603,13 @@ export enum RatingAdjustmentType {
   Decay = 1,
   /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match */
   Match = 2,
+}
+
+/** Represents platform-wide Database.Entities.Processor.PlayerRating stats */
+export interface RatingPlatformStatsDTO {
+  /** For each ruleset, a map of rating 'buckets' (i.e. 100, 125, 150, etc. rating)s
+to the number of Database.Entities.Players in that 'bucket' */
+  ratingsByRuleset: RatingsByRuleset;
 }
 
 /** The possible roles assignable to a user or client */
@@ -7629,6 +7978,12 @@ export interface UserDTO extends UserCompactDTO {
   settings?: UserSettingsDTO;
 }
 
+/** Represents platform-wide Database.Entities.User stats */
+export interface UserPlatformStatsDTO {
+  /** Map of dates to the total number of registered Database.Entities.Users as of that time (One entry per day beginning from the date of the first registered user) */
+  sumByDate: { [key: string]: number };
+}
+
 /** Represents user controlled settings for otr-web */
 export interface UserSettingsDTO {
   /** Preferred ruleset of the associated user */
@@ -7648,6 +8003,15 @@ export enum VerificationStatus {
   Rejected = 3,
   /** Determined to be fit for ratings by manual review */
   Verified = 4,
+}
+
+export interface RatingsByRuleset {
+  Osu: { [key: string]: number };
+  Taiko: { [key: string]: number };
+  Catch: { [key: string]: number };
+  ManiaOther: { [key: string]: number };
+  Mania4k: { [key: string]: number };
+  Mania7k: { [key: string]: number };
 }
 
 export interface CountByVerificationStatus {

@@ -507,6 +507,147 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/audit/entity/{entityType}/{entityId}": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Get audits for a specific entity",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Audit_getEntityAudits",
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "description": "The type of entity to get audits for",
+            "required": true,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/AuditEntityType"
+                }
+              ]
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "description": "The ID of the entity to get audits for",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a list of audits for the specified entity",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/audit/user/{userId}": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Get audits performed by a specific user",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Audit_getUserAudits",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "The ID of the user to get audits for",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a list of audits performed by the specified user",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/auth/login": {
       "get": {
         "tags": [
@@ -1549,7 +1690,6 @@
           "Leaderboards"
         ],
         "summary": "Get a leaderboard of players which fit an optional request query",
-        "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Leaderboards_get",
         "parameters": [
           {
@@ -1779,17 +1919,7 @@
             }
           }
         },
-        "security": [
-          {
-            "Bearer": [ ]
-          },
-          {
-            "OAuth2": [
-              "user"
-            ]
-          }
-        ],
-        "x-requiresAuthorization": true
+        "x-requiresAuthorization": false
       }
     },
     "/api/v1/matches": {
@@ -2351,6 +2481,94 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MatchDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/matches/{id}/player/{playerId}": {
+      "delete": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Delete all scores belonging to a player for a given match",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Matches_deletePlayerScores",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "playerId",
+            "in": "path",
+            "description": "Player id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "A match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns the number of scores deleted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
                 }
               }
             }
@@ -3594,7 +3812,7 @@
           "Tournaments"
         ],
         "summary": "Get all tournaments which fit an optional request query",
-        "description": "Results will not include match data\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "description": "Results will not include match data",
         "operationId": "Tournaments_list",
         "parameters": [
           {
@@ -3785,18 +4003,7 @@
             }
           }
         },
-        "security": [
-          {
-            "Bearer": [ ]
-          },
-          {
-            "OAuth2": [
-              "user",
-              "client"
-            ]
-          }
-        ],
-        "x-requiresAuthorization": true
+        "x-requiresAuthorization": false
       },
       "post": {
         "tags": [
@@ -4980,6 +5187,103 @@
         },
         "additionalProperties": false,
         "description": "Represents an aggregate of match statistics for a player during a period of time"
+      },
+      "AuditActionType": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Created",
+          "Updated",
+          "Deleted"
+        ],
+        "x-enumDescriptions": [
+          "The entity was created",
+          "The entity was updated",
+          "The entity was deleted"
+        ]
+      },
+      "AuditDTO": {
+        "required": [
+          "actionType",
+          "changes",
+          "entityId",
+          "entityType",
+          "id",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Primary key of the audit record",
+            "format": "int32"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "Id of the user who performed the action, if available (Will be null for system-generated actions or actions performed by anonymous users)",
+            "format": "int32",
+            "nullable": true
+          },
+          "actionType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuditActionType"
+              }
+            ],
+            "description": "The type of action that was performed on the entity"
+          },
+          "entityType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuditEntityType"
+              }
+            ],
+            "description": "The type of entity that was modified"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp when the action was performed",
+            "format": "date-time"
+          },
+          "entityId": {
+            "type": "integer",
+            "description": "Id of the entity that was modified (This is a locked copy of the entity's primary key that persists even if the original entity is deleted)",
+            "format": "int32"
+          },
+          "changes": {
+            "type": "string",
+            "description": "JSON object containing all field changes made to the entity.\r\nFormat: { \"FieldName\": { \"NewValue\": value, \"OriginalValue\": value }, ... }"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents an audit record tracking changes made to entities in the system"
+      },
+      "AuditEntityType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Game",
+          "GameScore",
+          "Match",
+          "Tournament"
+        ],
+        "x-enumDescriptions": [
+          "",
+          "",
+          "",
+          ""
+        ]
       },
       "AuthorizationPolicies": {
         "enum": [
@@ -6484,17 +6788,35 @@
       },
       "PlatformStatsDTO": {
         "required": [
-          "tournamentsStats"
+          "ratingStats",
+          "tournamentStats",
+          "userStats"
         ],
         "type": "object",
         "properties": {
-          "tournamentsStats": {
+          "tournamentStats": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/TournamentPlatformStatsDTO"
               }
             ],
             "description": "Platform-wide tournament stats"
+          },
+          "ratingStats": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RatingPlatformStatsDTO"
+              }
+            ],
+            "description": "Platform-wide rating stats"
+          },
+          "userStats": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserPlatformStatsDTO"
+              }
+            ],
+            "description": "Platform-wide user stats"
           }
         },
         "additionalProperties": false,
@@ -7183,6 +7505,73 @@
           "The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay)",
           "The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match"
         ]
+      },
+      "RatingPlatformStatsDTO": {
+        "required": [
+          "ratingsByRuleset"
+        ],
+        "type": "object",
+        "properties": {
+          "ratingsByRuleset": {
+            "required": [
+              "Osu",
+              "Taiko",
+              "Catch",
+              "ManiaOther",
+              "Mania4k",
+              "Mania7k"
+            ],
+            "type": "object",
+            "properties": {
+              "Osu": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "Taiko": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "Catch": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "ManiaOther": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "Mania4k": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "Mania7k": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "description": "For each ruleset, a map of rating 'buckets' (i.e. 100, 125, 150, etc. rating)s\r\nto the number of Database.Entities.Players in that 'bucket'"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents platform-wide Database.Entities.Processor.PlayerRating stats"
       },
       "Roles": {
         "enum": [
@@ -8055,6 +8444,24 @@
           }
         ],
         "description": "Represents user information including optional data"
+      },
+      "UserPlatformStatsDTO": {
+        "required": [
+          "sumByDate"
+        ],
+        "type": "object",
+        "properties": {
+          "sumByDate": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Map of dates to the total number of registered Database.Entities.Users as of that time (One entry per day beginning from the date of the first registered user)"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents platform-wide Database.Entities.User stats"
       },
       "UserSettingsDTO": {
         "required": [
