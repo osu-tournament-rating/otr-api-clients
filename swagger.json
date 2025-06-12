@@ -1424,6 +1424,142 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/games/{id}:merge": {
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Merge scores from source games into a target game. The source games must be from the same match \r\nand have the same beatmap as the target game. After successful merging, the source games are deleted.",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Games_mergeScores",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the game to merge scores into",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Game ids whose scores will be merged into the target game",
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "The target game or one or more source games do not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed - games are from different matches, have different beatmaps, or would create duplicate player scores",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "State of the game after merging",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/gamescores/{id}": {
       "get": {
         "tags": [
@@ -2711,6 +2847,113 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/me/tournaments": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Get all tournaments the currently logged in user has participated in",
+        "description": "If no ruleset is provided, returns tournaments from all rulesets.\r\nIf no date range is provided, gets all tournaments without date filtering.\n\nRequires Authorization:\n\nClaim(s): user",
+        "operationId": "Me_getTournaments",
+        "parameters": [
+          {
+            "name": "ruleset",
+            "in": "query",
+            "description": "Ruleset to filter for",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
+            }
+          },
+          {
+            "name": "dateMin",
+            "in": "query",
+            "description": "Filter from earliest date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "dateMax",
+            "in": "query",
+            "description": "Filter to latest date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to `GET` `/players/{key}/tournaments`"
+          },
+          "404": {
+            "description": "The user does not have an associated player",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns a collection of tournaments",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/me/settings/ruleset": {
       "patch": {
         "tags": [
@@ -3057,6 +3300,120 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlayerDashboardStatsDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "user",
+              "client"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/players/{key}/tournaments": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Get all tournaments a player has participated in",
+        "description": "Gets tournaments for a player by versatile search.\r\nIf no ruleset is provided, returns tournaments from all rulesets.\r\nIf no date range is provided, gets all tournaments without date filtering.\n\nRequires Authorization:\n\nClaim(s): user, client",
+        "operationId": "Players_getTournaments",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Search key (id, osu! id, or osu! username)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ruleset",
+            "in": "query",
+            "description": "Ruleset to filter for",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Ruleset"
+                }
+              ]
+            }
+          },
+          {
+            "name": "dateMin",
+            "in": "query",
+            "description": "Filter from earliest date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "dateMax",
+            "in": "query",
+            "description": "Filter to latest date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "A player matching the given key does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns a collection of tournaments",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TournamentCompactDTO"
+                  }
                 }
               }
             }

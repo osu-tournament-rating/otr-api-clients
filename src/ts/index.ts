@@ -1695,6 +1695,20 @@ export type GamesDeleteRequestParams = {
   id: number;
 };
 
+/**
+ * Request parameters available for use when requesting {@link GamesWrapper.prototype.mergeScores | api/v1/games/[id]:merge}
+ */
+export type GamesMergeScoresRequestParams = {
+  /**
+   * (required) Id of the game to merge scores into
+   */
+  id: number;
+  /**
+   * (optional) Game ids whose scores will be merged into the target game
+   */
+  body?: number[] | undefined;
+};
+
 export class GamesWrapper extends OtrApiWrapperBase {
   protected instance: AxiosInstance;
   protected baseUrl: string;
@@ -1992,6 +2006,114 @@ export class GamesWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Merge scores from source games into a target game. The source games must be from the same match
+   * and have the same beatmap as the target game. After successful merging, the source games are deleted.
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link GamesMergeScoresRequestParams})
+   * @return State of the game after merging
+   */
+  public mergeScores(
+    params: GamesMergeScoresRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<GameDTO>> {
+    const { id, body } = params;
+
+    let url_ = this.baseUrl + '/api/v1/games/{id}:merge';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
+
+    const content_ = JSON.stringify(body);
+
+    let options_: AxiosRequestConfig = {
+      data: content_,
+      method: 'POST',
+      url: url_,
+      headers: {
+        'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processMergeScores(_response);
+      });
+  }
+
+  protected processMergeScores(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<GameDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'The target game or one or more source games do not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'Validation failed - games are from different matches, have different beatmaps, or would create duplicate player scores',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<GameDTO>>(
+        new OtrApiResponse<GameDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<GameDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -3407,6 +3529,24 @@ export type MeGetStatsRequestParams = {
 };
 
 /**
+ * Request parameters available for use when requesting {@link MeWrapper.prototype.getTournaments | api/v1/me/tournaments}
+ */
+export type MeGetTournamentsRequestParams = {
+  /**
+   * (optional) Ruleset to filter for
+   */
+  ruleset?: Ruleset | undefined;
+  /**
+   * (optional) Filter from earliest date
+   */
+  dateMin?: Date | undefined;
+  /**
+   * (optional) Filter to latest date
+   */
+  dateMax?: Date | undefined;
+};
+
+/**
  * Request parameters available for use when requesting {@link MeWrapper.prototype.updateRuleset | api/v1/me/settings/ruleset}
  */
 export type MeUpdateRulesetRequestParams = {
@@ -3611,6 +3751,123 @@ export class MeWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get all tournaments the currently logged in user has participated in
+   *
+   * If no ruleset is provided, returns tournaments from all rulesets.
+   * If no date range is provided, gets all tournaments without date filtering.
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user
+   * @param params Request parameters (see {@link MeGetTournamentsRequestParams})
+   * @return Returns a collection of tournaments
+   */
+  public getTournaments(
+    params: MeGetTournamentsRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<TournamentCompactDTO[]>> {
+    const { ruleset, dateMin, dateMax } = params;
+
+    let url_ = this.baseUrl + '/api/v1/me/tournaments?';
+    if (ruleset === null)
+      throw new Error("The parameter 'ruleset' cannot be null.");
+    else if (ruleset !== undefined)
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
+    if (dateMin === null)
+      throw new Error("The parameter 'dateMin' cannot be null.");
+    else if (dateMin !== undefined)
+      url_ +=
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
+    if (dateMax === null)
+      throw new Error("The parameter 'dateMax' cannot be null.");
+    else if (dateMax !== undefined)
+      url_ +=
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetTournaments(_response);
+      });
+  }
+
+  protected processGetTournaments(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<TournamentCompactDTO[]>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 302) {
+      const _responseText = response.data;
+      return throwException(
+        'Redirects to `GET` `/players/{key}/tournaments`',
+        status,
+        _responseText,
+        _headers
+      );
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'The user does not have an associated player',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<TournamentCompactDTO[]>>(
+        new OtrApiResponse<TournamentCompactDTO[]>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<TournamentCompactDTO[]>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -3927,6 +4184,28 @@ export type PlayersGetStatsRequestParams = {
   dateMax?: Date | undefined;
 };
 
+/**
+ * Request parameters available for use when requesting {@link PlayersWrapper.prototype.getTournaments | api/v1/players/[key]/tournaments}
+ */
+export type PlayersGetTournamentsRequestParams = {
+  /**
+   * (required) Search key (id, osu! id, or osu! username)
+   */
+  key: string;
+  /**
+   * (optional) Ruleset to filter for
+   */
+  ruleset?: Ruleset | undefined;
+  /**
+   * (optional) Filter from earliest date
+   */
+  dateMin?: Date | undefined;
+  /**
+   * (optional) Filter to latest date
+   */
+  dateMax?: Date | undefined;
+};
+
 export class PlayersWrapper extends OtrApiWrapperBase {
   protected instance: AxiosInstance;
   protected baseUrl: string;
@@ -4148,6 +4427,119 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<PlayerDashboardStatsDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get all tournaments a player has participated in
+   *
+   * Gets tournaments for a player by versatile search.
+   * If no ruleset is provided, returns tournaments from all rulesets.
+   * If no date range is provided, gets all tournaments without date filtering.
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): user, client
+   * @param params Request parameters (see {@link PlayersGetTournamentsRequestParams})
+   * @return Returns a collection of tournaments
+   */
+  public getTournaments(
+    params: PlayersGetTournamentsRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<TournamentCompactDTO[]>> {
+    const { key, ruleset, dateMin, dateMax } = params;
+
+    let url_ = this.baseUrl + '/api/v1/players/{key}/tournaments?';
+    if (key === undefined || key === null)
+      throw new Error("The parameter 'key' must be defined.");
+    url_ = url_.replace('{key}', encodeURIComponent('' + key));
+    if (ruleset === null)
+      throw new Error("The parameter 'ruleset' cannot be null.");
+    else if (ruleset !== undefined)
+      url_ += 'ruleset=' + encodeURIComponent('' + ruleset) + '&';
+    if (dateMin === null)
+      throw new Error("The parameter 'dateMin' cannot be null.");
+    else if (dateMin !== undefined)
+      url_ +=
+        'dateMin=' +
+        encodeURIComponent(dateMin ? '' + dateMin.toISOString() : '') +
+        '&';
+    if (dateMax === null)
+      throw new Error("The parameter 'dateMax' cannot be null.");
+    else if (dateMax !== undefined)
+      url_ +=
+        'dateMax=' +
+        encodeURIComponent(dateMax ? '' + dateMax.toISOString() : '') +
+        '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetTournaments(_response);
+      });
+  }
+
+  protected processGetTournaments(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<TournamentCompactDTO[]>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'A player matching the given key does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<TournamentCompactDTO[]>>(
+        new OtrApiResponse<TournamentCompactDTO[]>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<TournamentCompactDTO[]>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
