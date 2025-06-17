@@ -2072,25 +2072,13 @@ export class GamesWrapper extends OtrApiWrapperBase {
         }
       }
     }
-    if (status === 404) {
-      const _responseText = response.data;
-      let result404: any = null;
-      let resultData404 = _responseText;
-      result404 = JSON.parse(resultData404);
-      return throwException(
-        'The target game or one or more source games do not exist',
-        status,
-        _responseText,
-        _headers,
-        result404
-      );
-    } else if (status === 400) {
+    if (status === 400) {
       const _responseText = response.data;
       let result400: any = null;
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        'Validation failed - games are from different matches, have different beatmaps, or would create duplicate player scores',
+        'Merge failed',
         status,
         _responseText,
         _headers,
@@ -2801,10 +2789,6 @@ export type MatchesGetRequestParams = {
    * (required) Match id
    */
   id: number;
-  /**
-   * (optional) Whether all games and subsequent child navigations must be verified
-   */
-  verified?: boolean | undefined;
 };
 
 /**
@@ -3044,16 +3028,12 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     params: MatchesGetRequestParams,
     cancelToken?: CancelToken
   ): Promise<OtrApiResponse<MatchDTO>> {
-    const { id, verified } = params;
+    const { id } = params;
 
-    let url_ = this.baseUrl + '/api/v1/matches/{id}?';
+    let url_ = this.baseUrl + '/api/v1/matches/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
     url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
     url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
@@ -4678,13 +4658,6 @@ export type TournamentsGetRequestParams = {
    * (required) Tournament id
    */
   id: number;
-  /**
-   * (optional) If true, specifically includes verified match data. If false,
-   * includes all data, regardless of verification status.
-   * Also includes all child navigations if false.
-   * Default true (strictly verified data with limited navigation properties)
-   */
-  verified?: boolean | undefined;
 };
 
 /**
@@ -4955,16 +4928,12 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     params: TournamentsGetRequestParams,
     cancelToken?: CancelToken
   ): Promise<OtrApiResponse<TournamentDTO>> {
-    const { id, verified } = params;
+    const { id } = params;
 
-    let url_ = this.baseUrl + '/api/v1/tournaments/{id}?';
+    let url_ = this.baseUrl + '/api/v1/tournaments/{id}';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
     url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (verified === null)
-      throw new Error("The parameter 'verified' cannot be null.");
-    else if (verified !== undefined)
-      url_ += 'verified=' + encodeURIComponent('' + verified) + '&';
     url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
@@ -7232,6 +7201,28 @@ in the same order as submitted in the API.DTOs.FilteringRequestDTO */
   filteringResults: PlayerFilteringResultDTO[];
 }
 
+/** Represents essential game information without nested data */
+export interface GameCompactDTO {
+  /** Primary key */
+  id: number;
+  /** osu! id */
+  osuId: number;
+  /** The ruleset */
+  ruleset: Ruleset;
+  /** The verification status */
+  verificationStatus: VerificationStatus;
+  /** The processing status */
+  processingStatus: GameProcessingStatus;
+  /** Warning flags */
+  warningFlags: GameWarningFlags;
+  /** The rejection reason */
+  rejectionReason: GameRejectionReason;
+  /** Timestamp of the beginning of the game */
+  startTime: Date;
+  /** Timestamp of the end of the game */
+  endTime?: Date | undefined;
+}
+
 /** Represents a single game (osu! beatmap) played in a match */
 export interface GameDTO {
   /** Primary key */
@@ -7264,8 +7255,6 @@ export interface GameDTO {
   beatmap: BeatmapDTO;
   /** Win record */
   rosters: GameRosterDTO[];
-  /** All participating players (Will only be populated if the game is the highest order of entity requested) */
-  players: PlayerCompactDTO[];
   /** All associated admin notes */
   adminNotes: AdminNoteDTO[];
   /** All match scores */
@@ -7424,7 +7413,7 @@ export interface LeaderboardDTO {
 }
 
 export interface MatchCompactDTO {
-  /** Id */
+  /** Primary key */
   id: number;
   /** osu! id */
   osuId: number;
@@ -7446,6 +7435,10 @@ export interface MatchCompactDTO {
   processingStatus: MatchProcessingStatus;
   /** Timestamp of the last time the match was processed */
   lastProcessingDate: Date;
+  /** Games played in this match */
+  games: GameCompactDTO[];
+  /** All associated admin notes */
+  adminNotes: AdminNoteDTO[];
 }
 
 /** Represents a created match */
@@ -7455,15 +7448,23 @@ export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
 }
 
 /** Represents a played match */
-export interface MatchDTO extends MatchCompactDTO {
+export interface MatchDTO {
   /** The API.DTOs.TournamentCompactDTO this match was played in */
   tournament?: TournamentCompactDTO;
   /** The participating !:Players */
   players?: PlayerCompactDTO[];
+  /** Match stats for each participant */
+  playerMatchStats?: PlayerMatchStatsDTO[];
+  /** Rating adjustments for each participant */
+  ratingAdjustments?: RatingAdjustmentDTO[];
+  /** Match win record information (Generated by the o!TR Processor) */
+  matchWinRecord?: MatchWinRecordDTO | undefined;
+  /** Roster information for teams in this match */
+  rosters?: MatchRosterDTO[];
   /** List of games played during the match */
   games?: GameDTO[];
-  /** All associated admin notes */
-  adminNotes?: AdminNoteDTO[];
+
+  [key: string]: any;
 }
 
 export enum MatchProcessingStatus {
@@ -7539,6 +7540,20 @@ export enum MatchRejectionReason {
   RejectedTournament = 128,
 }
 
+/** Represents roster information for teams in a match */
+export interface MatchRosterDTO {
+  /** Primary key */
+  id: number;
+  /** Player IDs for this roster */
+  roster: number[];
+  /** The team designation */
+  team: Team;
+  /** The total score for this roster */
+  score: number;
+  /** Id of the match this roster belongs to */
+  matchId: number;
+}
+
 /** Represents a search result for a match */
 export interface MatchSearchResultDTO {
   /** Id of the match */
@@ -7584,6 +7599,26 @@ export enum MatchWarningFlags {
   UnexpectedBeatmapsFound = 4,
   /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
   OverlappingRosters = 8,
+}
+
+/** A record of who won and lost a match (Generated by the o!TR Processor) */
+export interface MatchWinRecordDTO {
+  /** The id of the match */
+  matchId: number;
+  /** Indicates whether the match ended in a tie */
+  isTied: boolean;
+  /** The ids of each player on the losing team. Null if tied. */
+  loserRoster?: number[] | undefined;
+  /** The ids of each player on the winning team. Null if tied. */
+  winnerRoster?: number[] | undefined;
+  /** The number of points the losing team earned */
+  loserPoints: number;
+  /** The number of points the winning team earned */
+  winnerPoints: number;
+  /** The winning team (see Common.Enums.Team). Null if HeadToHead or tied. */
+  winnerTeam?: number | undefined;
+  /** The losing team (see Common.Enums.Team). Null if HeadToHead or tied. */
+  loserTeam?: number | undefined;
 }
 
 export enum Mods {
@@ -7842,6 +7877,37 @@ export interface PlayerFrequencyDTO {
   player: PlayerCompactDTO;
   /** Number of times this teammate or opponent has played with the player */
   frequency: number;
+}
+
+/** Represents a player's match stats */
+export interface PlayerMatchStatsDTO {
+  /** The id of the player */
+  playerId: number;
+  /** The id of the match */
+  matchId: number;
+  /** Whether the player (or their team) won this match */
+  won: boolean;
+  /** The player's average score in this match */
+  averageScore: number;
+  /** The player's average misses in this match */
+  averageMisses: number;
+  /** The player's average accuracy in this match */
+  averageAccuracy: number;
+  /** The player's average placement in this match */
+  averagePlacement: number;
+  /** The number of games the player (or their team) won in the match. (The player must have participated in the game for this to count.
+If they were on the same team as the winner, but not in the lobby,
+this will not count towards the total.) */
+  gamesWon: number;
+  /** The number of games the player (or their team) lost in the match. (The player must have participated in the game for this to count.
+If they were on the same team as the loser, but not in the lobby,
+this will not count towards the total.) */
+  gamesLost: number;
+  /** The total number of games the player participated in during this match */
+  gamesPlayed: number;
+  teammateIds: number[];
+  /** A unique list of player ids that were on the opposing team as the player in this match. (In a 1v1, this would only contain the opponent's id.) */
+  opponentIds: number[];
 }
 
 /** Represents counts of participation in games of differing mod combinations */
@@ -8198,11 +8264,13 @@ export interface TournamentCreatedResultDTO extends CreatedResultBaseDTO {
 /** Represents a tournament including optional data */
 export interface TournamentDTO extends TournamentCompactDTO {
   /** All associated match data (Will be empty for bulk requests such as List) */
-  matches?: MatchDTO[];
+  matches?: MatchCompactDTO[];
   /** All admin notes associated with the tournament */
   adminNotes?: AdminNoteDTO[];
   /** All player tournament stats associated with the tournament */
   playerTournamentStats?: PlayerTournamentStatsBaseDTO[];
+  /** All beatmaps pooled for this tournament */
+  pooledBeatmaps?: BeatmapDTO[];
 }
 
 /** Represents platform-wide Database.Entities.Tournament stats */

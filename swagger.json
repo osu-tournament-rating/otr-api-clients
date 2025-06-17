@@ -1429,7 +1429,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Merge scores from source games into a target game. The source games must be from the same match \r\nand have the same beatmap as the target game. After successful merging, the source games are deleted.",
+        "summary": "Merge scores from source games into a target game. The source games must be from the same match\r\nand have the same beatmap as the target game. After successful merging, the source games are deleted.",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Games_mergeScores",
         "parameters": [
@@ -1486,28 +1486,8 @@
           }
         },
         "responses": {
-          "404": {
-            "description": "The target game or one or more source games do not exist",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "400": {
-            "description": "Validation failed - games are from different matches, have different beatmaps, or would create duplicate player scores",
+            "description": "Merge failed",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2265,15 +2245,6 @@
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
-          },
-          {
-            "name": "verified",
-            "in": "query",
-            "description": "Whether all games and subsequent child navigations must be verified",
-            "schema": {
-              "type": "boolean",
-              "default": true
             }
           }
         ],
@@ -3544,15 +3515,6 @@
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
-          },
-          {
-            "name": "verified",
-            "in": "query",
-            "description": "If true, specifically includes verified match data. If false,\r\nincludes all data, regardless of verification status.\r\nAlso includes all child navigations if false.\r\nDefault true (strictly verified data with limited navigation properties)",
-            "schema": {
-              "type": "boolean",
-              "default": true
             }
           }
         ],
@@ -6056,6 +6018,84 @@
         "additionalProperties": false,
         "description": "Represents a filtering result for a collection of players"
       },
+      "GameCompactDTO": {
+        "required": [
+          "id",
+          "osuId",
+          "processingStatus",
+          "rejectionReason",
+          "ruleset",
+          "startTime",
+          "verificationStatus",
+          "warningFlags"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Primary key",
+            "format": "int32"
+          },
+          "osuId": {
+            "type": "integer",
+            "description": "osu! id",
+            "format": "int64"
+          },
+          "ruleset": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Ruleset"
+              }
+            ],
+            "description": "The ruleset"
+          },
+          "verificationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VerificationStatus"
+              }
+            ],
+            "description": "The verification status"
+          },
+          "processingStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameProcessingStatus"
+              }
+            ],
+            "description": "The processing status"
+          },
+          "warningFlags": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameWarningFlags"
+              }
+            ],
+            "description": "Warning flags"
+          },
+          "rejectionReason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GameRejectionReason"
+              }
+            ],
+            "description": "The rejection reason"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Timestamp of the beginning of the game",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "Timestamp of the end of the game",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents essential game information without nested data"
+      },
       "GameDTO": {
         "required": [
           "adminNotes",
@@ -6064,7 +6104,6 @@
           "isFreeMod",
           "mods",
           "osuId",
-          "players",
           "processingStatus",
           "rejectionReason",
           "rosters",
@@ -6181,13 +6220,6 @@
               "$ref": "#/components/schemas/GameRosterDTO"
             },
             "description": "Win record"
-          },
-          "players": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PlayerCompactDTO"
-            },
-            "description": "All participating players (Will only be populated if the game is the highest order of entity requested)"
           },
           "adminNotes": {
             "type": "array",
@@ -6555,6 +6587,8 @@
       },
       "MatchCompactDTO": {
         "required": [
+          "adminNotes",
+          "games",
           "id",
           "lastProcessingDate",
           "name",
@@ -6569,7 +6603,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Id",
+            "description": "Primary key",
             "format": "int32"
           },
           "osuId": {
@@ -6638,6 +6672,20 @@
             "type": "string",
             "description": "Timestamp of the last time the match was processed",
             "format": "date-time"
+          },
+          "games": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameCompactDTO"
+            },
+            "description": "Games played in this match"
+          },
+          "adminNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNoteDTO"
+            },
+            "description": "All associated admin notes"
           }
         },
         "additionalProperties": false
@@ -6662,46 +6710,60 @@
         "description": "Represents a created match"
       },
       "MatchDTO": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/MatchCompactDTO"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "tournament": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/TournamentCompactDTO"
-                  }
-                ],
-                "description": "The API.DTOs.TournamentCompactDTO this match was played in"
-              },
-              "players": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/PlayerCompactDTO"
-                },
-                "description": "The participating !:Players"
-              },
-              "games": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/GameDTO"
-                },
-                "description": "List of games played during the match"
-              },
-              "adminNotes": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/AdminNoteDTO"
-                },
-                "description": "All associated admin notes"
+        "properties": {
+          "tournament": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TournamentCompactDTO"
               }
+            ],
+            "description": "The API.DTOs.TournamentCompactDTO this match was played in"
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerCompactDTO"
             },
-            "additionalProperties": false
+            "description": "The participating !:Players"
+          },
+          "playerMatchStats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerMatchStatsDTO"
+            },
+            "description": "Match stats for each participant"
+          },
+          "ratingAdjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RatingAdjustmentDTO"
+            },
+            "description": "Rating adjustments for each participant"
+          },
+          "matchWinRecord": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MatchWinRecordDTO"
+              }
+            ],
+            "description": "Match win record information (Generated by the o!TR Processor)",
+            "nullable": true
+          },
+          "rosters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatchRosterDTO"
+            },
+            "description": "Roster information for teams in this match"
+          },
+          "games": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameDTO"
+            },
+            "description": "List of games played during the match"
           }
-        ],
+        },
         "description": "Represents a played match"
       },
       "MatchProcessingStatus": {
@@ -6794,6 +6856,51 @@
           "The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined",
           "The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected"
         ]
+      },
+      "MatchRosterDTO": {
+        "required": [
+          "id",
+          "matchId",
+          "roster",
+          "score",
+          "team"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Primary key",
+            "format": "int32"
+          },
+          "roster": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Player IDs for this roster"
+          },
+          "team": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              }
+            ],
+            "description": "The team designation"
+          },
+          "score": {
+            "type": "integer",
+            "description": "The total score for this roster",
+            "format": "int32"
+          },
+          "matchId": {
+            "type": "integer",
+            "description": "Id of the match this roster belongs to",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents roster information for teams in a match"
       },
       "MatchSearchResultDTO": {
         "required": [
@@ -6898,6 +7005,68 @@
           "The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games",
           "At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match"
         ]
+      },
+      "MatchWinRecordDTO": {
+        "required": [
+          "isTied",
+          "loserPoints",
+          "matchId",
+          "winnerPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "matchId": {
+            "type": "integer",
+            "description": "The id of the match",
+            "format": "int32"
+          },
+          "isTied": {
+            "type": "boolean",
+            "description": "Indicates whether the match ended in a tie"
+          },
+          "loserRoster": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "The ids of each player on the losing team. Null if tied.",
+            "nullable": true
+          },
+          "winnerRoster": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "The ids of each player on the winning team. Null if tied.",
+            "nullable": true
+          },
+          "loserPoints": {
+            "type": "integer",
+            "description": "The number of points the losing team earned",
+            "format": "int32"
+          },
+          "winnerPoints": {
+            "type": "integer",
+            "description": "The number of points the winning team earned",
+            "format": "int32"
+          },
+          "winnerTeam": {
+            "type": "integer",
+            "description": "The winning team (see Common.Enums.Team). Null if HeadToHead or tied.",
+            "format": "int32",
+            "nullable": true
+          },
+          "loserTeam": {
+            "type": "integer",
+            "description": "The losing team (see Common.Enums.Team). Null if HeadToHead or tied.",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A record of who won and lost a match (Generated by the o!TR Processor)"
       },
       "Mods": {
         "enum": [
@@ -7366,6 +7535,91 @@
         },
         "additionalProperties": false,
         "description": "Represents a player in the context of a teammate or opponent of another player"
+      },
+      "PlayerMatchStatsDTO": {
+        "required": [
+          "averageAccuracy",
+          "averageMisses",
+          "averagePlacement",
+          "averageScore",
+          "gamesLost",
+          "gamesPlayed",
+          "gamesWon",
+          "matchId",
+          "opponentIds",
+          "playerId",
+          "teammateIds",
+          "won"
+        ],
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "integer",
+            "description": "The id of the player",
+            "format": "int32"
+          },
+          "matchId": {
+            "type": "integer",
+            "description": "The id of the match",
+            "format": "int32"
+          },
+          "won": {
+            "type": "boolean",
+            "description": "Whether the player (or their team) won this match"
+          },
+          "averageScore": {
+            "type": "number",
+            "description": "The player's average score in this match",
+            "format": "double"
+          },
+          "averageMisses": {
+            "type": "number",
+            "description": "The player's average misses in this match",
+            "format": "double"
+          },
+          "averageAccuracy": {
+            "type": "number",
+            "description": "The player's average accuracy in this match",
+            "format": "double"
+          },
+          "averagePlacement": {
+            "type": "number",
+            "description": "The player's average placement in this match",
+            "format": "double"
+          },
+          "gamesWon": {
+            "type": "integer",
+            "description": "The number of games the player (or their team) won in the match. (The player must have participated in the game for this to count.\r\nIf they were on the same team as the winner, but not in the lobby,\r\nthis will not count towards the total.)",
+            "format": "int32"
+          },
+          "gamesLost": {
+            "type": "integer",
+            "description": "The number of games the player (or their team) lost in the match. (The player must have participated in the game for this to count.\r\nIf they were on the same team as the loser, but not in the lobby,\r\nthis will not count towards the total.)",
+            "format": "int32"
+          },
+          "gamesPlayed": {
+            "type": "integer",
+            "description": "The total number of games the player participated in during this match",
+            "format": "int32"
+          },
+          "teammateIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "opponentIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "A unique list of player ids that were on the opposing team as the player in this match. (In a 1v1, this would only contain the opponent's id.)"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a player's match stats"
       },
       "PlayerModStatsDTO": {
         "required": [
@@ -8385,7 +8639,7 @@
               "matches": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/MatchDTO"
+                  "$ref": "#/components/schemas/MatchCompactDTO"
                 },
                 "description": "All associated match data (Will be empty for bulk requests such as List)"
               },
@@ -8402,6 +8656,13 @@
                   "$ref": "#/components/schemas/PlayerTournamentStatsBaseDTO"
                 },
                 "description": "All player tournament stats associated with the tournament"
+              },
+              "pooledBeatmaps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BeatmapDTO"
+                },
+                "description": "All beatmaps pooled for this tournament"
               }
             },
             "additionalProperties": false
