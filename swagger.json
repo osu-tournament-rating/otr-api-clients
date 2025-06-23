@@ -360,8 +360,8 @@
               }
             }
           },
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "Returns the updated admin note",
             "content": {
               "text/plain": {
                 "schema": {
@@ -379,9 +379,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Returns the updated admin note"
           }
         },
         "security": [
@@ -1169,6 +1166,70 @@
           }
         ],
         "x-requiresAuthorization": true
+      }
+    },
+    "/api/v1/filtering/{id}": {
+      "get": {
+        "tags": [
+          "Filtering"
+        ],
+        "summary": "Get a stored filter report by ID",
+        "operationId": "Filtering_getFilterReport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The filter report ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "The filter report was not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The filter report",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilteringResultDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilteringResultDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilteringResultDTO"
+                }
+              }
+            }
+          }
+        },
+        "x-requiresAuthorization": false
       }
     },
     "/api/v1/games/{id}": {
@@ -5890,7 +5951,8 @@
           8,
           16,
           32,
-          64
+          64,
+          128
         ],
         "type": "integer",
         "format": "int32",
@@ -5900,25 +5962,26 @@
           "NoData",
           "MinRating",
           "MaxRating",
-          "IsProvisional",
           "NotEnoughTournaments",
           "PeakRatingTooHigh",
-          "NotEnoughMatches"
+          "NotEnoughMatches",
+          "MinRank",
+          "MaxRank"
         ],
         "x-enumDescriptions": [
           "No failure reason",
           "The player does not have a rating for the ruleset\r\nspecified by the filter",
           "The player's rating is below the minimum threshold",
           "The player's rating is above the maximum threshold",
-          "The player's rating is provisional and the filter\r\ndisallows provisional ratings",
           "The player has not played in the minimum specified\r\nnumber of tournaments",
           "The player's all-time peak rating is above the maximum threshold",
-          "The player has not played in the minimum specified number of matches"
+          "The player has not played in the minimum specified number of matches",
+          "The player's osu! global rank is below the minimum threshold",
+          "The player's osu! global rank is above the maximum threshold"
         ]
       },
       "FilteringRequestDTO": {
         "required": [
-          "allowProvisional",
           "osuPlayerIds",
           "ruleset"
         ],
@@ -5948,10 +6011,6 @@
             "format": "int32",
             "nullable": true
           },
-          "allowProvisional": {
-            "type": "boolean",
-            "description": "Whether to filter players that currently have a provisional rating"
-          },
           "tournamentsPlayed": {
             "maximum": 2147483647,
             "minimum": 1,
@@ -5976,6 +6035,22 @@
             "format": "int32",
             "nullable": true
           },
+          "minRank": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "description": "If set, requires players to have an osu! global rank\r\ngreater than or equal to this value",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxRank": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "description": "If set, requires players to have an osu! global rank\r\nless than or equal to this value",
+            "format": "int32",
+            "nullable": true
+          },
           "osuPlayerIds": {
             "minItems": 1,
             "type": "array",
@@ -5992,6 +6067,7 @@
       "FilteringResultDTO": {
         "required": [
           "filteringResults",
+          "filterReportId",
           "playersFailed",
           "playersPassed"
         ],
@@ -6013,6 +6089,11 @@
               "$ref": "#/components/schemas/PlayerFilteringResultDTO"
             },
             "description": "A collection of filtering results, one per submitted player,\r\nin the same order as submitted in the API.DTOs.FilteringRequestDTO"
+          },
+          "filterReportId": {
+            "type": "integer",
+            "description": "The ID of the filter report stored in the database",
+            "format": "int32"
           }
         },
         "additionalProperties": false,
@@ -6304,7 +6385,7 @@
           "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is < 2",
           "The !:Database.Entities.Game's number of !:Database.Entities.Game.Scores with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified divided by 2 is\r\nnot equal to the !:Database.Entities.Tournament.LobbySize of the parent !:Database.Entities.Tournament\r\nin case of Common.Enums.TeamType.HeadToHead!:Database.Entities.Games.\r\nIn the case of 2 or more teams, ensures that there are an equal number of players in the lobby for each team.",
           "The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined",
-          "The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected",
+          "The System.Text.RegularExpressions.Match the !:Database.Entities.Game was played in was rejected",
           "The !:Database.Entities.Tournament has a known collection of PooledBeatmaps\r\nand the !:Database.Entities.Beatmap played in the !:Database.Entities.Game is not present\r\nin said collection"
         ]
       },
@@ -6724,7 +6805,7 @@
             "items": {
               "$ref": "#/components/schemas/PlayerCompactDTO"
             },
-            "description": "The participating !:Players"
+            "description": "The participating Database.Entities.Players"
           },
           "playerMatchStats": {
             "type": "array",
@@ -6786,12 +6867,12 @@
           "Done"
         ],
         "x-enumDescriptions": [
-          "The !:Database.Entities.Match needs data requested from the osu! API",
-          "The !:Database.Entities.Match needs automation checks",
-          "The !:Database.Entities.Match is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
-          "The !:Database.Entities.Match needs stat calculation\n\nGenerates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats",
-          "The !:Database.Entities.Match is awaiting rating processor data\n\nGenerates all !:Database.Entities.Processor.RatingAdjustments",
-          "The !:Database.Entities.Match has completed all processing steps"
+          "The System.Text.RegularExpressions.Match needs data requested from the osu! API",
+          "The System.Text.RegularExpressions.Match needs automation checks",
+          "The System.Text.RegularExpressions.Match is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
+          "The System.Text.RegularExpressions.Match needs stat calculation\n\nGenerates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats",
+          "The System.Text.RegularExpressions.Match is awaiting rating processor data\n\nGenerates all !:Database.Entities.Processor.RatingAdjustments",
+          "The System.Text.RegularExpressions.Match has completed all processing steps"
         ]
       },
       "MatchQuerySortType": {
@@ -6846,15 +6927,15 @@
           "RejectedTournament"
         ],
         "x-enumDescriptions": [
-          "The !:Database.Entities.Match is not rejected",
-          "The osu! API returned invalid data or no data for the !:Database.Entities.Match",
-          "The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match",
-          "The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the\r\nparent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation",
-          "The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs\r\nconversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful",
-          "The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified",
-          "The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\")",
-          "The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined",
-          "The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected"
+          "The System.Text.RegularExpressions.Match is not rejected",
+          "The osu! API returned invalid data or no data for the System.Text.RegularExpressions.Match",
+          "The osu! API returned no !:Database.Entities.Games for the System.Text.RegularExpressions.Match",
+          "The System.Text.RegularExpressions.Match's !:Match.Name does not start with the\r\nparent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation",
+          "The System.Text.RegularExpressions.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs\r\nconversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful",
+          "The System.Text.RegularExpressions.Match has no !:Match.Games with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified",
+          "The System.Text.RegularExpressions.Match's number of !:Match.Games with a Common.Enums.Verification.VerificationStatus\r\nof Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number\r\n(does not satisfy \"best of X\")",
+          "The System.Text.RegularExpressions.Match's !:Match.EndTime could not be determined",
+          "The !:Database.Entities.Tournament the System.Text.RegularExpressions.Match was played in was rejected"
         ]
       },
       "MatchRosterDTO": {
@@ -6999,11 +7080,11 @@
           "OverlappingRosters"
         ],
         "x-enumDescriptions": [
-          "The !:Database.Entities.Match has no warnings",
-          "The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament\r\nlobby title conventions",
-          "The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4",
-          "The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games",
-          "At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match"
+          "The System.Text.RegularExpressions.Match has no warnings",
+          "The System.Text.RegularExpressions.Match's !:Match.Name does not follow common tournament\r\nlobby title conventions",
+          "The System.Text.RegularExpressions.Match's number of !:Match.Games is exactly 3 or 4",
+          "The System.Text.RegularExpressions.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason\r\nof Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games",
+          "At least one !:Database.Entities.Player appears in two or more rosters in a System.Text.RegularExpressions.Match"
         ]
       },
       "MatchWinRecordDTO": {
@@ -7507,6 +7588,36 @@
             ],
             "description": "If the player failed filtering, the fail reason",
             "nullable": true
+          },
+          "currentRating": {
+            "type": "number",
+            "description": "The player's current rating for the requested ruleset",
+            "format": "double",
+            "nullable": true
+          },
+          "tournamentsPlayed": {
+            "type": "integer",
+            "description": "The number of tournaments the player has participated in",
+            "format": "int32",
+            "nullable": true
+          },
+          "matchesPlayed": {
+            "type": "integer",
+            "description": "The number of matches the player has played",
+            "format": "int32",
+            "nullable": true
+          },
+          "peakRating": {
+            "type": "number",
+            "description": "The player's all-time peak rating for the requested ruleset",
+            "format": "double",
+            "nullable": true
+          },
+          "osuGlobalRank": {
+            "type": "integer",
+            "description": "The player's osu! global rank for the requested ruleset",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -7942,32 +8053,32 @@
           },
           "matchesPlayed": {
             "type": "integer",
-            "description": "Total number of !:Matches played",
+            "description": "Total number of Database.Entities.Matches played",
             "format": "int32"
           },
           "matchesWon": {
             "type": "integer",
-            "description": "Total number of !:Matches won",
+            "description": "Total number of Database.Entities.Matches won",
             "format": "int32"
           },
           "matchesLost": {
             "type": "integer",
-            "description": "Total number of !:Matches lost",
+            "description": "Total number of Database.Entities.Matches lost",
             "format": "int32"
           },
           "gamesPlayed": {
             "type": "integer",
-            "description": "Total number of !:Games played",
+            "description": "Total number of Database.Entities.Games played",
             "format": "int32"
           },
           "gamesWon": {
             "type": "integer",
-            "description": "Total number of !:Games won",
+            "description": "Total number of Database.Entities.Games won",
             "format": "int32"
           },
           "gamesLost": {
             "type": "integer",
-            "description": "Total number of !:Games lost",
+            "description": "Total number of Database.Entities.Games lost",
             "format": "int32"
           },
           "player": {
@@ -8114,7 +8225,7 @@
         "x-enumDescriptions": [
           "The !:Database.Entities.Processor.RatingAdjustment is the initial rating",
           "The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay)",
-          "The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match"
+          "The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a System.Text.RegularExpressions.Match"
         ]
       },
       "RatingPlatformStatsDTO": {
@@ -8799,7 +8910,7 @@
         ],
         "x-enumDescriptions": [
           "The !:Database.Entities.Tournament is awaiting approval from a\r\n!:Database.Entities.User with verifier permission\n\nFunctions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament\r\nwill advance through the processing flow until approved.",
-          "The !:Database.Entities.Tournament has !:Database.Entities.Matches with a\r\nCommon.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData",
+          "The !:Database.Entities.Tournament has System.Text.RegularExpressions.Matches with a\r\nCommon.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData",
           "The !:Database.Entities.Tournament needs automation checks",
           "The !:Database.Entities.Tournament is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
           "The !:Database.Entities.Tournament needs stat calculation",

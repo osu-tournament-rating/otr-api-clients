@@ -342,7 +342,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
   public updateNote(
     params: AdminNotesUpdateNoteRequestParams,
     cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const { noteId, entity, body } = params;
 
     let url_ = this.baseUrl + '/api/v1/{entity}/notes/{noteId}';
@@ -362,6 +362,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
       url: url_,
       headers: {
         'Content-Type': 'application/json-patch+json',
+        Accept: 'text/plain',
       },
       cancelToken,
       requiresAuthorization: true,
@@ -383,7 +384,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
 
   protected processUpdateNote(
     response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<AdminNoteDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === 'object') {
@@ -429,22 +430,13 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
         _headers,
         result400
       );
-    } else if (status === 201) {
-      const _responseText = response.data;
-      let result201: any = null;
-      let resultData201 = _responseText;
-      result201 = JSON.parse(resultData201);
-      return throwException(
-        'Created',
-        status,
-        _responseText,
-        _headers,
-        result201
-      );
     } else if (status === 200) {
       const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
+        new OtrApiResponse<AdminNoteDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -455,7 +447,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
         _headers
       );
     }
-    return Promise.resolve<OtrApiResponse<void>>(
+    return Promise.resolve<OtrApiResponse<AdminNoteDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -1549,6 +1541,16 @@ export type FilteringFilterRequestParams = {
   body: FilteringRequestDTO;
 };
 
+/**
+ * Request parameters available for use when requesting {@link FilteringWrapper.prototype.getFilterReport | api/v1/filtering/[id]}
+ */
+export type FilteringGetFilterReportRequestParams = {
+  /**
+   * (required) The filter report ID
+   */
+  id: number;
+};
+
 export class FilteringWrapper extends OtrApiWrapperBase {
   protected instance: AxiosInstance;
   protected baseUrl: string;
@@ -1636,6 +1638,93 @@ export class FilteringWrapper extends OtrApiWrapperBase {
         _responseText,
         _headers,
         result400
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
+        new OtrApiResponse<FilteringResultDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get a stored filter report by ID
+   * @param params Request parameters (see {@link FilteringGetFilterReportRequestParams})
+   * @return The filter report
+   */
+  public getFilterReport(
+    params: FilteringGetFilterReportRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<FilteringResultDTO>> {
+    const { id } = params;
+
+    let url_ = this.baseUrl + '/api/v1/filtering/{id}';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: false,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetFilterReport(_response);
+      });
+  }
+
+  protected processGetFilterReport(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<FilteringResultDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'The filter report was not found',
+        status,
+        _responseText,
+        _headers,
+        result404
       );
     } else if (status === 200) {
       const _responseText = response.data;
@@ -7152,19 +7241,18 @@ export enum FilteringFailReason {
   /** The player's rating is above the maximum threshold */
   MaxRating = 4,
   /**
-   * The player's rating is provisional and the filter
-   * disallows provisional ratings
-   */
-  IsProvisional = 8,
-  /**
    * The player has not played in the minimum specified
    * number of tournaments
    */
-  NotEnoughTournaments = 16,
+  NotEnoughTournaments = 8,
   /** The player's all-time peak rating is above the maximum threshold */
-  PeakRatingTooHigh = 32,
+  PeakRatingTooHigh = 16,
   /** The player has not played in the minimum specified number of matches */
-  NotEnoughMatches = 64,
+  NotEnoughMatches = 32,
+  /** The player's osu! global rank is below the minimum threshold */
+  MinRank = 64,
+  /** The player's osu! global rank is above the maximum threshold */
+  MaxRank = 128,
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
@@ -7175,8 +7263,6 @@ export interface FilteringRequestDTO {
   minRating?: number | undefined;
   /** Players with a current rating above this value will be filtered */
   maxRating?: number | undefined;
-  /** Whether to filter players that currently have a provisional rating */
-  allowProvisional: boolean;
   /** If set, requires players to have participated in at least
 this many distinct tournaments */
   tournamentsPlayed?: number | undefined;
@@ -7186,6 +7272,12 @@ this value */
   /** If set, requires players to have played in at least
 this many matches */
   matchesPlayed?: number | undefined;
+  /** If set, requires players to have an osu! global rank
+greater than or equal to this value */
+  minRank?: number | undefined;
+  /** If set, requires players to have an osu! global rank
+less than or equal to this value */
+  maxRank?: number | undefined;
   /** A list of osu! player ids that will be filtered */
   osuPlayerIds: number[];
 }
@@ -7199,6 +7291,8 @@ export interface FilteringResultDTO {
   /** A collection of filtering results, one per submitted player,
 in the same order as submitted in the API.DTOs.FilteringRequestDTO */
   filteringResults: PlayerFilteringResultDTO[];
+  /** The ID of the filter report stored in the database */
+  filterReportId: number;
 }
 
 /** Represents essential game information without nested data */
@@ -7312,7 +7406,7 @@ export enum GameRejectionReason {
   LobbySizeMismatch = 128,
   /** The !:Database.Entities.Game's !:Database.Entities.Game.EndTime could not be determined */
   NoEndTime = 256,
-  /** The !:Database.Entities.Match the !:Database.Entities.Game was played in was rejected */
+  /** The System.Text.RegularExpressions.Match the !:Database.Entities.Game was played in was rejected */
   RejectedMatch = 512,
   /**
    * The !:Database.Entities.Tournament has a known collection of PooledBeatmaps
@@ -7451,7 +7545,7 @@ export interface MatchCreatedResultDTO extends CreatedResultBaseDTO {
 export interface MatchDTO {
   /** The API.DTOs.TournamentCompactDTO this match was played in */
   tournament?: TournamentCompactDTO;
-  /** The participating !:Players */
+  /** The participating Database.Entities.Players */
   players?: PlayerCompactDTO[];
   /** Match stats for each participant */
   playerMatchStats?: PlayerMatchStatsDTO[];
@@ -7468,28 +7562,28 @@ export interface MatchDTO {
 }
 
 export enum MatchProcessingStatus {
-  /** The !:Database.Entities.Match needs data requested from the osu! API */
+  /** The System.Text.RegularExpressions.Match needs data requested from the osu! API */
   NeedsData = 0,
-  /** The !:Database.Entities.Match needs automation checks */
+  /** The System.Text.RegularExpressions.Match needs automation checks */
   NeedsAutomationChecks = 1,
   /**
-   * The !:Database.Entities.Match is awaiting verification from a
+   * The System.Text.RegularExpressions.Match is awaiting verification from a
    * !:Database.Entities.User with verifier permission
    */
   NeedsVerification = 2,
   /**
-   * The !:Database.Entities.Match needs stat calculation
+   * The System.Text.RegularExpressions.Match needs stat calculation
    *
    * Generates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats
    */
   NeedsStatCalculation = 3,
   /**
-   * The !:Database.Entities.Match is awaiting rating processor data
+   * The System.Text.RegularExpressions.Match is awaiting rating processor data
    *
    * Generates all !:Database.Entities.Processor.RatingAdjustments
    */
   NeedsRatingProcessorData = 4,
-  /** The !:Database.Entities.Match has completed all processing steps */
+  /** The System.Text.RegularExpressions.Match has completed all processing steps */
   Done = 5,
 }
 
@@ -7507,36 +7601,36 @@ export enum MatchQuerySortType {
 }
 
 export enum MatchRejectionReason {
-  /** The !:Database.Entities.Match is not rejected */
+  /** The System.Text.RegularExpressions.Match is not rejected */
   None = 0,
-  /** The osu! API returned invalid data or no data for the !:Database.Entities.Match */
+  /** The osu! API returned invalid data or no data for the System.Text.RegularExpressions.Match */
   NoData = 1,
-  /** The osu! API returned no !:Database.Entities.Games for the !:Database.Entities.Match */
+  /** The osu! API returned no !:Database.Entities.Games for the System.Text.RegularExpressions.Match */
   NoGames = 2,
   /**
-   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not start with the
+   * The System.Text.RegularExpressions.Match's !:Match.Name does not start with the
    * parent !:Database.Entities.Tournament's !:Database.Entities.Tournament.Abbreviation
    */
   NamePrefixMismatch = 4,
   /**
-   * The !:Entities.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs
+   * The System.Text.RegularExpressions.Match's !:Entities.Games were eligible for Common.Enums.TeamType.TeamVs
    * conversion and attempting Common.Enums.TeamType.TeamVs conversion was not successful
    */
   FailedTeamVsConversion = 8,
   /**
-   * The !:Database.Entities.Match has no !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+   * The System.Text.RegularExpressions.Match has no !:Match.Games with a Common.Enums.Verification.VerificationStatus
    * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified
    */
   NoValidGames = 16,
   /**
-   * The !:Database.Entities.Match's number of !:Database.Entities.Match.Games with a Common.Enums.Verification.VerificationStatus
+   * The System.Text.RegularExpressions.Match's number of !:Match.Games with a Common.Enums.Verification.VerificationStatus
    * of Common.Enums.Verification.VerificationStatus.Verified or Common.Enums.Verification.VerificationStatus.PreVerified is not an odd number
    * (does not satisfy "best of X")
    */
   UnexpectedGameCount = 32,
-  /** The !:Database.Entities.Match's !:Database.Entities.Match.EndTime could not be determined */
+  /** The System.Text.RegularExpressions.Match's !:Match.EndTime could not be determined */
   NoEndTime = 64,
-  /** The !:Database.Entities.Tournament the !:Database.Entities.Match was played in was rejected */
+  /** The !:Database.Entities.Tournament the System.Text.RegularExpressions.Match was played in was rejected */
   RejectedTournament = 128,
 }
 
@@ -7583,21 +7677,21 @@ export interface MatchSubmissionStatusDTO {
 }
 
 export enum MatchWarningFlags {
-  /** The !:Database.Entities.Match has no warnings */
+  /** The System.Text.RegularExpressions.Match has no warnings */
   None = 0,
   /**
-   * The !:Database.Entities.Match's !:Database.Entities.Match.Name does not follow common tournament
+   * The System.Text.RegularExpressions.Match's !:Match.Name does not follow common tournament
    * lobby title conventions
    */
   UnexpectedNameFormat = 1,
-  /** The !:Database.Entities.Match's number of !:Database.Entities.Match.Games is exactly 3 or 4 */
+  /** The System.Text.RegularExpressions.Match's number of !:Match.Games is exactly 3 or 4 */
   LowGameCount = 2,
   /**
-   * The !:Database.Entities.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason
+   * The System.Text.RegularExpressions.Match has 1 or more !:Database.Entities.Games with a Common.Enums.Verification.GameRejectionReason
    * of Common.Enums.Verification.GameRejectionReason.BeatmapNotPooled outside of the first two !:Database.Entities.Games
    */
   UnexpectedBeatmapsFound = 4,
-  /** At least one !:Database.Entities.Player appears in two or more rosters in a !:Database.Entities.Match */
+  /** At least one !:Database.Entities.Player appears in two or more rosters in a System.Text.RegularExpressions.Match */
   OverlappingRosters = 8,
 }
 
@@ -7869,6 +7963,16 @@ conditions of the filter */
   isSuccess: boolean;
   /** If the player failed filtering, the fail reason */
   failureReason?: FilteringFailReason | undefined;
+  /** The player's current rating for the requested ruleset */
+  currentRating?: number | undefined;
+  /** The number of tournaments the player has participated in */
+  tournamentsPlayed?: number | undefined;
+  /** The number of matches the player has played */
+  matchesPlayed?: number | undefined;
+  /** The player's all-time peak rating for the requested ruleset */
+  peakRating?: number | undefined;
+  /** The player's osu! global rank for the requested ruleset */
+  osuGlobalRank?: number | undefined;
 }
 
 /** Represents a player in the context of a teammate or opponent of another player */
@@ -8011,17 +8115,17 @@ export interface PlayerTournamentStatsBaseDTO {
   averagePlacement: number;
   /** Average accuracy */
   averageAccuracy: number;
-  /** Total number of !:Matches played */
+  /** Total number of Database.Entities.Matches played */
   matchesPlayed: number;
-  /** Total number of !:Matches won */
+  /** Total number of Database.Entities.Matches won */
   matchesWon: number;
-  /** Total number of !:Matches lost */
+  /** Total number of Database.Entities.Matches lost */
   matchesLost: number;
-  /** Total number of !:Games played */
+  /** Total number of Database.Entities.Games played */
   gamesPlayed: number;
-  /** Total number of !:Games won */
+  /** Total number of Database.Entities.Games won */
   gamesWon: number;
-  /** Total number of !:Games lost */
+  /** Total number of Database.Entities.Games lost */
   gamesLost: number;
   /** The player who owns these stats */
   player: PlayerCompactDTO;
@@ -8059,7 +8163,7 @@ export enum RatingAdjustmentType {
   Initial = 0,
   /** The !:Database.Entities.Processor.RatingAdjustment is the result of a period of inactivity (decay) */
   Decay = 1,
-  /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a !:Database.Entities.Match */
+  /** The !:Database.Entities.Processor.RatingAdjustment is the result of participation in a System.Text.RegularExpressions.Match */
   Match = 2,
 }
 
@@ -8297,7 +8401,7 @@ export enum TournamentProcessingStatus {
    */
   NeedsApproval = 0,
   /**
-   * The !:Database.Entities.Tournament has !:Database.Entities.Matches with a
+   * The !:Database.Entities.Tournament has System.Text.RegularExpressions.Matches with a
    * Common.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData
    */
   NeedsMatchData = 1,
