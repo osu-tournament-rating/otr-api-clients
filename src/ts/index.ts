@@ -1669,7 +1669,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
   public getFilterReport(
     params: FilteringGetFilterReportRequestParams,
     cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<FilteringResultDTO>> {
+  ): Promise<OtrApiResponse<FilterReportDTO>> {
     const { id } = params;
 
     let url_ = this.baseUrl + '/api/v1/filtering/{id}';
@@ -1704,7 +1704,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
 
   protected processGetFilterReport(
     response: AxiosResponse
-  ): Promise<OtrApiResponse<FilteringResultDTO>> {
+  ): Promise<OtrApiResponse<FilterReportDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === 'object') {
@@ -1731,8 +1731,8 @@ export class FilteringWrapper extends OtrApiWrapperBase {
       let result200: any = null;
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
-      return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
-        new OtrApiResponse<FilteringResultDTO>(status, _headers, result200)
+      return Promise.resolve<OtrApiResponse<FilterReportDTO>>(
+        new OtrApiResponse<FilterReportDTO>(status, _headers, result200)
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -1743,7 +1743,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
         _headers
       );
     }
-    return Promise.resolve<OtrApiResponse<FilteringResultDTO>>(
+    return Promise.resolve<OtrApiResponse<FilterReportDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -7226,6 +7226,20 @@ export interface CreatedResultBaseDTO {
   id: number;
   /** Location of the resource */
   location: string;
+}
+
+/** Represents a complete filter report including metadata and results */
+export interface FilterReportDTO {
+  /** The unique identifier of the filter report */
+  id: number;
+  /** The timestamp when the filter report was created */
+  created: Date;
+  /** The ID of the user who created the filter report */
+  userId: number;
+  /** The original filtering request */
+  request?: FilteringRequestDTO | undefined;
+  /** The filtering results */
+  response?: FilteringResultDTO | undefined;
 }
 
 export enum FilteringFailReason {

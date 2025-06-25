@@ -1213,17 +1213,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilteringResultDTO"
+                  "$ref": "#/components/schemas/FilterReportDTO"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilteringResultDTO"
+                  "$ref": "#/components/schemas/FilterReportDTO"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilteringResultDTO"
+                  "$ref": "#/components/schemas/FilterReportDTO"
                 }
               }
             }
@@ -5941,6 +5941,51 @@
         },
         "additionalProperties": false,
         "description": "Represents a newly created resource"
+      },
+      "FilterReportDTO": {
+        "required": [
+          "created",
+          "id",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The unique identifier of the filter report",
+            "format": "int32"
+          },
+          "created": {
+            "type": "string",
+            "description": "The timestamp when the filter report was created",
+            "format": "date-time"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "The ID of the user who created the filter report",
+            "format": "int32"
+          },
+          "request": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilteringRequestDTO"
+              }
+            ],
+            "description": "The original filtering request",
+            "nullable": true
+          },
+          "response": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilteringResultDTO"
+              }
+            ],
+            "description": "The filtering results",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents a complete filter report including metadata and results"
       },
       "FilteringFailReason": {
         "enum": [
