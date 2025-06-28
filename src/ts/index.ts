@@ -7245,28 +7245,19 @@ export interface FilterReportDTO {
 export enum FilteringFailReason {
   /** No failure reason */
   None = 0,
-  /**
-   * The player does not have a rating for the ruleset
-   * specified by the filter
-   */
-  NoData = 1,
   /** The player's rating is below the minimum threshold */
-  MinRating = 2,
+  MinRating = 1,
   /** The player's rating is above the maximum threshold */
-  MaxRating = 4,
+  MaxRating = 2,
   /**
    * The player has not played in the minimum specified
    * number of tournaments
    */
-  NotEnoughTournaments = 8,
+  NotEnoughTournaments = 4,
   /** The player's all-time peak rating is above the maximum threshold */
-  PeakRatingTooHigh = 16,
+  PeakRatingTooHigh = 8,
   /** The player has not played in the minimum specified number of matches */
-  NotEnoughMatches = 32,
-  /** The player's osu! global rank is below the minimum threshold */
-  MinRank = 64,
-  /** The player's osu! global rank is above the maximum threshold */
-  MaxRank = 128,
+  NotEnoughMatches = 16,
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
@@ -7286,12 +7277,6 @@ this value */
   /** If set, requires players to have played in at least
 this many matches */
   matchesPlayed?: number | undefined;
-  /** If set, requires players to have an osu! global rank
-greater than or equal to this value */
-  minRank?: number | undefined;
-  /** If set, requires players to have an osu! global rank
-less than or equal to this value */
-  maxRank?: number | undefined;
   /** A list of osu! player ids that will be filtered */
   osuPlayerIds: number[];
 }
@@ -7972,9 +7957,8 @@ export interface PlayerFilteringResultDTO {
   username?: string | undefined;
   /** The osu! id of the player */
   osuId: number;
-  /** Whether the player successfully passes all
-conditions of the filter */
-  isSuccess: boolean;
+  /** Whether the player successfully passes all conditions of the filter */
+  readonly isSuccess: boolean;
   /** If the player failed filtering, the fail reason */
   failureReason?: FilteringFailReason | undefined;
   /** The player's current rating for the requested ruleset */
@@ -7985,8 +7969,6 @@ conditions of the filter */
   matchesPlayed?: number | undefined;
   /** The player's all-time peak rating for the requested ruleset */
   peakRating?: number | undefined;
-  /** The player's osu! global rank for the requested ruleset */
-  osuGlobalRank?: number | undefined;
 }
 
 /** Represents a player in the context of a teammate or opponent of another player */

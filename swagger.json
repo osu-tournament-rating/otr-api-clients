@@ -5994,35 +5994,26 @@
           2,
           4,
           8,
-          16,
-          32,
-          64,
-          128
+          16
         ],
         "type": "integer",
         "format": "int32",
         "x-bitwiseFlag": true,
         "x-enumNames": [
           "None",
-          "NoData",
           "MinRating",
           "MaxRating",
           "NotEnoughTournaments",
           "PeakRatingTooHigh",
-          "NotEnoughMatches",
-          "MinRank",
-          "MaxRank"
+          "NotEnoughMatches"
         ],
         "x-enumDescriptions": [
           "No failure reason",
-          "The player does not have a rating for the ruleset\r\nspecified by the filter",
           "The player's rating is below the minimum threshold",
           "The player's rating is above the maximum threshold",
           "The player has not played in the minimum specified\r\nnumber of tournaments",
           "The player's all-time peak rating is above the maximum threshold",
-          "The player has not played in the minimum specified number of matches",
-          "The player's osu! global rank is below the minimum threshold",
-          "The player's osu! global rank is above the maximum threshold"
+          "The player has not played in the minimum specified number of matches"
         ]
       },
       "FilteringRequestDTO": {
@@ -6077,22 +6068,6 @@
             "minimum": 1,
             "type": "integer",
             "description": "If set, requires players to have played in at least\r\nthis many matches",
-            "format": "int32",
-            "nullable": true
-          },
-          "minRank": {
-            "maximum": 2147483647,
-            "minimum": 1,
-            "type": "integer",
-            "description": "If set, requires players to have an osu! global rank\r\ngreater than or equal to this value",
-            "format": "int32",
-            "nullable": true
-          },
-          "maxRank": {
-            "maximum": 2147483647,
-            "minimum": 1,
-            "type": "integer",
-            "description": "If set, requires players to have an osu! global rank\r\nless than or equal to this value",
             "format": "int32",
             "nullable": true
           },
@@ -7623,7 +7598,8 @@
           },
           "isSuccess": {
             "type": "boolean",
-            "description": "Whether the player successfully passes all\r\nconditions of the filter"
+            "description": "Whether the player successfully passes all conditions of the filter",
+            "readOnly": true
           },
           "failureReason": {
             "allOf": [
@@ -7656,12 +7632,6 @@
             "type": "number",
             "description": "The player's all-time peak rating for the requested ruleset",
             "format": "double",
-            "nullable": true
-          },
-          "osuGlobalRank": {
-            "type": "integer",
-            "description": "The player's osu! global rank for the requested ruleset",
-            "format": "int32",
             "nullable": true
           }
         },
