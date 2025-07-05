@@ -3687,21 +3687,25 @@ export class MeWrapper extends OtrApiWrapperBase {
         }
       }
     }
-    if (status === 302) {
-      const _responseText = response.data;
-      return throwException(
-        'Redirects to `GET` `/users/{id}`',
-        status,
-        _responseText,
-        _headers
-      );
-    } else if (status === 200) {
+    if (status === 200) {
       const _responseText = response.data;
       let result200: any = null;
       let resultData200 = _responseText;
       result200 = JSON.parse(resultData200);
       return Promise.resolve<OtrApiResponse<UserDTO>>(
         new OtrApiResponse<UserDTO>(status, _headers, result200)
+      );
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'User not found',
+        status,
+        _responseText,
+        _headers,
+        result404
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -7258,6 +7262,10 @@ export enum FilteringFailReason {
   PeakRatingTooHigh = 8,
   /** The player has not played in the minimum specified number of matches */
   NotEnoughMatches = 16,
+  /** The player has played in more than the maximum specified number of matches */
+  TooManyMatches = 32,
+  /** The player has participated in more than the maximum specified number of tournaments */
+  TooManyTournaments = 64,
 }
 
 /** Represents a set of criteria used by the API.Controllers.FilteringController to determine player eligibility for a tournament */
@@ -7277,6 +7285,12 @@ this value */
   /** If set, requires players to have played in at least
 this many matches */
   matchesPlayed?: number | undefined;
+  /** If set, requires players to have played in at most
+this many matches */
+  maxMatchesPlayed?: number | undefined;
+  /** If set, requires players to have participated in at most
+this many distinct tournaments */
+  maxTournamentsPlayed?: number | undefined;
   /** A list of osu! player ids that will be filtered */
   osuPlayerIds: number[];
 }

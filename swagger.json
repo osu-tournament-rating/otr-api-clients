@@ -2764,9 +2764,6 @@
         "description": "\n\nRequires Authorization:\n\nClaim(s): user",
         "operationId": "Me_get",
         "responses": {
-          "302": {
-            "description": "Redirects to `GET` `/users/{id}`"
-          },
           "200": {
             "description": "Returns the currently logged in user",
             "content": {
@@ -2783,6 +2780,26 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -5994,7 +6011,9 @@
           2,
           4,
           8,
-          16
+          16,
+          32,
+          64
         ],
         "type": "integer",
         "format": "int32",
@@ -6005,7 +6024,9 @@
           "MaxRating",
           "NotEnoughTournaments",
           "PeakRatingTooHigh",
-          "NotEnoughMatches"
+          "NotEnoughMatches",
+          "TooManyMatches",
+          "TooManyTournaments"
         ],
         "x-enumDescriptions": [
           "No failure reason",
@@ -6013,7 +6034,9 @@
           "The player's rating is above the maximum threshold",
           "The player has not played in the minimum specified\r\nnumber of tournaments",
           "The player's all-time peak rating is above the maximum threshold",
-          "The player has not played in the minimum specified number of matches"
+          "The player has not played in the minimum specified number of matches",
+          "The player has played in more than the maximum specified number of matches",
+          "The player has participated in more than the maximum specified number of tournaments"
         ]
       },
       "FilteringRequestDTO": {
@@ -6068,6 +6091,22 @@
             "minimum": 1,
             "type": "integer",
             "description": "If set, requires players to have played in at least\r\nthis many matches",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxMatchesPlayed": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "description": "If set, requires players to have played in at most\r\nthis many matches",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxTournamentsPlayed": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "description": "If set, requires players to have participated in at most\r\nthis many distinct tournaments",
             "format": "int32",
             "nullable": true
           },
