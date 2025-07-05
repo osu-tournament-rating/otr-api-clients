@@ -238,10 +238,6 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
 
   /**
    * List admin notes for an entity
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link AdminNotesListNotesRequestParams})
    * @return Returns all admin notes for the entity
    */
@@ -267,7 +263,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -3106,10 +3102,6 @@ export class MatchesWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a match
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link MatchesGetRequestParams})
    * @return Returns a match
    */
@@ -3132,7 +3124,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -4154,10 +4146,6 @@ export class PlatformStatsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get various platform-wide stats
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user
    * @return Returns various platform-wide stats
    */
   public get(
@@ -4173,7 +4161,7 @@ export class PlatformStatsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -4300,10 +4288,6 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * Get a player
    *
    * Get a player searching first by id, then by osu! id, then osu! username
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link PlayersGetRequestParams})
    * @return Returns a player
    */
@@ -4326,7 +4310,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -4397,10 +4381,6 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link PlayersGetStatsRequestParams})
    * @return Returns a player's stats
    */
@@ -4441,7 +4421,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -5010,10 +4990,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link TournamentsGetRequestParams})
    * @return Returns a tournament
    */
@@ -5036,7 +5012,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
@@ -5576,10 +5552,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get all beatmaps pooled by a tournament
-   *
-   * Requires Authorization:
-   *
-   * Claim(s): user, client
    * @param params Request parameters (see {@link TournamentsGetBeatmapsRequestParams})
    * @return Returns a collection of pooled beatmaps
    */
@@ -5602,7 +5574,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: true,
+      requiresAuthorization: false,
     };
 
     return this.instance
