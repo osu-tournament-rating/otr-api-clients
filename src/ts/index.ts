@@ -238,6 +238,10 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
 
   /**
    * List admin notes for an entity
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link AdminNotesListNotesRequestParams})
    * @return Returns all admin notes for the entity
    */
@@ -263,7 +267,7 @@ export class AdminNotesWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -1063,6 +1067,20 @@ export type BeatmapsGetRequestParams = {
   key: number;
 };
 
+/**
+ * Request parameters available for use when requesting {@link BeatmapsWrapper.prototype.fetch | api/v1/beatmaps/[id]/fetch}
+ */
+export type BeatmapsFetchRequestParams = {
+  /**
+   * (required) The osu! beatmap ID
+   */
+  id: number;
+  /**
+   * (optional) The priority level for processing (Low, Normal, High). Defaults to Normal.
+   */
+  priority?: MessagePriority | undefined;
+};
+
 export class BeatmapsWrapper extends OtrApiWrapperBase {
   protected instance: AxiosInstance;
   protected baseUrl: string;
@@ -1241,6 +1259,98 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<BeatmapDTO>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Queue a beatmap fetch request
+   *
+   * Queues a request to fetch the latest beatmap data from the osu! API
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link BeatmapsFetchRequestParams})
+   * @return Beatmap fetch request queued successfully
+   */
+  public fetch(
+    params: BeatmapsFetchRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { id, priority } = params;
+
+    let url_ = this.baseUrl + '/api/v1/beatmaps/{id}/fetch?';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    if (priority === null)
+      throw new Error("The parameter 'priority' cannot be null.");
+    else if (priority !== undefined)
+      url_ += 'priority=' + encodeURIComponent('' + priority) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'POST',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processFetch(_response);
+      });
+  }
+
+  protected processFetch(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 202) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'Invalid beatmap ID',
+        status,
+        _responseText,
+        _headers,
+        result400
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -1448,85 +1558,6 @@ export class ClientsWrapper extends OtrApiWrapperBase {
   }
 }
 
-export class DiagnosticsWrapper extends OtrApiWrapperBase {
-  protected instance: AxiosInstance;
-  protected baseUrl: string;
-  protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
-    undefined;
-
-  constructor(configuration: IOtrApiWrapperConfiguration) {
-    super(configuration);
-
-    this.instance = axios.create(this.configuration.clientConfiguration);
-    this.baseUrl = this.getBaseUrl('');
-
-    if (this.configuration.postConfigureClientMethod) {
-      this.configuration.postConfigureClientMethod(this.instance);
-    }
-  }
-
-  /**
-   * Allows clients to determine if the server is running
-   * @return The server is running
-   */
-  public ping(cancelToken?: CancelToken): Promise<OtrApiResponse<void>> {
-    let url_ = this.baseUrl + '/api/v1/diagnostics/ping';
-    url_ = url_.replace(/[?&]$/, '');
-
-    let options_: AxiosRequestConfig = {
-      method: 'GET',
-      url: url_,
-      headers: {},
-      cancelToken,
-      requiresAuthorization: false,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processPing(_response);
-      });
-  }
-
-  protected processPing(
-    response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === 'object') {
-      for (const k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
-      );
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        'An unexpected server error occurred.',
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<OtrApiResponse<void>>(
-      new OtrApiResponse(status, _headers, null as any)
-    );
-  }
-}
-
 /**
  * Request parameters available for use when requesting {@link FilteringWrapper.prototype.filter | api/v1/filtering}
  */
@@ -1659,6 +1690,10 @@ export class FilteringWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a stored filter report by ID
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link FilteringGetFilterReportRequestParams})
    * @return The filter report
    */
@@ -1681,7 +1716,7 @@ export class FilteringWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -2638,6 +2673,10 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a leaderboard of players which fit an optional request query
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link LeaderboardsGetRequestParams})
    * @return Returns the leaderboard
    */
@@ -2762,7 +2801,7 @@ export class LeaderboardsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -2844,10 +2883,6 @@ export type MatchesListRequestParams = {
    * (optional) Filters results for only matches with a specified rejection reason
    */
   rejectionReason?: MatchRejectionReason | undefined;
-  /**
-   * (optional) Filters results for only matches with a specified processing status
-   */
-  processingStatus?: MatchProcessingStatus | undefined;
   /**
    * (optional) Filters results for only matches submitted by a user with a specified id
    */
@@ -2969,7 +3004,6 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       dateMax,
       verificationStatus,
       rejectionReason,
-      processingStatus,
       submittedBy,
       verifiedBy,
       sort,
@@ -3020,11 +3054,6 @@ export class MatchesWrapper extends OtrApiWrapperBase {
     else if (rejectionReason !== undefined)
       url_ +=
         'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
-    if (processingStatus === null)
-      throw new Error("The parameter 'processingStatus' cannot be null.");
-    else if (processingStatus !== undefined)
-      url_ +=
-        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
     if (submittedBy === null)
       throw new Error("The parameter 'submittedBy' cannot be null.");
     else if (submittedBy !== undefined)
@@ -3102,6 +3131,10 @@ export class MatchesWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a match
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link MatchesGetRequestParams})
    * @return Returns a match
    */
@@ -3124,7 +3157,7 @@ export class MatchesWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -4146,6 +4179,10 @@ export class PlatformStatsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get various platform-wide stats
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @return Returns various platform-wide stats
    */
   public get(
@@ -4161,7 +4198,7 @@ export class PlatformStatsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -4267,6 +4304,17 @@ export type PlayersGetTournamentsRequestParams = {
   dateMax?: Date | undefined;
 };
 
+/**
+ * Request parameters available for use when requesting {@link PlayersWrapper.prototype.fetch | api/v1/players/[key]/fetch}
+ */
+export type PlayersFetchRequestParams = {
+  key: number;
+  /**
+   * (optional)
+   */
+  priority?: MessagePriority | undefined;
+};
+
 export class PlayersWrapper extends OtrApiWrapperBase {
   protected instance: AxiosInstance;
   protected baseUrl: string;
@@ -4288,6 +4336,10 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * Get a player
    *
    * Get a player searching first by id, then by osu! id, then osu! username
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link PlayersGetRequestParams})
    * @return Returns a player
    */
@@ -4310,7 +4362,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -4381,6 +4433,10 @@ export class PlayersWrapper extends OtrApiWrapperBase {
    * If a ruleset is provided but the player has no data for it, all optional fields of the response will be null.
    * API.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.
    * If no date range is provided, gets all stats without considering date
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link PlayersGetStatsRequestParams})
    * @return Returns a player's stats
    */
@@ -4421,7 +4477,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -4596,6 +4652,84 @@ export class PlayersWrapper extends OtrApiWrapperBase {
       new OtrApiResponse(status, _headers, null as any)
     );
   }
+
+  /**
+   * Undocumented
+   *
+   * Requires Authorization:
+   *
+   * Claim(s): admin
+   * @param params Request parameters (see {@link PlayersFetchRequestParams})
+   * @return OK
+   */
+  public fetch(
+    params: PlayersFetchRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<void>> {
+    const { key, priority } = params;
+
+    let url_ = this.baseUrl + '/api/v1/players/{key}/fetch?';
+    if (key === undefined || key === null)
+      throw new Error("The parameter 'key' must be defined.");
+    url_ = url_.replace('{key}', encodeURIComponent('' + key));
+    if (priority === null)
+      throw new Error("The parameter 'priority' cannot be null.");
+    else if (priority !== undefined)
+      url_ += 'priority=' + encodeURIComponent('' + priority) + '&';
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'POST',
+      url: url_,
+      headers: {},
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processFetch(_response);
+      });
+  }
+
+  protected processFetch(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<void>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      return Promise.resolve<OtrApiResponse<void>>(
+        new OtrApiResponse<void>(status, _headers, null as any)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
 }
 
 /**
@@ -4766,9 +4900,9 @@ export type TournamentsRerunAutomationChecksRequestParams = {
    */
   id: number;
   /**
-   * (optional) Whether to overwrite data which has already been Verified or Rejected
+   * (optional) Whether to override existing human-verified or rejected states
    */
-  force?: boolean | undefined;
+  overrideVerifiedState?: boolean | undefined;
 };
 
 /**
@@ -4843,10 +4977,6 @@ export type TournamentsListRequestParams = {
    * (optional) Filters results for only tournaments with a specified rejection reason
    */
   rejectionReason?: TournamentRejectionReason | undefined;
-  /**
-   * (optional) Filters results for only tournaments with a specified processing status
-   */
-  processingStatus?: TournamentProcessingStatus | undefined;
   /**
    * (optional) Filters results for only tournaments submitted by a user with a specified id
    */
@@ -4990,6 +5120,10 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get a tournament
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link TournamentsGetRequestParams})
    * @return Returns a tournament
    */
@@ -5012,7 +5146,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -5289,17 +5423,20 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     params: TournamentsRerunAutomationChecksRequestParams,
     cancelToken?: CancelToken
   ): Promise<OtrApiResponse<void>> {
-    const { id, force } = params;
+    const { id, overrideVerifiedState } = params;
 
     let url_ =
       this.baseUrl + '/api/v1/tournaments/{id}:reset-automation-statuses?';
     if (id === undefined || id === null)
       throw new Error("The parameter 'id' must be defined.");
     url_ = url_.replace('{id}', encodeURIComponent('' + id));
-    if (force === null)
-      throw new Error("The parameter 'force' cannot be null.");
-    else if (force !== undefined)
-      url_ += 'force=' + encodeURIComponent('' + force) + '&';
+    if (overrideVerifiedState === null)
+      throw new Error("The parameter 'overrideVerifiedState' cannot be null.");
+    else if (overrideVerifiedState !== undefined)
+      url_ +=
+        'overrideVerifiedState=' +
+        encodeURIComponent('' + overrideVerifiedState) +
+        '&';
     url_ = url_.replace(/[?&]$/, '');
 
     let options_: AxiosRequestConfig = {
@@ -5552,6 +5689,10 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
 
   /**
    * Get all beatmaps pooled by a tournament
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link TournamentsGetBeatmapsRequestParams})
    * @return Returns a collection of pooled beatmaps
    */
@@ -5574,7 +5715,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -5641,6 +5782,10 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
    * Get all tournaments which fit an optional request query
    *
    * Results will not include match data
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
    * @param params Request parameters (see {@link TournamentsListRequestParams})
    * @return Returns all tournaments which fit the request query
    */
@@ -5658,7 +5803,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
       dateMax,
       verificationStatus,
       rejectionReason,
-      processingStatus,
       submittedBy,
       verifiedBy,
       lobbySize,
@@ -5715,11 +5859,6 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
     else if (rejectionReason !== undefined)
       url_ +=
         'rejectionReason=' + encodeURIComponent('' + rejectionReason) + '&';
-    if (processingStatus === null)
-      throw new Error("The parameter 'processingStatus' cannot be null.");
-    else if (processingStatus !== undefined)
-      url_ +=
-        'processingStatus=' + encodeURIComponent('' + processingStatus) + '&';
     if (submittedBy === null)
       throw new Error("The parameter 'submittedBy' cannot be null.");
     else if (submittedBy !== undefined)
@@ -5748,7 +5887,7 @@ export class TournamentsWrapper extends OtrApiWrapperBase {
         Accept: 'text/plain',
       },
       cancelToken,
-      requiresAuthorization: false,
+      requiresAuthorization: true,
     };
 
     return this.instance
@@ -7290,8 +7429,6 @@ export interface GameCompactDTO {
   ruleset: Ruleset;
   /** The verification status */
   verificationStatus: VerificationStatus;
-  /** The processing status */
-  processingStatus: GameProcessingStatus;
   /** Warning flags */
   warningFlags: GameWarningFlags;
   /** The rejection reason */
@@ -7320,8 +7457,6 @@ export interface GameDTO {
   isFreeMod: boolean;
   /** The verification status */
   verificationStatus: VerificationStatus;
-  /** The processing status */
-  processingStatus: GameProcessingStatus;
   /** Warning flags */
   warningFlags: GameWarningFlags;
   /** The rejection reason */
@@ -7338,24 +7473,6 @@ export interface GameDTO {
   adminNotes: AdminNoteDTO[];
   /** All match scores */
   scores: GameScoreDTO[];
-}
-
-export enum GameProcessingStatus {
-  /** The !:Database.Entities.Game needs automation checks */
-  NeedsAutomationChecks = 0,
-  /**
-   * The !:Database.Entities.Game is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 1,
-  /**
-   * The !:Database.Entities.Game needs stat calculation
-   *
-   * Generates the !:Database.Entities.GameRoster
-   */
-  NeedsStatCalculation = 2,
-  /** The !:Database.Entities.Game has completed all processing steps */
-  Done = 3,
 }
 
 export enum GameRejectionReason {
@@ -7449,8 +7566,6 @@ export interface GameScoreDTO {
   accuracy: number;
   /** The current state of verification */
   verificationStatus: VerificationStatus;
-  /** The current state of processing */
-  processingStatus: ScoreProcessingStatus;
   /** The rejection reason */
   rejectionReason: ScoreRejectionReason;
   /** All associated admin notes */
@@ -7510,10 +7625,6 @@ export interface MatchCompactDTO {
   rejectionReason: MatchRejectionReason;
   /** Warning flags */
   warningFlags: MatchWarningFlags;
-  /** Processing status */
-  processingStatus: MatchProcessingStatus;
-  /** Timestamp of the last time the match was processed */
-  lastProcessingDate: Date;
   /** Games played in this match */
   games: GameCompactDTO[];
   /** All associated admin notes */
@@ -7544,32 +7655,6 @@ export interface MatchDTO {
   games?: GameDTO[];
 
   [key: string]: any;
-}
-
-export enum MatchProcessingStatus {
-  /** The System.Text.RegularExpressions.Match needs data requested from the osu! API */
-  NeedsData = 0,
-  /** The System.Text.RegularExpressions.Match needs automation checks */
-  NeedsAutomationChecks = 1,
-  /**
-   * The System.Text.RegularExpressions.Match is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 2,
-  /**
-   * The System.Text.RegularExpressions.Match needs stat calculation
-   *
-   * Generates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats
-   */
-  NeedsStatCalculation = 3,
-  /**
-   * The System.Text.RegularExpressions.Match is awaiting rating processor data
-   *
-   * Generates all !:Database.Entities.Processor.RatingAdjustments
-   */
-  NeedsRatingProcessorData = 4,
-  /** The System.Text.RegularExpressions.Match has completed all processing steps */
-  Done = 5,
 }
 
 export enum MatchQuerySortType {
@@ -7698,6 +7783,15 @@ export interface MatchWinRecordDTO {
   winnerTeam?: number | undefined;
   /** The losing team (see Common.Enums.Team). Null if HeadToHead or tied. */
   loserTeam?: number | undefined;
+}
+
+export enum MessagePriority {
+  /** Low priority messages (processed after Normal and High) */
+  Low = 0,
+  /** Normal priority messages (default priority level) */
+  Normal = 5,
+  /** High priority messages (processed first) */
+  High = 10,
 }
 
 export enum Mods {
@@ -8211,18 +8305,6 @@ export enum ScoreGrade {
   D = 7,
 }
 
-export enum ScoreProcessingStatus {
-  /** The !:Database.Entities.GameScore needs automation checks */
-  NeedsAutomationChecks = 0,
-  /**
-   * The !:Database.Entities.GameScore is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 1,
-  /** The !:Database.Entities.GameScore has completed all processing steps */
-  Done = 2,
-}
-
 export enum ScoreRejectionReason {
   /** The !:Database.Entities.GameScore is not rejected */
   None = 0,
@@ -8326,8 +8408,6 @@ export interface TournamentCompactDTO {
   endTime: Date;
   /** The state of verification */
   verificationStatus: VerificationStatus;
-  /** The state of processing */
-  processingStatus: TournamentProcessingStatus;
   /** The rejection reason */
   rejectionReason: TournamentRejectionReason;
   /** The user that submitted the tournament */
@@ -8371,33 +8451,6 @@ export interface TournamentPlatformStatsDTO {
   verifiedByRuleset: VerifiedByRuleset;
   /** Map of lobby sizes to the number of verified Database.Entities.Tournaments with that lobby size */
   verifiedByLobbySize: { [key: string]: number };
-}
-
-export enum TournamentProcessingStatus {
-  /**
-   * The !:Database.Entities.Tournament is awaiting approval from a
-   * !:Database.Entities.User with verifier permission
-   *
-   * Functions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament
-   * will advance through the processing flow until approved.
-   */
-  NeedsApproval = 0,
-  /**
-   * The !:Database.Entities.Tournament has System.Text.RegularExpressions.Matches with a
-   * Common.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData
-   */
-  NeedsMatchData = 1,
-  /** The !:Database.Entities.Tournament needs automation checks */
-  NeedsAutomationChecks = 2,
-  /**
-   * The !:Database.Entities.Tournament is awaiting verification from a
-   * !:Database.Entities.User with verifier permission
-   */
-  NeedsVerification = 3,
-  /** The !:Database.Entities.Tournament needs stat calculation */
-  NeedsStatCalculation = 4,
-  /** The tournament has completed all processing steps */
-  Done = 5,
 }
 
 export enum TournamentQuerySortType {

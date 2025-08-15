@@ -146,6 +146,7 @@
           "AdminNotes"
         ],
         "summary": "List admin notes for an entity",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "AdminNotes_listNotes",
         "parameters": [
           {
@@ -224,7 +225,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/{entity}/notes/{noteId}": {
@@ -883,6 +892,77 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/beatmaps/{id}/fetch": {
+      "post": {
+        "tags": [
+          "Beatmaps"
+        ],
+        "summary": "Queue a beatmap fetch request",
+        "description": "Queues a request to fetch the latest beatmap data from the osu! API\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Beatmaps_fetch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The osu! beatmap ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "description": "The priority level for processing (Low, Normal, High). Defaults to Normal.",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MessagePriority"
+                }
+              ],
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Beatmap fetch request queued successfully"
+          },
+          "400": {
+            "description": "Invalid beatmap ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/clients": {
       "post": {
         "tags": [
@@ -1031,21 +1111,6 @@
         "x-requiresAuthorization": true
       }
     },
-    "/api/v1/diagnostics/ping": {
-      "get": {
-        "tags": [
-          "Diagnostics"
-        ],
-        "summary": "Allows clients to determine if the server is running",
-        "operationId": "Diagnostics_ping",
-        "responses": {
-          "200": {
-            "description": "The server is running"
-          }
-        },
-        "x-requiresAuthorization": false
-      }
-    },
     "/api/v1/filtering": {
       "post": {
         "tags": [
@@ -1162,6 +1227,7 @@
           "Filtering"
         ],
         "summary": "Get a stored filter report by ID",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Filtering_getFilterReport",
         "parameters": [
           {
@@ -1217,7 +1283,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/games/{id}": {
@@ -1855,6 +1929,7 @@
           "Leaderboards"
         ],
         "summary": "Get a leaderboard of players which fit an optional request query",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Leaderboards_get",
         "parameters": [
           {
@@ -2084,7 +2159,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/matches": {
@@ -2181,18 +2264,6 @@
             }
           },
           {
-            "name": "processingStatus",
-            "in": "query",
-            "description": "Filters results for only matches with a specified processing status",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/MatchProcessingStatus"
-                }
-              ]
-            }
-          },
-          {
             "name": "submittedBy",
             "in": "query",
             "description": "Filters results for only matches submitted by a user with a specified id",
@@ -2283,6 +2354,7 @@
           "Matches"
         ],
         "summary": "Get a match",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Matches_get",
         "parameters": [
           {
@@ -2338,7 +2410,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       },
       "patch": {
         "tags": [
@@ -3127,6 +3207,7 @@
           "PlatformStats"
         ],
         "summary": "Get various platform-wide stats",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "PlatformStats_get",
         "responses": {
           "200": {
@@ -3150,7 +3231,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/players/{key}": {
@@ -3159,7 +3248,7 @@
           "Players"
         ],
         "summary": "Get a player",
-        "description": "Get a player searching first by id, then by osu! id, then osu! username",
+        "description": "Get a player searching first by id, then by osu! id, then osu! username\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Players_get",
         "parameters": [
           {
@@ -3214,7 +3303,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/players/{key}/stats": {
@@ -3223,7 +3320,7 @@
           "Players"
         ],
         "summary": "Get a player's stats",
-        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date",
+        "description": "Gets player by versatile search.\r\nIf no ruleset is provided, the player's default is used. Common.Enums.Ruleset.Osu is used as a fallback.\r\nIf a ruleset is provided but the player has no data for it, all optional fields of the response will be null.\r\nAPI.DTOs.PlayerDashboardStatsDTO.PlayerInfo will always be populated as long as a player is found.\r\nIf no date range is provided, gets all stats without considering date\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Players_getStats",
         "parameters": [
           {
@@ -3308,7 +3405,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/players/{key}/tournaments": {
@@ -3425,6 +3530,54 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/players/{key}/fetch": {
+      "post": {
+        "tags": [
+          "Players"
+        ],
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
+        "operationId": "Players_fetch",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MessagePriority"
+                }
+              ],
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "OAuth2": [
+              "admin"
+            ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/search": {
       "get": {
         "tags": [
@@ -3525,6 +3678,7 @@
           "Tournaments"
         ],
         "summary": "Get a tournament",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Tournaments_get",
         "parameters": [
           {
@@ -3580,7 +3734,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       },
       "patch": {
         "tags": [
@@ -3808,9 +3970,9 @@
             }
           },
           {
-            "name": "force",
+            "name": "overrideVerifiedState",
             "in": "query",
-            "description": "Whether to overwrite data which has already been Verified or Rejected",
+            "description": "Whether to override existing human-verified or rejected states",
             "schema": {
               "type": "boolean",
               "default": false
@@ -4055,6 +4217,7 @@
           "Tournaments"
         ],
         "summary": "Get all beatmaps pooled by a tournament",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Tournaments_getBeatmaps",
         "parameters": [
           {
@@ -4119,7 +4282,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       }
     },
     "/api/v1/tournaments": {
@@ -4128,7 +4299,7 @@
           "Tournaments"
         ],
         "summary": "Get all tournaments which fit an optional request query",
-        "description": "Results will not include match data",
+        "description": "Results will not include match data\n\nRequires Authorization:\n\nPolicy: ApiKey",
         "operationId": "Tournaments_list",
         "parameters": [
           {
@@ -4227,18 +4398,6 @@
             }
           },
           {
-            "name": "processingStatus",
-            "in": "query",
-            "description": "Filters results for only tournaments with a specified processing status",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/TournamentProcessingStatus"
-                }
-              ]
-            }
-          },
-          {
             "name": "submittedBy",
             "in": "query",
             "description": "Filters results for only tournaments submitted by a user with a specified id",
@@ -4319,7 +4478,15 @@
             }
           }
         },
-        "x-requiresAuthorization": false
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
       },
       "post": {
         "tags": [
@@ -6081,7 +6248,6 @@
         "required": [
           "id",
           "osuId",
-          "processingStatus",
           "rejectionReason",
           "ruleset",
           "startTime",
@@ -6115,14 +6281,6 @@
               }
             ],
             "description": "The verification status"
-          },
-          "processingStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GameProcessingStatus"
-              }
-            ],
-            "description": "The processing status"
           },
           "warningFlags": {
             "allOf": [
@@ -6163,7 +6321,6 @@
           "isFreeMod",
           "mods",
           "osuId",
-          "processingStatus",
           "rejectionReason",
           "rosters",
           "ruleset",
@@ -6230,14 +6387,6 @@
             ],
             "description": "The verification status"
           },
-          "processingStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GameProcessingStatus"
-              }
-            ],
-            "description": "The processing status"
-          },
           "warningFlags": {
             "allOf": [
               {
@@ -6297,28 +6446,6 @@
         },
         "additionalProperties": false,
         "description": "Represents a single game (osu! beatmap) played in a match"
-      },
-      "GameProcessingStatus": {
-        "enum": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "NeedsAutomationChecks",
-          "NeedsVerification",
-          "NeedsStatCalculation",
-          "Done"
-        ],
-        "x-enumDescriptions": [
-          "The !:Database.Entities.Game needs automation checks",
-          "The !:Database.Entities.Game is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
-          "The !:Database.Entities.Game needs stat calculation\n\nGenerates the !:Database.Entities.GameRoster",
-          "The !:Database.Entities.Game has completed all processing steps"
-        ]
       },
       "GameRejectionReason": {
         "enum": [
@@ -6422,7 +6549,6 @@
           "mods",
           "placement",
           "playerId",
-          "processingStatus",
           "rejectionReason",
           "ruleset",
           "score",
@@ -6549,14 +6675,6 @@
             ],
             "description": "The current state of verification"
           },
-          "processingStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ScoreProcessingStatus"
-              }
-            ],
-            "description": "The current state of processing"
-          },
           "rejectionReason": {
             "allOf": [
               {
@@ -6649,10 +6767,8 @@
           "adminNotes",
           "games",
           "id",
-          "lastProcessingDate",
           "name",
           "osuId",
-          "processingStatus",
           "rejectionReason",
           "ruleset",
           "verificationStatus",
@@ -6718,19 +6834,6 @@
               }
             ],
             "description": "Warning flags"
-          },
-          "processingStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MatchProcessingStatus"
-              }
-            ],
-            "description": "Processing status"
-          },
-          "lastProcessingDate": {
-            "type": "string",
-            "description": "Timestamp of the last time the match was processed",
-            "format": "date-time"
           },
           "games": {
             "type": "array",
@@ -6824,34 +6927,6 @@
           }
         },
         "description": "Represents a played match"
-      },
-      "MatchProcessingStatus": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "NeedsData",
-          "NeedsAutomationChecks",
-          "NeedsVerification",
-          "NeedsStatCalculation",
-          "NeedsRatingProcessorData",
-          "Done"
-        ],
-        "x-enumDescriptions": [
-          "The System.Text.RegularExpressions.Match needs data requested from the osu! API",
-          "The System.Text.RegularExpressions.Match needs automation checks",
-          "The System.Text.RegularExpressions.Match is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
-          "The System.Text.RegularExpressions.Match needs stat calculation\n\nGenerates the !:Database.Entities.MatchRoster and !:Database.Entities.PlayerMatchStats",
-          "The System.Text.RegularExpressions.Match is awaiting rating processor data\n\nGenerates all !:Database.Entities.Processor.RatingAdjustments",
-          "The System.Text.RegularExpressions.Match has completed all processing steps"
-        ]
       },
       "MatchQuerySortType": {
         "enum": [
@@ -7126,6 +7201,25 @@
         },
         "additionalProperties": false,
         "description": "A record of who won and lost a match (Generated by the o!TR Processor)"
+      },
+      "MessagePriority": {
+        "enum": [
+          0,
+          5,
+          10
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Low",
+          "Normal",
+          "High"
+        ],
+        "x-enumDescriptions": [
+          "Low priority messages (processed after Normal and High)",
+          "Normal priority messages (default priority level)",
+          "High priority messages (processed first)"
+        ]
       },
       "Mods": {
         "enum": [
@@ -8358,25 +8452,6 @@
           "Anything else"
         ]
       },
-      "ScoreProcessingStatus": {
-        "enum": [
-          0,
-          1,
-          2
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "NeedsAutomationChecks",
-          "NeedsVerification",
-          "Done"
-        ],
-        "x-enumDescriptions": [
-          "The !:Database.Entities.GameScore needs automation checks",
-          "The !:Database.Entities.GameScore is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
-          "The !:Database.Entities.GameScore has completed all processing steps"
-        ]
-      },
       "ScoreRejectionReason": {
         "enum": [
           0,
@@ -8568,7 +8643,6 @@
           "id",
           "lobbySize",
           "name",
-          "processingStatus",
           "rankRangeLowerBound",
           "rejectionReason",
           "ruleset",
@@ -8640,14 +8714,6 @@
               }
             ],
             "description": "The state of verification"
-          },
-          "processingStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/TournamentProcessingStatus"
-              }
-            ],
-            "description": "The state of processing"
           },
           "rejectionReason": {
             "allOf": [
@@ -8861,34 +8927,6 @@
         },
         "additionalProperties": false,
         "description": "Represents platform-wide Database.Entities.Tournament stats"
-      },
-      "TournamentProcessingStatus": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
-          "NeedsApproval",
-          "NeedsMatchData",
-          "NeedsAutomationChecks",
-          "NeedsVerification",
-          "NeedsStatCalculation",
-          "Done"
-        ],
-        "x-enumDescriptions": [
-          "The !:Database.Entities.Tournament is awaiting approval from a\r\n!:Database.Entities.User with verifier permission\n\nFunctions as the entry point to the processing flow. No entities owned by a !:Database.Entities.Tournament\r\nwill advance through the processing flow until approved.",
-          "The !:Database.Entities.Tournament has System.Text.RegularExpressions.Matches with a\r\nCommon.Enums.Verification.MatchProcessingStatus of Common.Enums.Verification.MatchProcessingStatus.NeedsData",
-          "The !:Database.Entities.Tournament needs automation checks",
-          "The !:Database.Entities.Tournament is awaiting verification from a\r\n!:Database.Entities.User with verifier permission",
-          "The !:Database.Entities.Tournament needs stat calculation",
-          "The tournament has completed all processing steps"
-        ]
       },
       "TournamentQuerySortType": {
         "enum": [
@@ -9220,6 +9258,12 @@
         "description": "JWT Authorization using the Bearer scheme. Paste **ONLY** your JWT in the text box below",
         "scheme": "Bearer",
         "bearerFormat": "JWT"
+      },
+      "ApiKey": {
+        "type": "apiKey",
+        "description": "API Key Authorization. Enter your API key in the text box below",
+        "name": "X-Api-Key",
+        "in": "header"
       }
     }
   },
