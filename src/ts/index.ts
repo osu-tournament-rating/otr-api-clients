@@ -1072,11 +1072,11 @@ export type BeatmapsGetRequestParams = {
  */
 export type BeatmapsFetchRequestParams = {
   /**
-   * (required) The osu! beatmap ID
+   * (required) The osu! beatmap ID to fetch data for
    */
   id: number;
   /**
-   * (optional) The priority level for processing (Low, Normal, High). Defaults to Normal.
+   * (optional) The message queue priority for processing this fetch request
    */
   priority?: MessagePriority | undefined;
 };
@@ -1264,20 +1264,18 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
   }
 
   /**
-   * Queue a beatmap fetch request
-   *
-   * Queues a request to fetch the latest beatmap data from the osu! API
+   * Enqueues a message to fetch beatmap data from the osu! API
    *
    * Requires Authorization:
    *
    * Claim(s): admin
    * @param params Request parameters (see {@link BeatmapsFetchRequestParams})
-   * @return Beatmap fetch request queued successfully
+   * @return The fetch request was accepted and queued for processing
    */
   public fetch(
     params: BeatmapsFetchRequestParams,
     cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<QueueResponseDTO>> {
     const { id, priority } = params;
 
     let url_ = this.baseUrl + '/api/v1/beatmaps/{id}/fetch?';
@@ -1293,7 +1291,9 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     let options_: AxiosRequestConfig = {
       method: 'POST',
       url: url_,
-      headers: {},
+      headers: {
+        Accept: 'text/plain',
+      },
       cancelToken,
       requiresAuthorization: true,
     };
@@ -1314,7 +1314,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
 
   protected processFetch(
     response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<QueueResponseDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === 'object') {
@@ -1326,8 +1326,11 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
     }
     if (status === 202) {
       const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
+      let result202: any = null;
+      let resultData202 = _responseText;
+      result202 = JSON.parse(resultData202);
+      return Promise.resolve<OtrApiResponse<QueueResponseDTO>>(
+        new OtrApiResponse<QueueResponseDTO>(status, _headers, result202)
       );
     } else if (status === 400) {
       const _responseText = response.data;
@@ -1335,7 +1338,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
       let resultData400 = _responseText;
       result400 = JSON.parse(resultData400);
       return throwException(
-        'Invalid beatmap ID',
+        'The provided beatmap ID is negative',
         status,
         _responseText,
         _headers,
@@ -1350,7 +1353,7 @@ export class BeatmapsWrapper extends OtrApiWrapperBase {
         _headers
       );
     }
-    return Promise.resolve<OtrApiResponse<void>>(
+    return Promise.resolve<OtrApiResponse<QueueResponseDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -4308,9 +4311,12 @@ export type PlayersGetTournamentsRequestParams = {
  * Request parameters available for use when requesting {@link PlayersWrapper.prototype.fetch | api/v1/players/[key]/fetch}
  */
 export type PlayersFetchRequestParams = {
+  /**
+   * (required) The osu! player ID to fetch data for
+   */
   key: number;
   /**
-   * (optional)
+   * (optional) The message queue priority for processing this fetch request
    */
   priority?: MessagePriority | undefined;
 };
@@ -4654,18 +4660,18 @@ export class PlayersWrapper extends OtrApiWrapperBase {
   }
 
   /**
-   * Undocumented
+   * Enqueues a message to fetch player data from the osu! API
    *
    * Requires Authorization:
    *
    * Claim(s): admin
    * @param params Request parameters (see {@link PlayersFetchRequestParams})
-   * @return OK
+   * @return The fetch request was accepted and queued for processing
    */
   public fetch(
     params: PlayersFetchRequestParams,
     cancelToken?: CancelToken
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<QueueResponseDTO>> {
     const { key, priority } = params;
 
     let url_ = this.baseUrl + '/api/v1/players/{key}/fetch?';
@@ -4681,7 +4687,9 @@ export class PlayersWrapper extends OtrApiWrapperBase {
     let options_: AxiosRequestConfig = {
       method: 'POST',
       url: url_,
-      headers: {},
+      headers: {
+        Accept: 'text/plain',
+      },
       cancelToken,
       requiresAuthorization: true,
     };
@@ -4702,7 +4710,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
 
   protected processFetch(
     response: AxiosResponse
-  ): Promise<OtrApiResponse<void>> {
+  ): Promise<OtrApiResponse<QueueResponseDTO>> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === 'object') {
@@ -4712,10 +4720,25 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         }
       }
     }
-    if (status === 200) {
+    if (status === 202) {
       const _responseText = response.data;
-      return Promise.resolve<OtrApiResponse<void>>(
-        new OtrApiResponse<void>(status, _headers, null as any)
+      let result202: any = null;
+      let resultData202 = _responseText;
+      result202 = JSON.parse(resultData202);
+      return Promise.resolve<OtrApiResponse<QueueResponseDTO>>(
+        new OtrApiResponse<QueueResponseDTO>(status, _headers, result202)
+      );
+    } else if (status === 400) {
+      const _responseText = response.data;
+      let result400: any = null;
+      let resultData400 = _responseText;
+      result400 = JSON.parse(resultData400);
+      return throwException(
+        'The provided osu! player ID is negative',
+        status,
+        _responseText,
+        _headers,
+        result400
       );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
@@ -4726,7 +4749,7 @@ export class PlayersWrapper extends OtrApiWrapperBase {
         _headers
       );
     }
-    return Promise.resolve<OtrApiResponse<void>>(
+    return Promise.resolve<OtrApiResponse<QueueResponseDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -8210,6 +8233,14 @@ export interface PlayerTournamentStatsBaseDTO {
 export interface PlayerTournamentStatsDTO extends PlayerTournamentStatsBaseDTO {
   /** The tournament that these stats are for */
   tournament?: TournamentCompactDTO;
+}
+
+/** Response data for asynchronous queue operations */
+export interface QueueResponseDTO {
+  /** Unique identifier for tracking the queued operation */
+  correlationId: string;
+  /** Priority level of the request in the message queue */
+  priority: MessagePriority;
 }
 
 /** Describes a single change to a PlayerRating */

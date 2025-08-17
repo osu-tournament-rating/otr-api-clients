@@ -897,16 +897,18 @@
         "tags": [
           "Beatmaps"
         ],
-        "summary": "Queue a beatmap fetch request",
-        "description": "Queues a request to fetch the latest beatmap data from the osu! API\n\nRequires Authorization:\n\nClaim(s): admin",
+        "summary": "Enqueues a message to fetch beatmap data from the osu! API",
+        "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Beatmaps_fetch",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "The osu! beatmap ID",
+            "description": "The osu! beatmap ID to fetch data for",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "type": "integer",
               "format": "int64"
             }
@@ -914,7 +916,7 @@
           {
             "name": "priority",
             "in": "query",
-            "description": "The priority level for processing (Low, Normal, High). Defaults to Normal.",
+            "description": "The message queue priority for processing this fetch request",
             "schema": {
               "allOf": [
                 {
@@ -927,10 +929,27 @@
         ],
         "responses": {
           "202": {
-            "description": "Beatmap fetch request queued successfully"
+            "description": "The fetch request was accepted and queued for processing",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid beatmap ID",
+            "description": "The provided beatmap ID is negative",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3535,14 +3554,18 @@
         "tags": [
           "Players"
         ],
+        "summary": "Enqueues a message to fetch player data from the osu! API",
         "description": "\n\nRequires Authorization:\n\nClaim(s): admin",
         "operationId": "Players_fetch",
         "parameters": [
           {
             "name": "key",
             "in": "path",
+            "description": "The osu! player ID to fetch data for",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "type": "integer",
               "format": "int64"
             }
@@ -3550,6 +3573,7 @@
           {
             "name": "priority",
             "in": "query",
+            "description": "The message queue priority for processing this fetch request",
             "schema": {
               "allOf": [
                 {
@@ -3561,8 +3585,45 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "202": {
+            "description": "The fetch request was accepted and queued for processing",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponseDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provided osu! player ID is negative",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8206,6 +8267,30 @@
           }
         },
         "additionalProperties": { }
+      },
+      "QueueResponseDTO": {
+        "required": [
+          "correlationId",
+          "priority"
+        ],
+        "type": "object",
+        "properties": {
+          "correlationId": {
+            "type": "string",
+            "description": "Unique identifier for tracking the queued operation",
+            "format": "uuid"
+          },
+          "priority": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MessagePriority"
+              }
+            ],
+            "description": "Priority level of the request in the message queue"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Response data for asynchronous queue operations"
       },
       "RatingAdjustmentDTO": {
         "required": [
