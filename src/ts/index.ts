@@ -2939,6 +2939,16 @@ export type MatchesDeleteRequestParams = {
 };
 
 /**
+ * Request parameters available for use when requesting {@link MatchesWrapper.prototype.getStatistics | api/v1/matches/[id]/statistics}
+ */
+export type MatchesGetStatisticsRequestParams = {
+  /**
+   * (required) Match id
+   */
+  id: number;
+};
+
+/**
  * Request parameters available for use when requesting {@link MatchesWrapper.prototype.merge | api/v1/matches/[id]:merge}
  */
 export type MatchesMergeRequestParams = {
@@ -3412,6 +3422,97 @@ export class MatchesWrapper extends OtrApiWrapperBase {
       );
     }
     return Promise.resolve<OtrApiResponse<void>>(
+      new OtrApiResponse(status, _headers, null as any)
+    );
+  }
+
+  /**
+   * Get match statistics including rating adjustments and player match stats
+   *
+   * Requires Authorization:
+   *
+   * Policy: ApiKey
+   * @param params Request parameters (see {@link MatchesGetStatisticsRequestParams})
+   * @return Returns match statistics
+   */
+  public getStatistics(
+    params: MatchesGetStatisticsRequestParams,
+    cancelToken?: CancelToken
+  ): Promise<OtrApiResponse<MatchStatisticsDTO>> {
+    const { id } = params;
+
+    let url_ = this.baseUrl + '/api/v1/matches/{id}/statistics';
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace('{id}', encodeURIComponent('' + id));
+    url_ = url_.replace(/[?&]$/, '');
+
+    let options_: AxiosRequestConfig = {
+      method: 'GET',
+      url: url_,
+      headers: {
+        Accept: 'text/plain',
+      },
+      cancelToken,
+      requiresAuthorization: true,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetStatistics(_response);
+      });
+  }
+
+  protected processGetStatistics(
+    response: AxiosResponse
+  ): Promise<OtrApiResponse<MatchStatisticsDTO>> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === 'object') {
+      for (const k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = JSON.parse(resultData404);
+      return throwException(
+        'A match matching the given id does not exist',
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = JSON.parse(resultData200);
+      return Promise.resolve<OtrApiResponse<MatchStatisticsDTO>>(
+        new OtrApiResponse<MatchStatisticsDTO>(status, _headers, result200)
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        'An unexpected server error occurred.',
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<OtrApiResponse<MatchStatisticsDTO>>(
       new OtrApiResponse(status, _headers, null as any)
     );
   }
@@ -7751,6 +7852,16 @@ export interface MatchSearchResultDTO {
   name: string;
   /** Name of the tournament */
   tournamentName: string;
+}
+
+/** Represents comprehensive statistics for a match including rating adjustments and player statistics */
+export interface MatchStatisticsDTO {
+  /** The match ID these statistics belong to */
+  matchId: number;
+  /** Collection of all rating adjustments for all players in the match */
+  ratingAdjustments: RatingAdjustmentDTO[];
+  /** Collection of all player match statistics for all players in the match */
+  playerMatchStats: PlayerMatchStatsDTO[];
 }
 
 /** Represents the status of a submitted match */

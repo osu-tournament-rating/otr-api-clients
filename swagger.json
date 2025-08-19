@@ -2626,6 +2626,79 @@
         "x-requiresAuthorization": true
       }
     },
+    "/api/v1/matches/{id}/statistics": {
+      "get": {
+        "tags": [
+          "Matches"
+        ],
+        "summary": "Get match statistics including rating adjustments and player match stats",
+        "description": "\n\nRequires Authorization:\n\nPolicy: ApiKey",
+        "operationId": "Matches_getStatistics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Match id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "A match matching the given id does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns match statistics",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchStatisticsDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchStatisticsDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchStatisticsDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          },
+          {
+            "ApiKey": [ ]
+          }
+        ],
+        "x-requiresAuthorization": true
+      }
+    },
     "/api/v1/matches/{id}:merge": {
       "post": {
         "tags": [
@@ -7127,6 +7200,37 @@
         },
         "additionalProperties": false,
         "description": "Represents a search result for a match"
+      },
+      "MatchStatisticsDTO": {
+        "required": [
+          "matchId",
+          "playerMatchStats",
+          "ratingAdjustments"
+        ],
+        "type": "object",
+        "properties": {
+          "matchId": {
+            "type": "integer",
+            "description": "The match ID these statistics belong to",
+            "format": "int32"
+          },
+          "ratingAdjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RatingAdjustmentDTO"
+            },
+            "description": "Collection of all rating adjustments for all players in the match"
+          },
+          "playerMatchStats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerMatchStatsDTO"
+            },
+            "description": "Collection of all player match statistics for all players in the match"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents comprehensive statistics for a match including rating adjustments and player statistics"
       },
       "MatchSubmissionStatusDTO": {
         "required": [
