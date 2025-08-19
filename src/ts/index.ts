@@ -7389,6 +7389,20 @@ export interface BeatmapAttributesDTO {
   sr: number;
 }
 
+/** Represents essential beatmap information without nested data */
+export interface BeatmapCompactDTO {
+  /** Id of the beatmap */
+  id: number;
+  /** osu! id of the beatmap */
+  osuId: number;
+  /** Name of the difficulty */
+  diffName?: string | undefined;
+  /** Star rating */
+  sr: number;
+  /** Beatmapset */
+  beatmapset?: BeatmapsetCompactDTO | undefined;
+}
+
 /** Represents a beatmap */
 export interface BeatmapDTO {
   /** Id of the beatmap */
@@ -7561,6 +7575,10 @@ export interface GameCompactDTO {
   startTime: Date;
   /** Timestamp of the end of the game */
   endTime?: Date | undefined;
+  /** The mods enabled for the game */
+  mods: Mods;
+  /** The beatmap played during the game */
+  beatmap?: BeatmapCompactDTO | undefined;
 }
 
 /** Represents a single game (osu! beatmap) played in a match */

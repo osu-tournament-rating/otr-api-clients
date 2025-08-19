@@ -5939,6 +5939,47 @@
         "additionalProperties": false,
         "description": "Represents a beatmap's attributes"
       },
+      "BeatmapCompactDTO": {
+        "required": [
+          "id",
+          "osuId",
+          "sr"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Id of the beatmap",
+            "format": "int32"
+          },
+          "osuId": {
+            "type": "integer",
+            "description": "osu! id of the beatmap",
+            "format": "int64"
+          },
+          "diffName": {
+            "type": "string",
+            "description": "Name of the difficulty",
+            "nullable": true
+          },
+          "sr": {
+            "type": "number",
+            "description": "Star rating",
+            "format": "double"
+          },
+          "beatmapset": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BeatmapsetCompactDTO"
+              }
+            ],
+            "description": "Beatmapset",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents essential beatmap information without nested data"
+      },
       "BeatmapDTO": {
         "required": [
           "ar",
@@ -6381,6 +6422,7 @@
       "GameCompactDTO": {
         "required": [
           "id",
+          "mods",
           "osuId",
           "rejectionReason",
           "ruleset",
@@ -6441,6 +6483,23 @@
             "type": "string",
             "description": "Timestamp of the end of the game",
             "format": "date-time",
+            "nullable": true
+          },
+          "mods": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Mods"
+              }
+            ],
+            "description": "The mods enabled for the game"
+          },
+          "beatmap": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BeatmapCompactDTO"
+              }
+            ],
+            "description": "The beatmap played during the game",
             "nullable": true
           }
         },
